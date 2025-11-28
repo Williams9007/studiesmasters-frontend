@@ -106,7 +106,8 @@ const handleSubmit = async (e) => {
       totalAmount,
     };
 
-    const res = await fetch("http://localhost:5000/api/students/register", {
+    const res = await fetch(  `https://studiesmasters-backend-2.onrender.com/api/subjects/by-package/${encodeURIComponent(pkgKey)}?grade=${encodeURIComponent(grade)}`
+, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
