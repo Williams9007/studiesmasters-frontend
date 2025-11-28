@@ -14,8 +14,8 @@ export function AuthForm() {
   const selectedCurriculum = (location.state?.curriculum || "GES").toUpperCase();
   const selectedPackage = (location.state?.packageName || "GES-EC").toUpperCase();
 
-  // ✅ Use your live backend URL here
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://studiesmasters-backend.onrender.com";
+  // ===================== Backend URL =====================
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://studiesmasters-backend-2.onrender.com";
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -27,8 +27,8 @@ export function AuthForm() {
   });
 
   const [subjects, setSubjects] = useState([]);
-  const [subjectsLoading, setSubjectsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [subjectsLoading, setSubjectsLoading] = useState(false);
   const [error, setError] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
 
@@ -50,7 +50,7 @@ export function AuthForm() {
 
   const gradesToShow = gradeOptionsByPackage[selectedPackage] || [];
 
-  // ===================== FETCH SUBJECTS =====================
+  // ===================== Fetch subjects =====================
   useEffect(() => {
     if (!formData.grade) return;
 
@@ -62,13 +62,19 @@ export function AuthForm() {
         const url = `${BACKEND_URL}/api/subjects/by-package/${selectedPackage}?grade=${encodeURIComponent(formData.grade)}`;
         const res = await fetch(url);
 
-        if (!res.ok) throw new Error("Failed to fetch subjects");
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text); // Try parsing JSON
+        } catch {
+          throw new Error("Backend did not return JSON. Check URL or server.");
+        }
 
-        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to fetch subjects");
         setSubjects(data);
       } catch (err) {
         console.error("Error fetching subjects:", err);
-        setError("Unable to load subjects.");
+        setError(err.message);
         setSubjects([]);
       } finally {
         setSubjectsLoading(false);
@@ -76,9 +82,9 @@ export function AuthForm() {
     };
 
     fetchSubjects();
-  }, [formData.grade, selectedPackage]);
+  }, [formData.grade, selectedPackage, BACKEND_URL]);
 
-  // ===================== CALCULATE TOTAL =====================
+  // ===================== Calculate total =====================
   useEffect(() => {
     const total = formData.subjects.reduce((sum, id) => {
       const s = subjects.find((x) => x._id === id);
@@ -87,7 +93,7 @@ export function AuthForm() {
     setTotalAmount(total);
   }, [formData.subjects, subjects]);
 
-  // ===================== HANDLE SUBMIT =====================
+  // ===================== Handle submit =====================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -107,22 +113,23 @@ export function AuthForm() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Signup failed: Backend did not return JSON");
+      }
+
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Prepare payment data
-      const selectedSubjects = subjects.filter((s) => formData.subjects.includes(s._id));
       navigate("/payment", {
         state: {
           user: data.user,
-          curriculum: selectedCurriculum,
-          package: selectedPackage,
-          grade: formData.grade,
-          subjects: selectedSubjects,
-          totalAmount,
-          role,
+          ...payload,
+          subjects: subjects.filter((s) => formData.subjects.includes(s._id)),
         },
       });
     } catch (err) {
@@ -140,9 +147,11 @@ export function AuthForm() {
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="absolute left-4 top-4">
             <ArrowLeft className="h-4 w-4" />
           </Button>
+
           <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
             <GraduationCap className="h-6 w-6 text-white" />
           </div>
+
           <CardTitle className="text-2xl mt-4 capitalize">{role} Signup</CardTitle>
           <CardDescription>Create your account to get started</CardDescription>
         </CardHeader>
@@ -175,12 +184,11 @@ export function AuthForm() {
               <Label>Select Subjects (2–3)</Label>
               {subjectsLoading ? (
                 <p className="text-sm">Loading subjects...</p>
-              ) : subjects.length === 0 ? (
-                <p className="text-sm">No subjects available for this grade.</p>
               ) : (
                 <select
                   multiple
                   required
+                  className="w-full border rounded-lg p-2"
                   value={formData.subjects}
                   onChange={(e) =>
                     setFormData({
@@ -188,7 +196,6 @@ export function AuthForm() {
                       subjects: Array.from(e.target.selectedOptions, (o) => o.value),
                     })
                   }
-                  className="w-full border rounded-lg p-2"
                 >
                   {subjects.map((s) => (
                     <option key={s._id} value={s._id}>
@@ -197,14 +204,11 @@ export function AuthForm() {
                   ))}
                 </select>
               )}
-              <p className="text-xs text-gray-500 mt-1">
-                Hold Ctrl (Windows) / Cmd (Mac) to select multiple
-              </p>
             </div>
 
             <div className="text-lg font-semibold">Total Amount: ¢{totalAmount}</div>
 
-            <Button type="submit" disabled={loading || subjectsLoading} className="w-full">
+            <Button type="submit" disabled={loading} className="w-full">
               {loading ? "Signing up..." : "Sign Up"}
             </Button>
           </form>
