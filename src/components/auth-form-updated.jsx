@@ -29,10 +29,10 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // Grades mapping
+  // ===================== GRADE OPTIONS =====================
   const curriculumGrades = {
     GES: ["Basic 4", "Basic 5", "Basic 6", "JHS 1", "JHS 2", "JHS 3", "SHS 1", "SHS 2", "SHS 3"],
-    CAMBRIDGE: ["Stage 4", "Stage 5", "Stage 6", "Stage 7", "Stage 8", "Stage 9", "Stage 10", "Stage 11", "Stage 12", "Stage 13"],
+    CAMBRIDGE: ["Stage 4","Stage 5","Stage 6","Stage 7","Stage 8","Stage 9","Stage 10","Stage 11","Stage 12","Stage 13"],
   };
 
   const gradeOptionsByPackage = {
@@ -46,38 +46,43 @@ export function AuthForm() {
     "CAMBRIDGE-OC": curriculumGrades.CAMBRIDGE,
   };
 
+  // ===================== PACKAGE KEY =====================
   const packageKey = (() => {
     const pkg = String(selectedPackage || "").toUpperCase();
     if (pkg.startsWith("CAM-")) return pkg.replace("CAM-", "CAMBRIDGE-");
-    return pkg;
+    if (pkg.startsWith("GES-")) return pkg;
+    if (pkg.startsWith("CAMBRIDGE-")) return pkg;
+    return `${selectedCurriculum}-${pkg}`;
   })();
 
-  // Fetch subjects from backend
-  const fetchSubjects = async (pkgKey, grade) => {
-    if (!pkgKey || !grade) return;
-    setSubjectsLoading(true);
-    try {
-      const res = await fetch(
-        `https://studiesmasters-backend-2.onrender.com/api/subjects/by-package/${encodeURIComponent(pkgKey)}?grade=${encodeURIComponent(grade)}`
-      );
-      if (!res.ok) throw new Error("No subjects found for this grade");
-      const data = await res.json();
-      setSubjects(data);
-    } catch (err) {
-      console.error("Error fetching subjects:", err);
-      setSubjects([]);
-      setError(err.message);
-    } finally {
-      setSubjectsLoading(false);
-    }
-  };
-
+  // ===================== FETCH SUBJECTS =====================
   useEffect(() => {
-    if (formData.grade) fetchSubjects(packageKey, formData.grade);
-    else setSubjects([]);
+    if (!formData.grade) {
+      setSubjects([]);
+      return;
+    }
+
+    const fetchSubjects = async () => {
+      setSubjectsLoading(true);
+      try {
+        const res = await fetch(
+          `https://studiesmasters-backend-2.onrender.com/api/subjects/by-package/${encodeURIComponent(packageKey)}?grade=${encodeURIComponent(formData.grade)}`
+        );
+        if (!res.ok) throw new Error("No subjects found");
+        const data = await res.json();
+        setSubjects(data);
+      } catch (err) {
+        console.error("Error fetching subjects:", err);
+        setSubjects([]);
+      } finally {
+        setSubjectsLoading(false);
+      }
+    };
+
+    fetchSubjects();
   }, [formData.grade, packageKey]);
 
-  // Calculate total amount
+  // ===================== CALCULATE TOTAL =====================
   useEffect(() => {
     const total = formData.subjects.reduce((sum, sId) => {
       const s = subjects.find((x) => x._id === sId);
@@ -86,7 +91,7 @@ export function AuthForm() {
     setTotalAmount(total);
   }, [formData.subjects, subjects]);
 
-  // Handle signup form submit
+  // ===================== HANDLE SUBMIT =====================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -100,7 +105,6 @@ export function AuthForm() {
         totalAmount,
       };
 
-      // Call your backend signup endpoint
       const res = await fetch(
         "https://studiesmasters-backend-2.onrender.com/api/auth/signup",
         {
@@ -113,10 +117,9 @@ export function AuthForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
-      // Save user locally
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Prepare payment data
+      // Navigate to payment page
       const selectedSubjectDetails = subjects.filter((s) => formData.subjects.includes(s._id));
       const paymentData = {
         user: data.user,
@@ -128,10 +131,9 @@ export function AuthForm() {
         totalAmount,
         duration: location.state?.duration || "Not specified",
       };
-
       localStorage.setItem("paymentData", JSON.stringify(paymentData));
-
       navigate("/payment", { state: paymentData });
+
     } catch (err) {
       console.error("Signup error:", err);
       setError(err.message);
@@ -140,6 +142,7 @@ export function AuthForm() {
     }
   };
 
+  // ===================== RENDER =====================
   const gradesToShow = gradeOptionsByPackage[packageKey] || curriculumGrades[selectedCurriculum] || [];
 
   return (
@@ -192,9 +195,7 @@ export function AuthForm() {
                 <select
                   multiple
                   value={formData.subjects}
-                  onChange={(e) =>
-                    setFormData({ ...formData, subjects: Array.from(e.target.selectedOptions, o => o.value) })
-                  }
+                  onChange={(e) => setFormData({ ...formData, subjects: Array.from(e.target.selectedOptions, o => o.value) })}
                   required
                   className="w-full border rounded-lg p-2"
                 >
@@ -205,7 +206,9 @@ export function AuthForm() {
                   ))}
                 </select>
               )}
-              <p className="text-xs text-gray-500 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple.</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Hold Ctrl (Windows) or Cmd (Mac) to select multiple.
+              </p>
             </div>
 
             <div className="text-lg font-semibold mt-2">Total Amount: ¢{totalAmount}</div>
