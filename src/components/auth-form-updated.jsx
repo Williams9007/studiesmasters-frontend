@@ -14,7 +14,6 @@ export function AuthForm() {
   const selectedCurriculum = (location.state?.curriculum || "GES").toUpperCase();
   const selectedPackage = (location.state?.packageName || "GES-EC").toUpperCase();
 
-  // ===================== Backend URL =====================
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://studiesmasters-backend-2.onrender.com";
 
   const [formData, setFormData] = useState({
@@ -27,8 +26,8 @@ export function AuthForm() {
   });
 
   const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [subjectsLoading, setSubjectsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
 
@@ -50,7 +49,7 @@ export function AuthForm() {
 
   const gradesToShow = gradeOptionsByPackage[selectedPackage] || [];
 
-  // ===================== Fetch subjects =====================
+  // ---------------- FETCH SUBJECTS ----------------
   useEffect(() => {
     if (!formData.grade) return;
 
@@ -59,22 +58,27 @@ export function AuthForm() {
       setError("");
 
       try {
-        const url = `${BACKEND_URL}/api/subjects/by-package/${selectedPackage}?grade=${encodeURIComponent(formData.grade)}`;
-        const res = await fetch(url);
+        const url = `${BACKEND_URL}/api/subjects/by-package/${encodeURIComponent(selectedPackage)}?grade=${encodeURIComponent(formData.grade)}`;
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
+        // If HTML is returned, something is wrong (like Render returned a 404 page)
         const text = await res.text();
-        let data;
         try {
-          data = JSON.parse(text); // Try parsing JSON
+          const data = JSON.parse(text);
+          if (!res.ok) throw new Error(data.message || "Failed to fetch subjects");
+          setSubjects(data);
         } catch {
-          throw new Error("Backend did not return JSON. Check URL or server.");
+          throw new Error("Backend did not return valid JSON. Check backend URL.");
         }
 
-        if (!res.ok) throw new Error(data.message || "Failed to fetch subjects");
-        setSubjects(data);
       } catch (err) {
         console.error("Error fetching subjects:", err);
-        setError(err.message);
+        setError(err.message || "Unable to fetch subjects.");
         setSubjects([]);
       } finally {
         setSubjectsLoading(false);
@@ -82,9 +86,9 @@ export function AuthForm() {
     };
 
     fetchSubjects();
-  }, [formData.grade, selectedPackage, BACKEND_URL]);
+  }, [formData.grade, selectedPackage]);
 
-  // ===================== Calculate total =====================
+  // ---------------- CALCULATE TOTAL ----------------
   useEffect(() => {
     const total = formData.subjects.reduce((sum, id) => {
       const s = subjects.find((x) => x._id === id);
@@ -93,7 +97,7 @@ export function AuthForm() {
     setTotalAmount(total);
   }, [formData.subjects, subjects]);
 
-  // ===================== Handle submit =====================
+  // ---------------- HANDLE SIGNUP ----------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -118,20 +122,22 @@ export function AuthForm() {
       try {
         data = JSON.parse(text);
       } catch {
-        throw new Error("Signup failed: Backend did not return JSON");
+        throw new Error("Backend did not return valid JSON. Check backend URL.");
       }
 
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      const selectedSubjects = subjects.filter((s) => formData.subjects.includes(s._id));
       navigate("/payment", {
         state: {
           user: data.user,
           ...payload,
-          subjects: subjects.filter((s) => formData.subjects.includes(s._id)),
+          subjects: selectedSubjects,
         },
       });
+
     } catch (err) {
       console.error("Signup error:", err);
       setError(err.message);
@@ -165,6 +171,7 @@ export function AuthForm() {
             <InputField label="Phone" value={formData.phone} onChange={(v) => setFormData({ ...formData, phone: v })} />
             <InputField label="Password" type="password" value={formData.password} onChange={(v) => setFormData({ ...formData, password: v })} />
 
+            {/* Grade */}
             <div>
               <Label>Grade / Level</Label>
               <select
@@ -180,6 +187,7 @@ export function AuthForm() {
               </select>
             </div>
 
+            {/* Subjects */}
             <div>
               <Label>Select Subjects (2–3)</Label>
               {subjectsLoading ? (
@@ -208,7 +216,7 @@ export function AuthForm() {
 
             <div className="text-lg font-semibold">Total Amount: ¢{totalAmount}</div>
 
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button type="submit" disabled={loading || subjectsLoading} className="w-full">
               {loading ? "Signing up..." : "Sign Up"}
             </Button>
           </form>
