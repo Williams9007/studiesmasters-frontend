@@ -32,10 +32,8 @@ export function AuthForm() {
   // ===================== GRADE OPTIONS =====================
   const curriculumGrades = {
     GES: ["Basic 4", "Basic 5", "Basic 6", "JHS 1", "JHS 2", "JHS 3", "SHS 1", "SHS 2", "SHS 3"],
-    CAMBRIDGE: [
-      "Stage 4", "Stage 5", "Stage 6", "Stage 7", "Stage 8", "Stage 9",
-      "Stage 10", "Stage 11", "Stage 12", "Stage 13",
-    ],
+    CAMBRIDGE: ["Stage 4", "Stage 5", "Stage 6", "Stage 7", "Stage 8", "Stage 9",
+                "Stage 10", "Stage 11", "Stage 12", "Stage 13"],
   };
 
   const gradeOptionsByPackage = {
@@ -49,7 +47,6 @@ export function AuthForm() {
     "CAMBRIDGE-OC": curriculumGrades.CAMBRIDGE,
   };
 
-  // ===================== PACKAGE KEY NORMALIZATION =====================
   const packageKey = (() => {
     const pkg = String(selectedPackage || "").toUpperCase();
     if (pkg.startsWith("CAM-")) return pkg.replace("CAM-", "CAMBRIDGE-");
@@ -93,64 +90,62 @@ export function AuthForm() {
   }, [formData.subjects, subjects]);
 
   // ===================== HANDLE SUBMIT =====================
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-  setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  try {
-    const payload = {
-      ...formData,
-      curriculum: selectedCurriculum,
-      package: packageKey,
-      totalAmount,
-    };
+    try {
+      const payload = {
+        ...formData,
+        curriculum: selectedCurriculum,
+        package: packageKey,
+        totalAmount,
+      };
 
-    const res = await fetch(  `https://studiesmasters-backend-2.onrender.com/api/subjects/by-package/${encodeURIComponent(pkgKey)}?grade=${encodeURIComponent(grade)}`
-, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      // ✅ POST to backend signup route
+      const res = await fetch(
+        `https://studiesmasters-backend-2.onrender.com/api/auth/signup`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Signup failed");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Signup failed");
 
-    // ✅ Save full user object including backend _id
-    localStorage.setItem("user", JSON.stringify(data.user));
+      // Save user in localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-    // --- Prepare subjects for payment summary ---
-    const selectedSubjectDetails = subjects.filter((s) =>
-      formData.subjects.includes(s._id)
-    );
+      // Prepare subjects for payment
+      const selectedSubjectDetails = subjects.filter((s) =>
+        formData.subjects.includes(s._id)
+      );
 
-    // --- Combine all payment data including studentId ---
-    const paymentData = {
-      user: data.user, // now includes _id
-      role,
-      curriculum: selectedCurriculum,
-      package: packageKey,
-      grade: formData.grade,
-      subjects: selectedSubjectDetails, // full subject info
-      totalAmount,
-      duration: location.state?.duration || "Not specified",
-    };
+      const paymentData = {
+        user: data.user,
+        role,
+        curriculum: selectedCurriculum,
+        package: packageKey,
+        grade: formData.grade,
+        subjects: selectedSubjectDetails,
+        totalAmount,
+        duration: location.state?.duration || "Not specified",
+      };
 
-    // ✅ Save backup in localStorage
-    localStorage.setItem("paymentData", JSON.stringify(paymentData));
+      localStorage.setItem("paymentData", JSON.stringify(paymentData));
 
-    // ✅ Navigate to payment page with studentId included
-    navigate("/payment", { state: paymentData });
+      navigate("/payment", { state: paymentData });
 
-  } catch (err) {
-    console.error("Signup error:", err);
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ===================== RENDER =====================
   const gradesToShow = gradeOptionsByPackage[packageKey] || curriculumGrades[selectedCurriculum] || [];
@@ -190,9 +185,7 @@ const handleSubmit = async (e) => {
               >
                 <option value="">Select Grade</option>
                 {gradesToShow.map((g, i) => (
-                  <option key={`${g}-${i}`} value={g}>
-                    {g}
-                  </option>
+                  <option key={`${g}-${i}`} value={g}>{g}</option>
                 ))}
               </select>
             </div>
@@ -207,22 +200,16 @@ const handleSubmit = async (e) => {
                 <select
                   multiple
                   value={formData.subjects}
-                  onChange={(e) =>
-                    setFormData({ ...formData, subjects: Array.from(e.target.selectedOptions, (o) => o.value) })
-                  }
+                  onChange={(e) => setFormData({ ...formData, subjects: Array.from(e.target.selectedOptions, o => o.value) })}
                   required
                   className="w-full border rounded-lg p-2"
                 >
                   {subjects.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name} — ¢{s.price}
-                    </option>
+                    <option key={s._id} value={s._id}>{s.name} — ¢{s.price}</option>
                   ))}
                 </select>
               )}
-              <p className="text-xs text-gray-500 mt-1">
-                Hold Ctrl (Windows) or Cmd (Mac) to select multiple.
-              </p>
+              <p className="text-xs text-gray-500 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple.</p>
             </div>
 
             <div className="text-lg font-semibold mt-2">Total Amount: ¢{totalAmount}</div>
