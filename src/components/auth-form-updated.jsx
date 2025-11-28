@@ -14,9 +14,8 @@ export function AuthForm() {
   const selectedCurriculum = (location.state?.curriculum || "GES").toUpperCase();
   const selectedPackage = (location.state?.packageName || "GES-EC").toUpperCase();
 
-  const BACKEND_URL =
-    import.meta.env.VITE_BACKEND_URL ||
-    "https://your-backend-url.onrender.com";
+  // ✅ Use your live backend URL here
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://studiesmasters-backend.onrender.com";
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -28,8 +27,8 @@ export function AuthForm() {
   });
 
   const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [subjectsLoading, setSubjectsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
 
@@ -51,7 +50,7 @@ export function AuthForm() {
 
   const gradesToShow = gradeOptionsByPackage[selectedPackage] || [];
 
-  // Fetch subjects based on grade
+  // ===================== FETCH SUBJECTS =====================
   useEffect(() => {
     if (!formData.grade) return;
 
@@ -68,6 +67,7 @@ export function AuthForm() {
         const data = await res.json();
         setSubjects(data);
       } catch (err) {
+        console.error("Error fetching subjects:", err);
         setError("Unable to load subjects.");
         setSubjects([]);
       } finally {
@@ -78,7 +78,7 @@ export function AuthForm() {
     fetchSubjects();
   }, [formData.grade, selectedPackage]);
 
-  // Calculate total
+  // ===================== CALCULATE TOTAL =====================
   useEffect(() => {
     const total = formData.subjects.reduce((sum, id) => {
       const s = subjects.find((x) => x._id === id);
@@ -87,7 +87,7 @@ export function AuthForm() {
     setTotalAmount(total);
   }, [formData.subjects, subjects]);
 
-  // Submit form
+  // ===================== HANDLE SUBMIT =====================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -112,14 +112,21 @@ export function AuthForm() {
 
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      // Prepare payment data
+      const selectedSubjects = subjects.filter((s) => formData.subjects.includes(s._id));
       navigate("/payment", {
         state: {
           user: data.user,
-          ...payload,
-          subjects: subjects.filter((s) => formData.subjects.includes(s._id)),
+          curriculum: selectedCurriculum,
+          package: selectedPackage,
+          grade: formData.grade,
+          subjects: selectedSubjects,
+          totalAmount,
+          role,
         },
       });
     } catch (err) {
+      console.error("Signup error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -133,11 +140,9 @@ export function AuthForm() {
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="absolute left-4 top-4">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-
           <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
             <GraduationCap className="h-6 w-6 text-white" />
           </div>
-
           <CardTitle className="text-2xl mt-4 capitalize">{role} Signup</CardTitle>
           <CardDescription>Create your account to get started</CardDescription>
         </CardHeader>
@@ -146,13 +151,11 @@ export function AuthForm() {
           {error && <p className="text-red-600 text-center text-sm">{error}</p>}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            
             <InputField label="Full Name" value={formData.fullName} onChange={(v) => setFormData({ ...formData, fullName: v })} />
             <InputField label="Email" type="email" value={formData.email} onChange={(v) => setFormData({ ...formData, email: v })} />
             <InputField label="Phone" value={formData.phone} onChange={(v) => setFormData({ ...formData, phone: v })} />
             <InputField label="Password" type="password" value={formData.password} onChange={(v) => setFormData({ ...formData, password: v })} />
 
-            {/* Grade */}
             <div>
               <Label>Grade / Level</Label>
               <select
@@ -168,16 +171,16 @@ export function AuthForm() {
               </select>
             </div>
 
-            {/* Subjects */}
             <div>
               <Label>Select Subjects (2–3)</Label>
               {subjectsLoading ? (
                 <p className="text-sm">Loading subjects...</p>
+              ) : subjects.length === 0 ? (
+                <p className="text-sm">No subjects available for this grade.</p>
               ) : (
                 <select
                   multiple
                   required
-                  className="w-full border rounded-lg p-2"
                   value={formData.subjects}
                   onChange={(e) =>
                     setFormData({
@@ -185,6 +188,7 @@ export function AuthForm() {
                       subjects: Array.from(e.target.selectedOptions, (o) => o.value),
                     })
                   }
+                  className="w-full border rounded-lg p-2"
                 >
                   {subjects.map((s) => (
                     <option key={s._id} value={s._id}>
@@ -193,11 +197,14 @@ export function AuthForm() {
                   ))}
                 </select>
               )}
+              <p className="text-xs text-gray-500 mt-1">
+                Hold Ctrl (Windows) / Cmd (Mac) to select multiple
+              </p>
             </div>
 
             <div className="text-lg font-semibold">Total Amount: ¢{totalAmount}</div>
 
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button type="submit" disabled={loading || subjectsLoading} className="w-full">
               {loading ? "Signing up..." : "Sign Up"}
             </Button>
           </form>
