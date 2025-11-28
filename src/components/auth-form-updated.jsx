@@ -29,9 +29,8 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // ===================== GRADE OPTIONS =====================
   const curriculumGrades = {
-    GES: ["Basic 4", "Basic 5", "Basic 6", "JHS 1", "JHS 2", "JHS 3", "SHS 1", "SHS 2", "SHS 3"],
+    GES: ["Basic 4","Basic 5","Basic 6","JHS 1","JHS 2","JHS 3","SHS 1","SHS 2","SHS 3"],
     CAMBRIDGE: ["Stage 4","Stage 5","Stage 6","Stage 7","Stage 8","Stage 9","Stage 10","Stage 11","Stage 12","Stage 13"],
   };
 
@@ -39,21 +38,14 @@ export function AuthForm() {
     "GES-EC": curriculumGrades.GES,
     "GES-WC": curriculumGrades.GES,
     "GES-EPC": ["BECE", "WASSCE", "NOVDEC"],
-    "GES-VC": ["SHS 1", "SHS 2", "SHS 3"],
-    "GES-SC": ["Basic 4", "Basic 5", "Basic 6", "JHS 1", "JHS 2", "JHS 3"],
+    "GES-VC": ["SHS 1","SHS 2","SHS 3"],
+    "GES-SC": ["Basic 4","Basic 5","Basic 6","JHS 1","JHS 2","JHS 3"],
     "CAMBRIDGE-EC": curriculumGrades.CAMBRIDGE,
     "CAMBRIDGE-WC": curriculumGrades.CAMBRIDGE,
     "CAMBRIDGE-OC": curriculumGrades.CAMBRIDGE,
   };
 
-  // ===================== PACKAGE KEY =====================
-  const packageKey = (() => {
-    const pkg = String(selectedPackage || "").toUpperCase();
-    if (pkg.startsWith("CAM-")) return pkg.replace("CAM-", "CAMBRIDGE-");
-    if (pkg.startsWith("GES-")) return pkg;
-    if (pkg.startsWith("CAMBRIDGE-")) return pkg;
-    return `${selectedCurriculum}-${pkg}`;
-  })();
+  const packageKey = selectedPackage.toUpperCase().replace(/^CAM-/, "CAMBRIDGE-");
 
   // ===================== FETCH SUBJECTS =====================
   useEffect(() => {
@@ -65,14 +57,19 @@ export function AuthForm() {
     const fetchSubjects = async () => {
       setSubjectsLoading(true);
       try {
-        const res = await fetch(
-          `https://studiesmasters-backend-2.onrender.com/api/subjects/by-package/${encodeURIComponent(packageKey)}?grade=${encodeURIComponent(formData.grade)}`
-        );
-        if (!res.ok) throw new Error("No subjects found");
+        // Construct URL properly
+        const gradeEncoded = encodeURIComponent(formData.grade);
+        const packageEncoded = encodeURIComponent(packageKey);
+        const url = `https://studiesmasters-backend-2.onrender.com/api/subjects/by-package/${packageEncoded}?grade=${gradeEncoded}`;
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Failed to fetch subjects: ${res.status}`);
+
         const data = await res.json();
         setSubjects(data);
       } catch (err) {
         console.error("Error fetching subjects:", err);
+        setError("Unable to fetch subjects. Try again later.");
         setSubjects([]);
       } finally {
         setSubjectsLoading(false);
@@ -105,21 +102,17 @@ export function AuthForm() {
         totalAmount,
       };
 
-      const res = await fetch(
-        "https://studiesmasters-backend-2.onrender.com/api/auth/signup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const res = await fetch("https://studiesmasters-backend-2.onrender.com/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Navigate to payment page
       const selectedSubjectDetails = subjects.filter((s) => formData.subjects.includes(s._id));
       const paymentData = {
         user: data.user,
@@ -142,7 +135,6 @@ export function AuthForm() {
     }
   };
 
-  // ===================== RENDER =====================
   const gradesToShow = gradeOptionsByPackage[packageKey] || curriculumGrades[selectedCurriculum] || [];
 
   return (
