@@ -29,11 +29,10 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // ===================== GRADE OPTIONS =====================
+  // Grades mapping
   const curriculumGrades = {
     GES: ["Basic 4", "Basic 5", "Basic 6", "JHS 1", "JHS 2", "JHS 3", "SHS 1", "SHS 2", "SHS 3"],
-    CAMBRIDGE: ["Stage 4", "Stage 5", "Stage 6", "Stage 7", "Stage 8", "Stage 9",
-                "Stage 10", "Stage 11", "Stage 12", "Stage 13"],
+    CAMBRIDGE: ["Stage 4", "Stage 5", "Stage 6", "Stage 7", "Stage 8", "Stage 9", "Stage 10", "Stage 11", "Stage 12", "Stage 13"],
   };
 
   const gradeOptionsByPackage = {
@@ -50,12 +49,10 @@ export function AuthForm() {
   const packageKey = (() => {
     const pkg = String(selectedPackage || "").toUpperCase();
     if (pkg.startsWith("CAM-")) return pkg.replace("CAM-", "CAMBRIDGE-");
-    if (pkg.startsWith("GES-")) return pkg;
-    if (pkg.startsWith("CAMBRIDGE-")) return pkg;
-    return `${selectedCurriculum}-${pkg}`;
+    return pkg;
   })();
 
-  // ===================== FETCH SUBJECTS =====================
+  // Fetch subjects from backend
   const fetchSubjects = async (pkgKey, grade) => {
     if (!pkgKey || !grade) return;
     setSubjectsLoading(true);
@@ -80,7 +77,7 @@ export function AuthForm() {
     else setSubjects([]);
   }, [formData.grade, packageKey]);
 
-  // ===================== CALCULATE TOTAL =====================
+  // Calculate total amount
   useEffect(() => {
     const total = formData.subjects.reduce((sum, sId) => {
       const s = subjects.find((x) => x._id === sId);
@@ -89,7 +86,7 @@ export function AuthForm() {
     setTotalAmount(total);
   }, [formData.subjects, subjects]);
 
-  // ===================== HANDLE SUBMIT =====================
+  // Handle signup form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -103,9 +100,9 @@ export function AuthForm() {
         totalAmount,
       };
 
-      // ✅ POST to backend signup route
+      // Call your backend signup endpoint
       const res = await fetch(
-        `https://studiesmasters-backend-2.onrender.com/api/auth/signup`,
+        "https://studiesmasters-backend-2.onrender.com/api/auth/signup",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -116,14 +113,11 @@ export function AuthForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
-      // Save user in localStorage
+      // Save user locally
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Prepare subjects for payment
-      const selectedSubjectDetails = subjects.filter((s) =>
-        formData.subjects.includes(s._id)
-      );
-
+      // Prepare payment data
+      const selectedSubjectDetails = subjects.filter((s) => formData.subjects.includes(s._id));
       const paymentData = {
         user: data.user,
         role,
@@ -138,7 +132,6 @@ export function AuthForm() {
       localStorage.setItem("paymentData", JSON.stringify(paymentData));
 
       navigate("/payment", { state: paymentData });
-
     } catch (err) {
       console.error("Signup error:", err);
       setError(err.message);
@@ -147,7 +140,6 @@ export function AuthForm() {
     }
   };
 
-  // ===================== RENDER =====================
   const gradesToShow = gradeOptionsByPackage[packageKey] || curriculumGrades[selectedCurriculum] || [];
 
   return (
@@ -200,12 +192,16 @@ export function AuthForm() {
                 <select
                   multiple
                   value={formData.subjects}
-                  onChange={(e) => setFormData({ ...formData, subjects: Array.from(e.target.selectedOptions, o => o.value) })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, subjects: Array.from(e.target.selectedOptions, o => o.value) })
+                  }
                   required
                   className="w-full border rounded-lg p-2"
                 >
                   {subjects.map((s) => (
-                    <option key={s._id} value={s._id}>{s.name} — ¢{s.price}</option>
+                    <option key={s._id} value={s._id}>
+                      {s.name} — ¢{s.price}
+                    </option>
                   ))}
                 </select>
               )}
