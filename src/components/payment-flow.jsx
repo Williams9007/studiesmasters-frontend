@@ -57,17 +57,17 @@ const PaymentFlow = () => {
 
     try {
       const formData = new FormData();
-      formData.append("studentId", studentId);
-      formData.append("studentName", fullName);
-      formData.append("curriculum", curriculum);
-      formData.append("package", packageName);
-      formData.append("grade", grade);
-      formData.append("subjects", subjectList.join(","));
-      formData.append("amount", totalAmount);
-      formData.append("duration", duration);
-      formData.append("referenceName", `${fullName}-${Date.now()}`);
-      formData.append("transactionDate", new Date().toISOString());
-      formData.append("screenshot", file); // matches multer field name
+     formData.append("studentId", studentId);
+formData.append("studentName", fullName);
+formData.append("curriculum", curriculum);
+formData.append("package", packageName); // keep this name as "package"
+formData.append("grade", grade);
+formData.append("subjects", subjectList.join(",")); // must not be empty
+formData.append("amount", totalAmount || 0); // ensure non-empty
+formData.append("duration", duration || "3 months"); // ensure non-empty
+formData.append("referenceName", `${fullName}-${Date.now()}`);
+formData.append("transactionDate", new Date().toISOString());
+formData.append("screenshot", file); // file uploade
 
       const res = await fetch(`${BASE_URL}/api/payments/submit`, {
         method: "POST",
