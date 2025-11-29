@@ -34,50 +34,54 @@ function QaoDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [newMessage, setNewMessage] = useState({
-    receiver: "",
-    subject: "",
-    message: "",
-  });
+  const [newMessage, setNewMessage] = useState({ receiver: "", subject: "", message: "" });
   const [sending, setSending] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
 
   const token = localStorage.getItem("qaoToken");
   const config = { headers: { Authorization: `Bearer ${token}` } };
 
-  // Redirect if not authenticated
+  // Redirect unauthenticated users
   useEffect(() => {
     if (!token) navigate("/qao/access");
   }, [token, navigate]);
 
+  // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
+      setLoading(true);
       try {
-        const [resTeachers, resResources, resKpis, resMessages, resNotifs] =
-          await Promise.all([
-            axios.get(`${BASE_URL}/api/qao/teachers`, config),
-            axios.get(`${BASE_URL}/api/qao/resources`, config),
-            axios.get(`${BASE_URL}/api/qao/kpis`, config),
-            axios.get(`${BASE_URL}/api/qao/inbox`, config),
-            axios.get(`${BASE_URL}/api/qao/notifications`, config),
-          ]);
+        const [
+          resTeachers,
+          resResources,
+          resKpis,
+          resMessages,
+          resNotifs,
+        ] = await Promise.all([
+          axios.get(`${BASE_URL}/api/qao/teachers`, config),
+          axios.get(`${BASE_URL}/api/qao/resources`, config),
+          axios.get(`${BASE_URL}/api/qao/kpis`, config),
+          axios.get(`${BASE_URL}/api/qao/inbox`, config),
+          axios.get(`${BASE_URL}/api/qao/notifications`, config),
+        ]);
 
-        setTeachers(resTeachers.data.teachers || []);
-        setResources(resResources.data || []);
-        setKpis(resKpis.data || []);
-        setMessages(resMessages.data.messages || []);
-        setNotifications(resNotifs.data || []);
+        setTeachers(Array.isArray(resTeachers.data?.teachers) ? resTeachers.data.teachers : []);
+        setResources(Array.isArray(resResources.data?.resources) ? resResources.data.resources : []);
+        setKpis(Array.isArray(resKpis.data?.kpis) ? resKpis.data.kpis : []);
+        setMessages(Array.isArray(resMessages.data?.messages) ? resMessages.data.messages : []);
+        setNotifications(Array.isArray(resNotifs.data?.notifications) ? resNotifs.data.notifications : []);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
-        setError("Failed to load dashboard data");
+        setError("Failed to load dashboard data. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [config]);
 
+  // Send a message
   const handleSendMessage = async () => {
     if (!newMessage.receiver || !newMessage.subject || !newMessage.message) {
       alert("Please fill in all fields.");
@@ -93,8 +97,9 @@ function QaoDashboard() {
       );
       alert("Message sent successfully!");
       setNewMessage({ receiver: "", subject: "", message: "" });
+
       const res = await axios.get(`${BASE_URL}/api/qao/inbox`, config);
-      setMessages(res.data.messages || []);
+      setMessages(Array.isArray(res.data?.messages) ? res.data.messages : []);
     } catch (err) {
       console.error("Send message error:", err);
       alert("Failed to send message.");
@@ -103,32 +108,32 @@ function QaoDashboard() {
     }
   };
 
+  // Logout
   const handleLogout = () => {
     localStorage.removeItem("qaoToken");
     navigate("/qao/access");
   };
 
+  // Approve resource
   const handleApproval = async (id, approved) => {
     try {
       await axios.put(`${BASE_URL}/api/qao/resources/${id}`, { approved }, config);
-      setResources((prev) =>
-        prev.map((r) => (r._id === id ? { ...r, approved } : r))
-      );
+      setResources((prev) => prev.map((r) => (r._id === id ? { ...r, approved } : r)));
     } catch (err) {
       console.error("Approval error:", err);
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading QAO Dashboard...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  if (loading)
+    return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading QAO Dashboard...</div>;
+  if (error)
+    return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Quality Assurance Officer Dashboard
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-800">Quality Assurance Officer Dashboard</h1>
         <div className="flex items-center space-x-3 relative">
           <Button variant="ghost" onClick={() => setShowNotifs(!showNotifs)} className="relative">
             <Bell className="w-5 h-5 text-gray-600" />
@@ -140,9 +145,9 @@ function QaoDashboard() {
           </Button>
           {showNotifs && (
             <div className="absolute right-0 mt-10 bg-white border rounded-lg shadow-md w-64 max-h-64 overflow-y-auto z-10">
-              {notifications.length > 0 ? notifications.map((n) => (
-                <div key={n._id} className="px-3 py-2 border-b text-sm">{n.message}</div>
-              )) : <p className="text-gray-500 p-3 text-sm">No notifications</p>}
+              {notifications.length > 0
+                ? notifications.map((n) => <div key={n._id} className="px-3 py-2 border-b text-sm">{n.message}</div>)
+                : <p className="text-gray-500 p-3 text-sm">No notifications</p>}
             </div>
           )}
           <Button onClick={handleLogout} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center gap-2">
@@ -164,33 +169,38 @@ function QaoDashboard() {
         {/* Overview */}
         <TabsContent value="overview">
           <motion.div className="grid md:grid-cols-3 gap-4" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <CardSection title="Teachers" icon={<Users className="w-5 h-5" />} value={teachers.length} description="Total registered teachers" color="purple-600" />
-            <CardSection title="Resources" icon={<FileCheck className="w-5 h-5" />} value={resources.length} description="Uploaded lesson notes & timetables" color="pink-600" />
-            <CardSection title="KPIs" icon={<BarChart3 className="w-5 h-5" />} value={kpis.length} description="Performance metrics logged" color="indigo-600" />
+            <CardSection title="Teachers" icon={<Users />} value={teachers.length} description="Total registered teachers" color="purple-600" />
+            <CardSection title="Resources" icon={<FileCheck />} value={resources.length} description="Uploaded lesson notes & timetables" color="pink-600" />
+            <CardSection title="KPIs" icon={<BarChart3 />} value={kpis.length} description="Performance metrics logged" color="indigo-600" />
           </motion.div>
         </TabsContent>
 
-        {/* Teachers Tab */}
+        {/* Teachers */}
         <TabsContent value="teachers">
-          <DataCard title="Teachers" icon={<Users className="w-5 h-5" />} data={teachers.map(t => ({ label: t.fullName, sub: t.email }))} />
+          <DataCard title="Teachers" icon={<Users />} data={teachers.map((t) => ({ label: t.fullName || "N/A", sub: t.email || "" }))} />
         </TabsContent>
 
-        {/* Resources Tab */}
+        {/* Resources */}
         <TabsContent value="resources">
-          <DataCard title="Resources" icon={<FileCheck className="w-5 h-5" />} data={resources.map(r => ({
-            label: r.title,
-            sub: r.teacher?.fullName,
-            action: !r.approved ? () => handleApproval(r._id, true) : null,
-            approved: r.approved
-          }))} isResource />
+          <DataCard
+            title="Resources"
+            icon={<FileCheck />}
+            data={resources.map((r) => ({
+              label: r.title || "Untitled",
+              sub: r.teacher?.fullName || "Unknown",
+              action: !r.approved ? () => handleApproval(r._id, true) : null,
+              approved: r.approved,
+            }))}
+            isResource
+          />
         </TabsContent>
 
-        {/* KPIs Tab */}
+        {/* KPIs */}
         <TabsContent value="kpis">
-          <DataCard title="KPIs" icon={<BarChart3 className="w-5 h-5" />} data={kpis.map(k => ({ label: k.metric, sub: k.value }))} />
+          <DataCard title="KPIs" icon={<BarChart3 />} data={kpis.map((k) => ({ label: k.metric || "N/A", sub: k.value || "N/A" }))} />
         </TabsContent>
 
-        {/* Messages Tab */}
+        {/* Messages */}
         <TabsContent value="messages">
           <MessageCard
             teachers={teachers}
@@ -206,7 +216,7 @@ function QaoDashboard() {
   );
 }
 
-// --- Reusable small components ---
+// --- Reusable components ---
 const CardSection = ({ title, icon, value, description, color }) => (
   <Card className="shadow-lg">
     <CardHeader>
@@ -222,22 +232,24 @@ const CardSection = ({ title, icon, value, description, color }) => (
 const DataCard = ({ title, icon, data, isResource }) => (
   <Card className="shadow-lg">
     <CardHeader>
-      <CardTitle className="flex items-center gap-2 text-gray-700">{icon} {title}</CardTitle>
+      <CardTitle className="flex items-center gap-2">{icon} {title}</CardTitle>
     </CardHeader>
     <CardContent className="space-y-3">
-      {data.length ? data.map((item, i) => (
-        <div key={i} className="flex justify-between items-center border-b py-2">
-          <div>
-            <p className="font-medium">{item.label}</p>
-            {item.sub && <p className="text-sm text-gray-600">{item.sub}</p>}
+      {Array.isArray(data) && data.length
+        ? data.map((item, i) => (
+          <div key={i} className="flex justify-between items-center border-b py-2">
+            <div>
+              <p className="font-medium">{item.label}</p>
+              {item.sub && <p className="text-sm text-gray-600">{item.sub}</p>}
+            </div>
+            {isResource && item.action ? (
+              <Button size="sm" onClick={item.action} className="bg-purple-500 text-white">Approve</Button>
+            ) : isResource && item.approved ? (
+              <span className="text-green-600 text-sm font-medium">Approved</span>
+            ) : null}
           </div>
-          {isResource && item.action ? (
-            <Button size="sm" onClick={item.action} className="bg-purple-500 text-white">Approve</Button>
-          ) : isResource && item.approved ? (
-            <span className="text-green-600 text-sm font-medium">Approved</span>
-          ) : null}
-        </div>
-      )) : <p className="text-gray-500">No data available</p>}
+        )) : <p className="text-gray-500">No data available</p>
+      }
     </CardContent>
   </Card>
 );
@@ -245,7 +257,7 @@ const DataCard = ({ title, icon, data, isResource }) => (
 const MessageCard = ({ teachers, messages, newMessage, setNewMessage, sending, onSend }) => (
   <Card className="shadow-lg">
     <CardHeader>
-      <CardTitle className="flex items-center gap-2 text-purple-600"><MessageSquare className="w-5 h-5" /> Messages</CardTitle>
+      <CardTitle className="flex items-center gap-2 text-purple-600"><MessageSquare /> Messages</CardTitle>
     </CardHeader>
     <CardContent className="space-y-4">
       {/* Send Message */}
@@ -257,7 +269,7 @@ const MessageCard = ({ teachers, messages, newMessage, setNewMessage, sending, o
           className="border rounded-md w-full p-2 mb-2"
         >
           <option value="">Select Teacher</option>
-          {teachers.map((t) => <option key={t._id} value={t._id}>{t.fullName}</option>)}
+          {Array.isArray(teachers) && teachers.map((t) => <option key={t._id} value={t._id}>{t.fullName}</option>)}
         </select>
         <input
           type="text"
@@ -281,12 +293,15 @@ const MessageCard = ({ teachers, messages, newMessage, setNewMessage, sending, o
       {/* Inbox */}
       <div>
         <h3 className="font-semibold text-gray-800 mt-6 mb-2">Inbox</h3>
-        {messages.length > 0 ? messages.map((m) => (
-          <div key={m._id} className="border-b py-2">
-            <p className="font-medium">{m.subject}</p>
-            <p className="text-sm text-gray-600">{m.message}</p>
-          </div>
-        )) : <p className="text-sm text-gray-600">No messages yet.</p>}
+        {Array.isArray(messages) && messages.length > 0
+          ? messages.map((m) => (
+            <div key={m._id} className="border-b py-2">
+              <p className="font-medium">{m.subject}</p>
+              <p className="text-sm text-gray-600">{m.message}</p>
+            </div>
+          ))
+          : <p className="text-sm text-gray-600">No messages yet.</p>
+        }
       </div>
     </CardContent>
   </Card>
