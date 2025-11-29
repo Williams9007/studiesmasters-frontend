@@ -20,42 +20,35 @@ function QaoAccess() {
     setError("");
 
     if (!qaoCode.trim()) {
-      setError("Please enter your QAO access code");
+      setError("⚠️ Please enter your QAO access code.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await axios.post(`${BASE_URL}/api/qao/access`, { qaoCode });
+      const res = await axios.post(`${BASE_URL}/api/qao/access`, { qaoCode });
 
-      // Check if backend returns token and success
-      if (response.data && response.data.success && response.data.token) {
-        // store token in localStorage
-        localStorage.setItem("qaoToken", response.data.token);
-
-        // optional: store user info if provided
-        if (response.data.user) {
-          localStorage.setItem("qaoUser", JSON.stringify(response.data.user));
-        }
-
-        navigate("/qao/dashboard"); // redirect to dashboard
+      if (res.data.success) {
+        localStorage.setItem("qaoToken", res.data.token);
+        localStorage.setItem("qaoUser", JSON.stringify(res.data.user));
+        navigate("/qao/dashboard");
       } else {
-        setError(response.data.message || "Access denied. Invalid code.");
+        setError(res.data.message || "Access denied. Please check your code.");
       }
     } catch (err) {
       console.error("QAO access error:", err);
 
-      // Better error detection
+      // Handle different error scenarios
       if (err.response) {
-        // backend responded with a status outside 2xx
-        setError(err.response.data?.message || `Server error: ${err.response.status}`);
+        // Server responded with a status outside 2xx
+        setError(err.response.data.message || "Server error. Please try again.");
       } else if (err.request) {
-        // request was made but no response
-        setError("No response from server. Check your network.");
+        // Request was made but no response
+        setError("Network error. Please check your internet connection.");
       } else {
-        // something else
-        setError(err.message || "Unknown error occurred.");
+        // Something else went wrong
+        setError("Unexpected error occurred. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -85,7 +78,9 @@ function QaoAccess() {
           />
         </div>
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && (
+          <p className="text-red-600 text-sm text-center">{error}</p>
+        )}
 
         <Button
           type="submit"
