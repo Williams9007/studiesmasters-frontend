@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { BookOpen, User, Bell, CheckCircle, Send, LogOut, Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const BASE_URL = "https://studiesmasters-backend-2.onrender.com";
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
 
 export function TeacherDashboard({ user = {}, onLogout }) {
   const navigate = useNavigate();
