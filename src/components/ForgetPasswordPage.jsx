@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "./ui/select";
 
-const BASE_URL = "https://studiesmasters-backend-2.onrender.com";
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
 
 export default function ForgetPasswordPage() {
   const navigate = useNavigate();
