@@ -13,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
 import { User, BookOpen, Bell, Upload } from "lucide-react";
 
-const BASE_URL = "https://studiesmasters-backend-2.onrender.com";
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
 
 export function StudentDashboard({ user = {} }) {
   const [studentData, setStudentData] = useState({});
