@@ -26,7 +26,7 @@ export default function AdminLogin() {
 
     try {
       const { email, password } = formData; // ignore adminCode for now
-      const res = await axios.post("http://localhost:5000/api/admin/login", { email, password });
+      const res = await axios.post("https://studiesmasters-backend.onrender.com", { email, password });
 
       const { token, admin } = res.data;
 
