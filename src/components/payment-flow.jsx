@@ -7,8 +7,9 @@ const PaymentFlow = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Get data from location.state or localStorage fallback
-  const paymentData = location.state || JSON.parse(localStorage.getItem("paymentData")) || {};
+  // Get payment data from state or localStorage fallback
+  const paymentData =
+    location.state || JSON.parse(localStorage.getItem("paymentData")) || {};
 
   const {
     user = {},
@@ -22,7 +23,7 @@ const PaymentFlow = () => {
 
   const { _id: studentId = "", fullName = "", email = "", phone = "" } = user;
 
-  // Convert subjects to display names
+  // Convert subjects array to display names
   const subjectList = Array.isArray(subjects)
     ? subjects.map((s) => (typeof s === "string" ? s : s.name || s.subjectName || ""))
     : [];
@@ -33,18 +34,18 @@ const PaymentFlow = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Persist data in case of refresh
+    // Persist data in case of page refresh
     localStorage.setItem("paymentData", JSON.stringify(paymentData));
   }, [paymentData]);
 
-  // Handle file selection
+  // File selection handler
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
     if (selectedFile) setPreview(URL.createObjectURL(selectedFile));
   };
 
-  // Handle payment submission
+  // Submit payment to backend
   const handleFileUpload = async () => {
     if (!file) {
       setUploadMessage("⚠️ Please upload your payment screenshot first.");
@@ -66,21 +67,17 @@ const PaymentFlow = () => {
       formData.append("duration", duration);
       formData.append("referenceName", `${fullName}-${Date.now()}`);
       formData.append("transactionDate", new Date().toISOString());
-      formData.append("screenshot", file);
+      formData.append("screenshot", file); // matches multer field name
 
       const res = await fetch(`${BASE_URL}/api/payments/submit`, {
         method: "POST",
         body: formData,
       });
 
-      // Check if response is JSON
-      const text = await res.text();
-      let result;
-      try {
-        result = JSON.parse(text);
-      } catch {
+      // Parse response safely
+      const result = await res.json().catch(() => {
         throw new Error("Unexpected server response. Please try again.");
-      }
+      });
 
       if (!res.ok) throw new Error(result.message || "Payment submission failed");
 
@@ -106,7 +103,9 @@ const PaymentFlow = () => {
 
       {/* Student Details */}
       <div className="bg-gray-100 p-3 sm:p-4 rounded-lg mb-5">
-        <h3 className="font-semibold text-base sm:text-lg mb-2 border-b pb-1">Student Details</h3>
+        <h3 className="font-semibold text-base sm:text-lg mb-2 border-b pb-1">
+          Student Details
+        </h3>
         <div className="space-y-1 text-sm sm:text-base">
           <p><strong>Full Name:</strong> {fullName}</p>
           <p><strong>Phone:</strong> {phone}</p>
@@ -163,7 +162,7 @@ const PaymentFlow = () => {
         {loading ? "Uploading..." : "Upload & Continue"}
       </button>
 
-      {/* Upload message */}
+      {/* Upload Message */}
       {uploadMessage && (
         <p className="text-center mt-3 font-semibold text-sm text-gray-700">{uploadMessage}</p>
       )}
