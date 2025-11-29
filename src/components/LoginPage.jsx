@@ -26,7 +26,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Determine backend endpoint based on role
       const endpoint =
         role === "teacher"
           ? `${BASE_URL}/api/teachers/login`
@@ -46,15 +45,13 @@ export default function LoginPage() {
         return;
       }
 
-      // Teacher login
       if (role === "teacher") {
         const teacher = data.user;
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", teacher._id);
         localStorage.setItem("role", "teacher");
 
-        alert("Teacher login successful!");
-        navigate(`/teacher/dashboard/${teacher._id}`);
+        navigate(`/teacher/dashboard`);
         return;
       }
 
@@ -64,8 +61,7 @@ export default function LoginPage() {
       localStorage.setItem("userId", student._id);
       localStorage.setItem("role", "student");
 
-      alert("Student login successful!");
-      navigate(`/student/dashboard/${student._id}`);
+      navigate("/student/dashboard"); // ✅ Use route without ID
     } catch (err) {
       console.error("Login error:", err);
       alert("Something went wrong. Please try again.");
@@ -90,7 +86,6 @@ export default function LoginPage() {
 
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
-            {/* Role Selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Login as
@@ -106,7 +101,6 @@ export default function LoginPage() {
               </Select>
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -121,7 +115,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
@@ -142,7 +135,6 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Login Button */}
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-2 rounded-lg shadow-md hover:opacity-90 transition"
