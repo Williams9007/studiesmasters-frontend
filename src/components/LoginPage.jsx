@@ -69,7 +69,7 @@ export default function LoginPage() {
         localStorage.setItem("userId", data.data._id);
 
         alert("Student login successful!");
-        navigate("/student/dashboard");
+        navigate("navigate(`/student/dashboard/${data.data._id}`);");
       } else {
         alert(data.message || "Student login failed.");
       }
