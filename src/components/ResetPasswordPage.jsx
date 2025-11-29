@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
-const BASE_URL = "https://studiesmasters-backend-2.onrender.com";
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
 
 export default function ResetPasswordPage() {
   const { token } = useParams();
