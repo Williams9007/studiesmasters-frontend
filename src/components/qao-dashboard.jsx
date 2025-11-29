@@ -23,7 +23,7 @@ import {
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "https://studiesmasters-backend-2.onrender.com";
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
 
 function QaoDashboard() {
   const navigate = useNavigate();
