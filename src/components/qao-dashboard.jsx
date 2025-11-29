@@ -41,13 +41,17 @@ function QaoDashboard() {
   const token = localStorage.getItem("qaoToken");
   const config = { headers: { Authorization: `Bearer ${token}` } };
 
-  // Redirect unauthenticated users
+  // Redirect only once if token missing
   useEffect(() => {
-    if (!token) navigate("/qao/access");
+    if (!token) {
+      navigate("/qao/access");
+    }
   }, [token, navigate]);
 
-  // Fetch dashboard data
+  // Fetch dashboard data only if token exists
   useEffect(() => {
+    if (!token) return;
+
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
@@ -72,22 +76,20 @@ function QaoDashboard() {
         setNotifications(Array.isArray(resNotifs.data?.notifications) ? resNotifs.data.notifications : []);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
-        setError("Failed to load dashboard data. Please try again later.");
+        setError("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [config]);
+  }, [token]);
 
-  // Send a message
   const handleSendMessage = async () => {
     if (!newMessage.receiver || !newMessage.subject || !newMessage.message) {
       alert("Please fill in all fields.");
       return;
     }
-
     setSending(true);
     try {
       await axios.post(
@@ -97,7 +99,6 @@ function QaoDashboard() {
       );
       alert("Message sent successfully!");
       setNewMessage({ receiver: "", subject: "", message: "" });
-
       const res = await axios.get(`${BASE_URL}/api/qao/inbox`, config);
       setMessages(Array.isArray(res.data?.messages) ? res.data.messages : []);
     } catch (err) {
@@ -108,13 +109,11 @@ function QaoDashboard() {
     }
   };
 
-  // Logout
   const handleLogout = () => {
     localStorage.removeItem("qaoToken");
     navigate("/qao/access");
   };
 
-  // Approve resource
   const handleApproval = async (id, approved) => {
     try {
       await axios.put(`${BASE_URL}/api/qao/resources/${id}`, { approved }, config);
@@ -124,10 +123,8 @@ function QaoDashboard() {
     }
   };
 
-  if (loading)
-    return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading QAO Dashboard...</div>;
-  if (error)
-    return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading QAO Dashboard...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6">
@@ -216,7 +213,7 @@ function QaoDashboard() {
   );
 }
 
-// --- Reusable components ---
+// --- Components ---
 const CardSection = ({ title, icon, value, description, color }) => (
   <Card className="shadow-lg">
     <CardHeader>
@@ -260,7 +257,6 @@ const MessageCard = ({ teachers, messages, newMessage, setNewMessage, sending, o
       <CardTitle className="flex items-center gap-2 text-purple-600"><MessageSquare /> Messages</CardTitle>
     </CardHeader>
     <CardContent className="space-y-4">
-      {/* Send Message */}
       <div>
         <h3 className="font-semibold text-gray-800 mb-2">Send New Message</h3>
         <select
@@ -290,7 +286,6 @@ const MessageCard = ({ teachers, messages, newMessage, setNewMessage, sending, o
         </Button>
       </div>
 
-      {/* Inbox */}
       <div>
         <h3 className="font-semibold text-gray-800 mt-6 mb-2">Inbox</h3>
         {Array.isArray(messages) && messages.length > 0
