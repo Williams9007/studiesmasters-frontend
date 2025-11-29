@@ -17,6 +17,7 @@ function QaoAccess() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
     if (!qaoCode.trim()) {
       setError("Please enter your QAO access code");
@@ -24,23 +25,38 @@ function QaoAccess() {
     }
 
     setLoading(true);
-    setError("");
 
     try {
-      const res = await axios.post(`${BASE_URL}/api/qao/access`, { qaoCode });
+      const response = await axios.post(`${BASE_URL}/api/qao/access`, { qaoCode });
 
-      if (res.data.success) {
+      // Check if backend returns token and success
+      if (response.data && response.data.success && response.data.token) {
         // store token in localStorage
-        localStorage.setItem("qaoToken", res.data.token);
-        navigate("/qao/dashboard");
+        localStorage.setItem("qaoToken", response.data.token);
+
+        // optional: store user info if provided
+        if (response.data.user) {
+          localStorage.setItem("qaoUser", JSON.stringify(response.data.user));
+        }
+
+        navigate("/qao/dashboard"); // redirect to dashboard
       } else {
-        setError(res.data.message || "Access denied");
+        setError(response.data.message || "Access denied. Invalid code.");
       }
     } catch (err) {
       console.error("QAO access error:", err);
-      setError(
-        err.response?.data?.message || "Network or server error. Please try again."
-      );
+
+      // Better error detection
+      if (err.response) {
+        // backend responded with a status outside 2xx
+        setError(err.response.data?.message || `Server error: ${err.response.status}`);
+      } else if (err.request) {
+        // request was made but no response
+        setError("No response from server. Check your network.");
+      } else {
+        // something else
+        setError(err.message || "Unknown error occurred.");
+      }
     } finally {
       setLoading(false);
     }
