@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const BASE_URL = "https://studiesmasters-backend-2.onrender.com";
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
 
 const PaymentPage = () => {
   const location = useLocation();
