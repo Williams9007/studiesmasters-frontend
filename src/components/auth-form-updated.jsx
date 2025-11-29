@@ -14,8 +14,9 @@ export function AuthForm() {
   const selectedCurriculum = (location.state?.curriculum || "GES").toUpperCase();
   const selectedPackage = (location.state?.packageName || "GES-EC").toUpperCase();
 
-  // ✅ Use your live backend URL here
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://studiesmasters-backend.onrender.com";
+  const BACKEND_URL =
+    import.meta.env.VITE_BACKEND_URL ||
+    "https://studiesmasters-backend.onrender.com";
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -33,16 +34,16 @@ export function AuthForm() {
   const [totalAmount, setTotalAmount] = useState(0);
 
   const curriculumGrades = {
-    GES: ["Basic 4","Basic 5","Basic 6","JHS 1","JHS 2","JHS 3","SHS 1","SHS 2","SHS 3"],
-    CAMBRIDGE: ["Stage 4","Stage 5","Stage 6","Stage 7","Stage 8","Stage 9","Stage 10","Stage 11","Stage 12","Stage 13"],
+    GES: ["Basic 4", "Basic 5", "Basic 6", "JHS 1", "JHS 2", "JHS 3", "SHS 1", "SHS 2", "SHS 3"],
+    CAMBRIDGE: ["Stage 4", "Stage 5", "Stage 6", "Stage 7", "Stage 8", "Stage 9", "Stage 10", "Stage 11", "Stage 12", "Stage 13"],
   };
 
   const gradeOptionsByPackage = {
     "GES-EC": curriculumGrades.GES,
     "GES-WC": curriculumGrades.GES,
     "GES-EPC": ["BECE", "WASSCE", "NOVDEC"],
-    "GES-VC": ["SHS 1","SHS 2","SHS 3"],
-    "GES-SC": ["Basic 4","Basic 5","Basic 6","JHS 1","JHS 2","JHS 3"],
+    "GES-VC": ["SHS 1", "SHS 2", "SHS 3"],
+    "GES-SC": curriculumGrades.GES,
     "CAMBRIDGE-EC": curriculumGrades.CAMBRIDGE,
     "CAMBRIDGE-WC": curriculumGrades.CAMBRIDGE,
     "CAMBRIDGE-OC": curriculumGrades.CAMBRIDGE,
@@ -101,22 +102,28 @@ export function AuthForm() {
         totalAmount,
       };
 
-      const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+      // ✅ FIXED ENDPOINT — THIS ONE WORKS
+      const res = await fetch(`${BACKEND_URL}/api/students/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => {
+        throw new Error("Invalid JSON response from server");
+      });
+
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("user", JSON.stringify(data.student || data.user));
 
-      // Prepare payment data
-      const selectedSubjects = subjects.filter((s) => formData.subjects.includes(s._id));
+      const selectedSubjects = subjects.filter((s) =>
+        formData.subjects.includes(s._id)
+      );
+
       navigate("/payment", {
         state: {
-          user: data.user,
+          user: data.student || data.user,
           curriculum: selectedCurriculum,
           package: selectedPackage,
           grade: formData.grade,
@@ -137,7 +144,12 @@ export function AuthForm() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="max-w-md w-full shadow-lg">
         <CardHeader className="text-center relative">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="absolute left-4 top-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="absolute left-4 top-4"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
