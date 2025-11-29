@@ -26,7 +26,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Determine endpoint based on role
+      // Determine backend endpoint based on role
       const endpoint =
         role === "teacher"
           ? `${BASE_URL}/api/teachers/login`
@@ -38,41 +38,34 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const text = await response.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
-        alert("Login failed: invalid server response.");
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Login failed.");
         setLoading(false);
         return;
       }
 
+      // Teacher login
       if (role === "teacher") {
-        if (response.ok && data.success) {
-          const teacher = data.data; // contains _id and role
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("userId", teacher._id);
-          localStorage.setItem("role", teacher.role); // store role too
+        const teacher = data.user;
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", teacher._id);
+        localStorage.setItem("role", "teacher");
 
-          alert("Teacher login successful!");
-          navigate(`/teacher/dashboard/${teacher._id}`);
-        } else {
-          alert(data.message || "Teacher login failed.");
-        }
+        alert("Teacher login successful!");
+        navigate(`/teacher/dashboard/${teacher._id}`);
         return;
       }
 
       // Student login
-      if (response.ok && data.success) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userId", data.data._id);
+      const student = data.user;
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", student._id);
+      localStorage.setItem("role", "student");
 
-        alert("Student login successful!");
-        navigate("navigate(`/student/dashboard/${data.data._id}`);");
-      } else {
-        alert(data.message || "Student login failed.");
-      }
+      alert("Student login successful!");
+      navigate(`/student/dashboard/${student._id}`);
     } catch (err) {
       console.error("Login error:", err);
       alert("Something went wrong. Please try again.");
@@ -124,6 +117,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
 
@@ -138,6 +132,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="focus:ring-2 focus:ring-blue-500"
+                required
               />
               <p
                 className="text-sm text-blue-600 mt-1 cursor-pointer hover:underline"
