@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
@@ -26,7 +28,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Determine backend endpoint based on role
       const endpoint =
         role === "teacher"
           ? `${BASE_URL}/api/teachers/login`
@@ -46,25 +47,36 @@ export default function LoginPage() {
         return;
       }
 
-      // Teacher login
+      // Handle teacher login
       if (role === "teacher") {
-        const teacher = data.user;
-        localStorage.setItem("token", data.token);
+        // ✅ Handle both backend formats: data.user or data.data
+        const teacher = data.user || data.data;
+        if (!teacher?._id) {
+          alert("Teacher data missing from server response.");
+          setLoading(false);
+          return;
+        }
+
+        localStorage.setItem("token", data.token || "");
         localStorage.setItem("userId", teacher._id);
         localStorage.setItem("role", "teacher");
 
-        alert("Teacher login successful!");
         navigate(`/teacher/dashboard/${teacher._id}`);
         return;
       }
 
-      // Student login
-      const student = data.user;
-      localStorage.setItem("token", data.token);
+      // Handle student login
+      const student = data.user || data.data;
+      if (!student?._id) {
+        alert("Student data missing from server response.");
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("token", data.token || "");
       localStorage.setItem("userId", student._id);
       localStorage.setItem("role", "student");
 
-      alert("Student login successful!");
       navigate(`/student/dashboard/${student._id}`);
     } catch (err) {
       console.error("Login error:", err);
