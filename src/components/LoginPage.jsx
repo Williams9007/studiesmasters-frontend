@@ -23,68 +23,67 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const endpoint =
-        role === "teacher"
-          ? `${BASE_URL}/api/teachers/login`
-          : `${BASE_URL}/api/students/login`;
+  try {
+    const endpoint =
+      role === "teacher"
+        ? `${BASE_URL}/api/teachers/login`
+        : `${BASE_URL}/api/students/login`;
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        alert(data.message || "Login failed.");
-        setLoading(false);
-        return;
-      }
-
-      // Handle teacher login
-      if (role === "teacher") {
-        // ✅ Handle both backend formats: data.user or data.data
-        const teacher = data.user || data.data;
-        if (!teacher?._id) {
-          alert("Teacher data missing from server response.");
-          setLoading(false);
-          return;
-        }
-
-        localStorage.setItem("token", data.token || "");
-        localStorage.setItem("userId", teacher._id);
-        localStorage.setItem("role", "teacher");
-
-        navigate(`/teacher/dashboard/${teacher._id}`);
-        return;
-      }
-
-      // Handle student login
-      const student = data.user || data.data;
-      if (!student?._id) {
-        alert("Student data missing from server response.");
-        setLoading(false);
-        return;
-      }
-
-      localStorage.setItem("token", data.token || "");
-      localStorage.setItem("userId", student._id);
-      localStorage.setItem("role", "student");
-
-      navigate(`/student/dashboard/${student._id}`);
-    } catch (err) {
-      console.error("Login error:", err);
-      alert("Something went wrong. Please try again.");
-    } finally {
+    if (!response.ok) {
+      alert(data.message || "Login failed.");
       setLoading(false);
+      return;
     }
-  };
+
+    // Save common info
+    localStorage.setItem("token", data.token || "");
+    localStorage.setItem("role", role);
+
+    // Handle teacher login
+    if (role === "teacher") {
+      const teacher = data.user || data.data;
+      if (!teacher?._id) {
+        alert("Teacher data missing from server response.");
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem("userId", teacher._id);
+      navigate(`/teacher/dashboard/${teacher._id}`);
+      return;
+    }
+
+    // Handle student login
+    const student = data.user || data.data;
+    if (!student?._id) {
+      alert("Student data missing from server response.");
+      setLoading(false);
+      return;
+    }
+
+    localStorage.setItem("userId", student._id);
+    
+    // ✅ Navigate to dashboard WITHOUT ID
+    navigate(`/student/dashboard`);
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleForgotPassword = () => {
     navigate("/forget-password");
