@@ -2,13 +2,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { apiClient } from "../../utils/api";
+import apiClient from "../../utils/apiClient";
 import StatCard from "./StatCard";
 import AlertCard from "./AlertCard";
 import NotificationBell from "./NotificationItem";
 import BroadcastTab from "./BroadcastTab";
 import { io } from "socket.io-client";
-
 import {
   PieChart,
   Pie,
@@ -23,6 +22,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
+
 export default function Overview() {
   const [students, setStudents] = useState(0);
   const [teachers, setTeachers] = useState(0);
@@ -33,13 +34,7 @@ export default function Overview() {
   const [broadcastLogs, setBroadcastLogs] = useState([]);
   const socketRef = useRef(null);
 
-  const token = localStorage.getItem("adminToken");
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
-  // ================= FETCH OVERVIEW DATA =================
   const fetchOverview = async () => {
-    if (!token) return setError("Admin token not found. Please login.");
-
     try {
       const studentRes = await apiClient.get("/admin/students");
       setStudents(studentRes.data.totalStudents || 0);
@@ -54,34 +49,30 @@ export default function Overview() {
       setPayments(paymentRes.data.payments || []);
       setTotalPayments(paymentRes.data.totalAmount || 0);
     } catch (err) {
-      console.error("❌ Error fetching overview data:", err);
-      setError(
-        err.response?.data?.message || err.message || "Failed to fetch overview data"
-      );
+      console.error("Error fetching overview data:", err);
+      setError(err.response?.data?.message || "Failed to fetch overview data");
     }
   };
 
-  // ================= SOCKET.IO =================
   useEffect(() => {
     fetchOverview();
 
+    const token = localStorage.getItem("adminToken");
     if (!token) return;
 
-    const socket = io(BACKEND_URL, { auth: { token, role: "admin" } });
+    const socket = io(BASE_URL, { auth: { token, role: "admin" } });
     socketRef.current = socket;
 
-    socket.on("connect", () => console.log("🟢 Admin socket connected:", socket.id));
-    socket.on("disconnect", () => console.log("🔌 Admin socket disconnected"));
+    socket.on("connect", () => console.log("Admin socket connected:", socket.id));
+    socket.on("disconnect", () => console.log("Admin socket disconnected"));
 
-    // Real-time broadcasts
-    socket.on("broadcast:new", (broadcast) => {
+    socket.on("broadcast-sent", (broadcast) => {
       setBroadcastLogs((prev) => [broadcast, ...prev]);
     });
 
     return () => socket.disconnect();
-  }, [token, BACKEND_URL]);
+  }, []);
 
-  // ================= CHART DATA =================
   const userData = [
     { name: "Students", value: students },
     { name: "Teachers", value: teachers },
@@ -94,19 +85,14 @@ export default function Overview() {
     acc[grade] = (acc[grade] || 0) + p.amount;
     return acc;
   }, {});
-  const barData = Object.keys(paymentByGrade).map((grade) => ({
-    grade,
-    amount: paymentByGrade[grade],
-  }));
+  const barData = Object.keys(paymentByGrade).map((grade) => ({ grade, amount: paymentByGrade[grade] }));
   const BAR_COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#a569bd"];
 
   return (
     <div className="overview-container p-4 space-y-6 relative">
       <NotificationBell />
-
       {error && <AlertCard type="error" message={error} />}
 
-      {/* ================= STATS ================= */}
       <div className="stats-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Students" value={students} />
         <StatCard title="Total Teachers" value={teachers} />
@@ -114,29 +100,14 @@ export default function Overview() {
         <StatCard title="Total Payments (GHS)" value={totalPayments} />
       </div>
 
-      {/* ================= CHARTS ================= */}
       <div className="charts-grid grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Pie Chart */}
-        <div className="pie-chart bg-white p-4 rounded shadow">
+        <div className="pie-chart bg-black p-4 rounded shadow">
           <h2 className="text-xl font-semibold mb-2 text-center">User Distribution</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie
-                data={userData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label
-              >
+              <Pie data={userData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
                 {userData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={PIE_COLORS[index % PIE_COLORS.length]}
-                    stroke="#fff"
-                    strokeWidth={2}
-                  />
+                  <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="#fff" strokeWidth={2} />
                 ))}
               </Pie>
               <RechartsTooltip />
@@ -145,8 +116,7 @@ export default function Overview() {
           </ResponsiveContainer>
         </div>
 
-        {/* Bar Chart */}
-        <div className="bar-chart bg-white p-4 rounded shadow">
+        <div className="bar-chart bg-black p-4 rounded shadow">
           <h2 className="text-xl font-semibold mb-2 text-center">Payments by Grade</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -157,10 +127,7 @@ export default function Overview() {
               <Legend />
               <Bar dataKey="amount">
                 {barData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={BAR_COLORS[index % BAR_COLORS.length]}
-                  />
+                  <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} stroke="#000" strokeWidth={0.5} />
                 ))}
               </Bar>
             </BarChart>
@@ -168,22 +135,18 @@ export default function Overview() {
         </div>
       </div>
 
-      {/* ================= BROADCAST TAB ================= */}
       <div className="mt-6">
         <BroadcastTab />
       </div>
 
-      {/* ================= LIVE BROADCAST LOGS ================= */}
       {broadcastLogs.length > 0 && (
-        <div className="mt-4 bg-gray-50 p-3 rounded shadow max-h-64 overflow-y-auto">
+        <div className="mt-4 bg-black-100 p-3 rounded shadow max-h-64 overflow-y-auto">
           <h3 className="font-semibold mb-2">Live Broadcast Logs</h3>
           {broadcastLogs.map((b, i) => (
-            <div key={i} className="p-2 border-b border-gray-200">
+            <div key={i} className="p-2 border-b border-black-300">
               <p><strong>{b.subject}</strong></p>
               <p>{b.message}</p>
-              <small className="text-gray-500">
-                {new Date(b.createdAt).toLocaleString()}
-              </small>
+              <small className="text-black-500">{new Date(b.createdAt).toLocaleString()}</small>
             </div>
           ))}
         </div>
