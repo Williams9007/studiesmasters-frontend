@@ -7,7 +7,8 @@ import BroadcastTab from "./Admin/BroadcastTab";
 import Users from "./Admin/Users";
 import PaymentsTab from "./Admin/PaymentsTab"; // ✅ NEW
 
-const BASE_URL = "http://localhost:5000";
+// ✅ Use backend URL from .env
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminDashboard({ user = {}, onLogout }) {
   const [activeTab, setActiveTab] = useState("overview");
