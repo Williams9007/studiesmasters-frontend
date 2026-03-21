@@ -1,5 +1,6 @@
+// src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "./utils/api"; // ✅ use apiClient instead of axios
 
 // Pages
 import LandingPage from "./components/landing-page.jsx";
@@ -21,15 +22,39 @@ import AdminVerifyOtp from "./components/AdminVerifyOtp.jsx";
 import PrivateAdminRoute from "./utils/PrivateAdminRoute.jsx";
 
 function App() {
+  // ✅ Signup using apiClient
   const handleSignup = async (data) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", data);
+      const res = await apiClient.post("/api/auth/register", data); // relative path only
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data.user._id);
       return res.data;
     } catch (err) {
-      console.error("❌ Backend signup error:", err.response?.data || err.message);
-      throw err.response ? new Error(err.response.data.message) : err;
+      console.error(
+        "❌ Backend signup error:",
+        err.response?.data || err.message
+      );
+      throw err.response
+        ? new Error(err.response.data.message)
+        : err;
+    }
+  };
+
+  // ✅ Login example if you have it
+  const handleLogin = async (data) => {
+    try {
+      const res = await apiClient.post("/api/auth/login", data);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userId", res.data.user._id);
+      return res.data;
+    } catch (err) {
+      console.error(
+        "❌ Backend login error:",
+        err.response?.data || err.message
+      );
+      throw err.response
+        ? new Error(err.response.data.message)
+        : err;
     }
   };
 
@@ -52,18 +77,9 @@ function App() {
         <Route path="/admin/verify-otp" element={<AdminVerifyOtp />} />
 
         {/* Protected routes */}
-        <Route
-          path="/student/dashboard"
-          element={<StudentDashboard />}
-        />
-        <Route
-          path="/teacher/dashboard/:id"
-          element={<TeacherDashboard />}
-        />
-        <Route
-          path="/account-settings"
-          element={<AccountSettings />}
-        />
+        <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/teacher/dashboard/:id" element={<TeacherDashboard />} />
+        <Route path="/account-settings" element={<AccountSettings />} />
 
         {/* Admin protected dashboard */}
         <Route
