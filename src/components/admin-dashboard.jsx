@@ -1,14 +1,18 @@
 // src/components/AdminDashboard.jsx
+"use client";
+
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
-import Overview from "./Admin/overview";
+import Overview from "./Admin/Overview";
 import BroadcastTab from "./Admin/BroadcastTab";
-import Users from "./Admin/Users";
+import Users from "./Admin/Users"; 
 import PaymentsTab from "./Admin/PaymentsTab"; // ✅ NEW
 
-// ✅ Use backend URL from .env
-const BASE_URL = import.meta.env.VITE_API_URL;
+// ✅ Use backend URL from .env or fallback to Render URL
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://studiesmasters-backend.onrender.com";
 
 export default function AdminDashboard({ user = {}, onLogout }) {
   const [activeTab, setActiveTab] = useState("overview");
@@ -19,37 +23,29 @@ export default function AdminDashboard({ user = {}, onLogout }) {
   useEffect(() => {
     if (!user?._id) return;
 
+    const token = localStorage.getItem("adminToken");
+    if (!token) return console.warn("Admin token missing");
+
     const socket = io(BASE_URL, {
-      withCredentials: true,
-      query: { userId: user._id },
+      auth: { token, role: "admin" }, // 🔑 send token & role for auth
+      transports: ["websocket"],      // use websocket only for Render
     });
 
-    socket.on("connect", () => {
-      console.log("🟢 Admin connected:", socket.id);
-    });
+    socket.on("connect", () => console.log("🟢 Admin connected:", socket.id));
 
     socket.on("message:new", (data) => {
-      addNotification(
-        `New message from ${data.senderName || "Teacher"}`
-      );
+      addNotification(`New message from ${data.senderName || "Teacher"}`);
     });
 
     socket.on("broadcast:new", (data) => {
-      addNotification(
-        `New broadcast: ${data.subject || "General"}`
-      );
+      addNotification(`New broadcast: ${data.subject || "General"}`);
     });
 
-    // ✅ NEW PAYMENT EVENT
     socket.on("payment:new", (data) => {
-      addNotification(
-        `New payment submitted by ${data.studentName}`
-      );
+      addNotification(`New payment submitted by ${data.studentName}`);
     });
 
-    socket.on("disconnect", () => {
-      console.log("🔌 Socket disconnected");
-    });
+    socket.on("disconnect", () => console.log("🔌 Socket disconnected"));
 
     return () => socket.disconnect();
   }, [user?._id]);
@@ -84,7 +80,7 @@ export default function AdminDashboard({ user = {}, onLogout }) {
         return <BroadcastTab />;
       case "users":
         return <Users />;
-      case "payments": // ✅ NEW
+      case "payments":
         return <PaymentsTab />;
       default:
         return <Overview />;
