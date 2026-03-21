@@ -1,20 +1,16 @@
 // src/utils/api.js
 import axios from "axios";
 
-// ✅ Render backend URL
 const BASE_URL = "https://studiesmasters-backend.onrender.com/api";
 
-// Create Axios instance
-export const api = axios.create({
+export const apiClient = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: false, // Set to true if your backend uses cookies
+  headers: { "Content-Type": "application/json" },
+  withCredentials: false,
 });
 
-// Automatically attach token from localStorage
-api.interceptors.request.use(
+// attach token automatically
+apiClient.interceptors.request.use(
   (config) => {
     const token =
       localStorage.getItem("adminToken") ||
@@ -28,19 +24,16 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Global response interceptor for 401 Unauthorized
-api.interceptors.response.use(
-  (response) => response,
+// handle 401 globally
+apiClient.interceptors.response.use(
+  (res) => res,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      console.warn("⚠️ Unauthorized: clearing tokens...");
+    if (error.response?.status === 401) {
       localStorage.removeItem("adminToken");
       localStorage.removeItem("qaoToken");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
       localStorage.removeItem("userId");
-
-      // Redirect user to login based on path
       const path = window.location.pathname.includes("/admin") ? "/admin-login" : "/login";
       window.location.href = path;
     }
@@ -48,8 +41,5 @@ api.interceptors.response.use(
   }
 );
 
-// ✅ Helper functions
-export const getJson = async (path) => (await api.get(path)).data;
-export const postJson = async (path, payload) => (await api.post(path, payload)).data;
-
-export default api;
+export const getJson = async (path) => (await apiClient.get(path)).data;
+export const postJson = async (path, payload) => (await apiClient.post(path, payload)).data;
