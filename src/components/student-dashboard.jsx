@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import apiClient from "@/utils/apiClient"; // include auth token
 import {
   Card,
   CardHeader,
@@ -11,78 +12,117 @@ import {
 } from "./ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
-import { User, BookOpen, Bell, Upload } from "lucide-react";
+import { User, BookOpen, Bell } from "lucide-react";
+import { io } from "socket.io-client";
 
 const BASE_URL = "https://studiesmasters-backend.onrender.com";
 
-export function StudentDashboard({ user = {} }) {
-  const [studentData, setStudentData] = useState({});
-  const [subjects, setSubjects] = useState([]);
+export function StudentDashboard() {
+  const [studentData, setStudentData] = useState(null);
   const [broadcasts, setBroadcasts] = useState([]);
-  const [assignments, setAssignments] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [paymentHistory, setPaymentHistory] = useState([]);
-  const navigate = useNavigate();
+  const [assignments, setAssignments] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  const navigate = useNavigate();
+  const socketRef = useRef(null);
+
+  /** Add a new broadcast as notification and inbox message */
+  const addNotification = (broadcast) => {
+    const note = {
+      id: broadcast._id || Date.now(),
+      subjectName: broadcast.subjectName || "General",
+      message: broadcast.message,
+      sender: broadcast.sender || { fullName: "Admin" },
+      createdAt: broadcast.createdAt || new Date(),
+      open: false, // for inbox expand/collapse
+    };
+
+    setNotifications((prev) => [note, ...prev]);
+    setBroadcasts((prev) => [note, ...prev]);
+  };
+
+  /** Fetch student info and related data */
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchStudentData = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) return navigate("/login");
 
         // Fetch student info
-        const studentRes = await fetch(`${BASE_URL}/api/students/me`, {
+        const res = await fetch(`${BASE_URL}/api/students/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!studentRes.ok) throw new Error("Failed to fetch student info");
-        const student = await studentRes.json();
-        const studentInfo = student.user || student;
-        setStudentData(studentInfo);
-        const studentId = studentInfo._id;
+        if (!res.ok) throw new Error("Failed to fetch student info");
 
-        // Fetch subjects
-        const subjectsRes = await fetch(`${BASE_URL}/api/students/${studentId}/subjects`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const subjectData = subjectsRes.ok ? await subjectsRes.json() : [];
-        setSubjects(subjectData);
+        const data = await res.json();
+        const student = data.user || data;
+        setStudentData(student);
 
         // Fetch broadcasts
-        const broadcastRes = await fetch(`${BASE_URL}/api/students/broadcasts/${studentId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const broadcastData = broadcastRes.ok ? await broadcastRes.json() : [];
-        setBroadcasts(broadcastData);
+        const broadcastsRes = await apiClient.get(`/students/broadcasts/${student._id}`);
+        const fetchedBroadcasts = broadcastsRes.data.broadcasts.map((b) => ({
+          ...b,
+          open: false,
+        }));
+        setBroadcasts(fetchedBroadcasts);
 
-        // Fetch payment history
-        const paymentRes = await fetch(`${BASE_URL}/api/students/payments/${studentId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const paymentData = paymentRes.ok ? await paymentRes.json() : [];
-        setPaymentHistory(Array.isArray(paymentData) ? paymentData : []);
+        // Initialize notifications from broadcasts
+        fetchedBroadcasts.forEach((b) => addNotification(b));
 
         // Fetch assignments
-        const assignmentRes = await fetch(`${BASE_URL}/api/students/assignments/${studentId}`, {
+        const assignmentRes = await fetch(`${BASE_URL}/api/students/assignments/${student._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const assignmentData = assignmentRes.ok ? await assignmentRes.json() : [];
         setAssignments(Array.isArray(assignmentData) ? assignmentData : []);
 
-        addNotification(`Welcome back, ${studentInfo.fullName || "Student"}! 👋`);
+        // Fetch subjects
+        const subjectRes = await fetch(`${BASE_URL}/api/students/subjects/${student._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const subjectData = subjectRes.ok ? await subjectRes.json() : [];
+        setSubjects(Array.isArray(subjectData) ? subjectData : []);
+
+        addNotification({
+          subjectName: "Welcome",
+          message: `Welcome back, ${student.fullName || "Student"}! 👋`,
+        });
+
+        setLoading(false);
       } catch (err) {
-        console.error("Dashboard fetch error:", err);
+        console.error(err);
+        setLoading(false);
       }
     };
 
-    fetchAllData();
+    fetchStudentData();
   }, [navigate]);
 
-  const addNotification = (message) => {
-    const note = { id: Date.now(), message, time: new Date().toLocaleTimeString() };
-    setNotifications((prev) => [note, ...prev]);
-  };
+  /** Initialize Socket.IO for real-time broadcasts */
+  useEffect(() => {
+    if (!studentData?._id) return;
 
+    const socket = io("http://localhost:5000", {
+      query: { userId: studentData._id },
+    });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("🟢 Connected to socket:", socket.id);
+    });
+
+    socket.on("broadcast:new", (data) => {
+      console.log("📢 New broadcast received:", data);
+      addNotification(data);
+    });
+
+    return () => socket.disconnect();
+  }, [studentData?._id]);
+
+  /** Handle assignment submission */
   const handleSubmitAssignment = async (assignmentId, mode, content) => {
     try {
       const formData = new FormData();
@@ -96,16 +136,12 @@ export function StudentDashboard({ user = {} }) {
       });
       const data = await res.json();
       alert(data.message || "Assignment submitted!");
-    } catch (error) {
-      console.error("Assignment submit error:", error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const latestPayment = paymentHistory.length
-    ? paymentHistory[paymentHistory.length - 1]
-    : null;
-  const durationDisplay =
-    latestPayment?.duration || studentData.studyDuration || "N/A";
+  if (loading) return <p className="text-center mt-10">Loading dashboard...</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 relative">
@@ -142,25 +178,29 @@ export function StudentDashboard({ user = {} }) {
                     notifications.slice(0, 5).map((note) => (
                       <div
                         key={note.id}
-                        className="p-3 border-b border-gray-100 text-sm text-gray-700"
+                        className="p-3 border-b border-gray-100 text-sm text-gray-700 cursor-pointer hover:bg-gray-50"
+                        onClick={() => {
+                          setShowNotifications(false);
+                          document.querySelector('[data-value="broadcasts"]').click();
+                          setBroadcasts((prev) =>
+                            prev.map((b) => (b.id === note.id ? { ...b, open: true } : b))
+                          );
+                        }}
                       >
-                        {note.message}
-                        <p className="text-xs text-gray-400">{note.time}</p>
+                        <p className="font-semibold">{note.subjectName}</p>
+                        <p>{note.message}</p>
+                        <p className="text-xs text-gray-400">{new Date(note.createdAt).toLocaleString()}</p>
                       </div>
                     ))
                   ) : (
-                    <p className="p-3 text-sm text-gray-500 text-center">
-                      No notifications
-                    </p>
+                    <p className="p-3 text-sm text-gray-500 text-center">No notifications</p>
                   )}
                 </div>
               )}
             </div>
 
             <div className="text-center sm:text-right">
-              <p className="font-semibold text-gray-900">
-                {studentData.fullName || user.name || "Student"}
-              </p>
+              <p className="font-semibold text-gray-900">{studentData.fullName || "Student"}</p>
               <p className="text-sm text-gray-600 truncate max-w-[150px] sm:max-w-full">
                 {studentData.email}
               </p>
@@ -190,7 +230,7 @@ export function StudentDashboard({ user = {} }) {
           <TabsList className="grid grid-cols-2 sm:grid-cols-5 gap-1 bg-white rounded-lg shadow-sm overflow-x-auto whitespace-nowrap">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="subjects">Subjects</TabsTrigger>
-            <TabsTrigger value="broadcasts">Broadcasts</TabsTrigger>
+            <TabsTrigger value="broadcasts">Inbox</TabsTrigger>
             <TabsTrigger value="assignments">Assignments</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
           </TabsList>
@@ -199,16 +239,14 @@ export function StudentDashboard({ user = {} }) {
           <TabsContent value="overview">
             <Card className="shadow-md p-4 sm:p-6">
               <CardHeader>
-                <CardTitle>
-                  Welcome, {studentData.fullName || "Student"}!
-                </CardTitle>
+                <CardTitle>Welcome, {studentData.fullName || "Student"}!</CardTitle>
                 <CardDescription>Your personalized EduConnect dashboard.</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                   Curriculum: {studentData.curriculum || "N/A"} <br />
                   Grade: {studentData.grade || "N/A"} <br />
-                  Duration: {durationDisplay} <br />
+                  Duration: {studentData.studyDuration || "N/A"} <br />
                   Package: {studentData.package || "N/A"}
                 </p>
               </CardContent>
@@ -226,8 +264,7 @@ export function StudentDashboard({ user = {} }) {
                   <ul className="list-disc pl-4 space-y-2 text-sm sm:text-base">
                     {subjects.map((s) => (
                       <li key={s._id}>
-                        {s.name} -{" "}
-                        <span className="font-semibold text-blue-700">₵{s.price}</span>
+                        {s.name} - <span className="font-semibold text-blue-700">₵{s.price}</span>
                       </li>
                     ))}
                   </ul>
@@ -238,157 +275,43 @@ export function StudentDashboard({ user = {} }) {
             </Card>
           </TabsContent>
 
-          {/* Broadcasts */}
+          {/* Broadcasts / Inbox */}
           <TabsContent value="broadcasts">
             <Card className="shadow-md p-4 sm:p-6">
               <CardHeader>
-                <CardTitle>📢 Announcements</CardTitle>
+                <CardTitle>📥 Inbox</CardTitle>
+                <CardDescription>Click to expand messages</CardDescription>
               </CardHeader>
               <CardContent>
                 {broadcasts.length ? (
-                  broadcasts.map((b, i) => (
-                    <div key={i} className="p-2 sm:p-3 border-b border-gray-200">
-                      <p className="font-semibold">{b.subjectName || "General"}</p>
-                      <p className="text-sm sm:text-base">{b.message}</p>
-                      <small className="text-gray-500 text-xs sm:text-sm">
-                        {new Date(b.createdAt).toLocaleString()}
-                      </small>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-sm sm:text-base">No broadcasts available.</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Assignments */}
-          <TabsContent value="assignments">
-            <Card className="shadow-md p-4 sm:p-6 space-y-4">
-              <CardHeader>
-                <CardTitle>📚 Assignments</CardTitle>
-                <CardDescription>Submit your assignments using any available method.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {(assignments.length ? assignments : [{ _id: "placeholder", title: "Sample Assignment", dueDate: new Date() }]).map((a) => (
-                  <div key={a._id} className="border-b border-gray-200 pb-4">
-                    <p className="font-semibold text-sm sm:text-base">{a.title}</p>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-2">
-                      Due: {new Date(a.dueDate).toLocaleDateString()}
-                    </p>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <Button
-                        className="w-full sm:w-auto"
-                        onClick={() => document.getElementById(`file-${a._id}`).click()}
-                      >
-                        <Upload className="h-4 w-4 mr-2" /> Upload File
-                      </Button>
-                      <input
-                        id={`file-${a._id}`}
-                        type="file"
-                        hidden
-                        onChange={(e) => handleSubmitAssignment(a._id, "file", e.target.files[0])}
-                      />
-
-                      <Button className="w-full sm:w-auto" onClick={() => document.getElementById(`image-${a._id}`).click()}>
-                        Upload Image
-                      </Button>
-                      <input
-                        id={`image-${a._id}`}
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={(e) => handleSubmitAssignment(a._id, "image", e.target.files[0])}
-                      />
-
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
-                        <textarea
-                          id={`typed-${a._id}`}
-                          placeholder="Type your answer here..."
-                          className="w-full sm:w-64 p-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
-                          rows={3}
-                        ></textarea>
-                        <Button
-                          className="w-full sm:w-auto"
-                          onClick={() => {
-                            const text = document.getElementById(`typed-${a._id}`).value.trim();
-                            if (!text) return alert("Please type your answer before submitting.");
-                            handleSubmitAssignment(a._id, "typed", text);
-                            document.getElementById(`typed-${a._id}`).value = "";
-                          }}
+                  <ul className="space-y-3">
+                    {broadcasts.map((b) => (
+                      <li key={b.id} className="border rounded-lg p-3 hover:bg-gray-50">
+                        <div
+                          className="flex justify-between items-center cursor-pointer"
+                          onClick={() =>
+                            setBroadcasts((prev) =>
+                              prev.map((item) =>
+                                item.id === b.id ? { ...item, open: !item.open } : item
+                              )
+                            )
+                          }
                         >
-                          Submit
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {assignments.length === 0 && (
-                  <p className="text-gray-500 text-center text-sm sm:text-base mt-2">
-                    No assignments available yet.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Payments */}
-          <TabsContent value="payments">
-            <Card className="shadow-md p-4 sm:p-6 space-y-4">
-              <CardHeader>
-                <CardTitle>💳 Payment History</CardTitle>
-                <CardDescription>Your payment history and current status.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {paymentHistory.length ? (
-                  paymentHistory.map((p, i) => {
-                    const statusColor =
-                      p.status === "confirmed"
-                        ? "bg-green-500"
-                        : p.status === "pending"
-                        ? "bg-yellow-400"
-                        : "bg-red-500";
-                    return (
-                      <div
-                        key={i}
-                        className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <span className={`w-3 h-3 rounded-full ${statusColor}`}></span>
                           <div>
-                            <p className="text-sm sm:text-base font-semibold">
-                              ₵{p.amount} — {p.package || "N/A"}
-                            </p>
-                            <p className="text-xs sm:text-sm text-gray-500">
-                              {new Date(p.transactionDate).toLocaleDateString()}
-                            </p>
-                            <p className="text-xs sm:text-sm text-gray-500">
-                              Status: <span className="capitalize font-medium">{p.status}</span>
+                            <p className="font-semibold">{b.subjectName}</p>
+                            <p className="text-xs text-gray-500">
+                              From: {b.sender?.fullName || "Admin"} | {new Date(b.createdAt).toLocaleString()}
                             </p>
                           </div>
+                          <span className="text-gray-400">{b.open ? "−" : "+"}</span>
                         </div>
-
-                        {p.screenshot && (
-                          <img
-                            src={`${BASE_URL}${p.screenshot}`}
-                            alt="proof"
-                            className="w-full sm:w-20 h-20 object-cover rounded-lg border"
-                          />
-                        )}
-                      </div>
-                    );
-                  })
+                        {b.open && <div className="mt-2 text-sm text-gray-700">{b.message}</div>}
+                      </li>
+                    ))}
+                  </ul>
                 ) : (
-                  <div className="text-center text-gray-500 text-sm sm:text-base">
-                    No payment records found.
-                  </div>
+                  <p className="text-gray-500 text-sm">No messages available.</p>
                 )}
-
-                <div className="mt-4 flex justify-center">
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto" onClick={() => alert("Payment function triggered")}>
-                    Renew / Make Payment
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </TabsContent>

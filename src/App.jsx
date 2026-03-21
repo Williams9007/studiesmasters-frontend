@@ -1,12 +1,12 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
 
-// ✅ Import your pages
+// Pages
 import LandingPage from "./components/landing-page.jsx";
 import LoginPage from "./components/LoginPage.jsx";
 import RegisterCoursePage from "./components/RegisterCoursePage.jsx";
 import { StudentDashboard } from "./components/student-dashboard.jsx";
-import { AuthForm }  from  "./components/auth-form-updated.jsx";
+import { AuthForm } from "./components/auth-form-updated.jsx";
 import PaymentPage from "./components/payment-flow.jsx";
 import { AccountSettings } from "./components/AccountSettings.jsx";
 import ForgetPasswordPage from "./components/ForgetPasswordPage.jsx";
@@ -16,8 +16,9 @@ import QaoDashboard from "./components/qao-dashboard.jsx";
 import QaoAccess from "./components/qao-access.jsx";
 import { TeacherDashboard } from "./components/teacher-dashboard.jsx";
 import AdminDashboard from "./components/admin-dashboard.jsx";
-import AdminLogin from "./components/admin-login.jsx"; // ✅ New import
-import { PrivateAdminRoute } from "./utils/PrivateAdminRoute.jsx"; // ✅ Admin route protection
+import AdminLogin from "./components/admin-login.jsx";
+import AdminVerifyOtp from "./components/AdminVerifyOtp.jsx";
+import PrivateAdminRoute from "./utils/PrivateAdminRoute.jsx";
 
 function App() {
   const handleSignup = async (data) => {
@@ -35,7 +36,7 @@ function App() {
   return (
     <ErrorBoundary>
       <Routes>
-        {/* ✅ Public Routes */}
+        {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register-course/:role" element={<RegisterCoursePage />} />
@@ -46,10 +47,11 @@ function App() {
         <Route path="/qao/dashboard" element={<QaoDashboard />} />
         <Route path="/qao/access" element={<QaoAccess />} />
 
-        {/* ✅ Admin Login */}
+        {/* Admin login & OTP */}
         <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin/verify-otp" element={<AdminVerifyOtp />} />
 
-        {/* ✅ Protected Routes */}
+        {/* Protected routes */}
         <Route
           path="/student/dashboard"
           element={<StudentDashboard />}
@@ -63,7 +65,7 @@ function App() {
           element={<AccountSettings />}
         />
 
-        {/* ✅ Protected Admin Dashboard */}
+        {/* Admin protected dashboard */}
         <Route
           path="/admin/dashboard"
           element={
@@ -73,14 +75,11 @@ function App() {
           }
         />
 
-        {/* convenience redirect so /admin works */}
+        {/* Convenience redirect */}
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
-        {/* ✅ Fallback Route */}
-        <Route
-          path="*"
-          element={<div className="text-center mt-20 text-xl">Page Not Found</div>}
-        />
+        {/* Fallback */}
+        <Route path="*" element={<div className="p-6">Page Not Found</div>} />
       </Routes>
     </ErrorBoundary>
   );

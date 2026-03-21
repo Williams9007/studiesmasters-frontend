@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "./config/axios"; // ✅ works now
+
+
 import {
   Card,
   CardHeader,
