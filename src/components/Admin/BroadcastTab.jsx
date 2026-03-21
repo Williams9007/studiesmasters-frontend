@@ -1,8 +1,11 @@
+// src/components/Admin/BroadcastTab.jsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
-import { apiClient } from "../../utils/api"; // ✅ use apiClient for requests
+import apiClient from "../../utils/apiClient";
+
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
 
 export default function BroadcastTab() {
   const [students, setStudents] = useState([]);
@@ -13,8 +16,6 @@ export default function BroadcastTab() {
   const [file, setFile] = useState(null);
   const [logs, setLogs] = useState([]);
   const socketRef = useRef(null);
-
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // ✅ use env
 
   // ================= FETCH STUDENTS =================
   useEffect(() => {
@@ -28,33 +29,23 @@ export default function BroadcastTab() {
         console.error("❌ Error fetching students:", err);
       }
     };
-
     fetchStudents();
   }, []);
 
-  // ================= SOCKET.IO =================
+  // ================= SOCKET =================
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) return;
 
-    // ✅ use env variable for backend
-    const socket = io(BACKEND_URL, { auth: { token } });
+    const socket = io(BASE_URL, { auth: { token } });
     socketRef.current = socket;
-
-    socket.on("connect", () => {
-      console.log("🟢 Connected to socket:", socket.id);
-    });
 
     socket.on("new-broadcast", (data) => setLogs((prev) => [data, ...prev]));
 
-    socket.on("disconnect", () => {
-      console.log("🔌 Socket disconnected");
-    });
-
     return () => socket.disconnect();
-  }, [BACKEND_URL]);
+  }, []);
 
-  // ================= SEND BROADCAST =================
+  // ================= SEND =================
   const handleSend = async () => {
     if (!subject || !message) return alert("Subject and message are required.");
 
@@ -86,15 +77,11 @@ export default function BroadcastTab() {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
-      <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
-        ✉ Compose Broadcast
-      </h2>
+      <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">✉ Compose Broadcast</h2>
 
       {/* Receiver */}
       <div>
-        <label className="block text-sm font-semibold text-gray-600 mb-1">
-          To
-        </label>
+        <label className="block text-sm font-semibold text-gray-600 mb-1">To</label>
         <select
           value={studentId}
           onChange={(e) => setStudentId(e.target.value)}
@@ -111,9 +98,7 @@ export default function BroadcastTab() {
 
       {/* Subject */}
       <div>
-        <label className="block text-sm font-semibold text-gray-600 mb-1">
-          Subject
-        </label>
+        <label className="block text-sm font-semibold text-gray-600 mb-1">Subject</label>
         <input
           type="text"
           placeholder="Enter subject..."
@@ -125,9 +110,7 @@ export default function BroadcastTab() {
 
       {/* Message */}
       <div>
-        <label className="block text-sm font-semibold text-gray-600 mb-1">
-          Message
-        </label>
+        <label className="block text-sm font-semibold text-gray-600 mb-1">Message</label>
         <textarea
           rows={6}
           placeholder="Write your message here..."
@@ -139,9 +122,7 @@ export default function BroadcastTab() {
 
       {/* Link */}
       <div>
-        <label className="block text-sm font-semibold text-gray-600 mb-1">
-          Optional Link
-        </label>
+        <label className="block text-sm font-semibold text-gray-600 mb-1">Optional Link</label>
         <input
           type="text"
           placeholder="https://example.com"
@@ -153,19 +134,9 @@ export default function BroadcastTab() {
 
       {/* Attachment */}
       <div>
-        <label className="block text-sm font-semibold text-gray-600 mb-1">
-          Attachment (Image / PDF)
-        </label>
-        <input
-          type="file"
-          onChange={(e) => setFile(e.target.files[0])}
-          className="w-full text-black"
-        />
-        {file && (
-          <p className="text-sm text-gray-500 mt-1">
-            Attached: {file.name}
-          </p>
-        )}
+        <label className="block text-sm font-semibold text-gray-600 mb-1">Attachment (Image / PDF)</label>
+        <input type="file" onChange={(e) => setFile(e.target.files[0])} className="w-full text-black" />
+        {file && <p className="text-sm text-gray-500 mt-1">Attached: {file.name}</p>}
       </div>
 
       {/* Send Button */}
@@ -187,11 +158,7 @@ export default function BroadcastTab() {
               <p className="font-bold text-gray-800">{log.subject}</p>
               <p className="text-gray-700">{log.message}</p>
               {log.link && (
-                <a
-                  href={log.link}
-                  target="_blank"
-                  className="text-blue-600 underline text-sm"
-                >
+                <a href={log.link} target="_blank" className="text-blue-600 underline text-sm">
                   Open Link
                 </a>
               )}
