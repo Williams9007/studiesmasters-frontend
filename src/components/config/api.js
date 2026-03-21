@@ -1,69 +1,45 @@
-// src/utils/apiClient.js
+// src/utils/api.js
 import axios from "axios";
 
-// Base URL from environment or fallback to localhost
-const BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
+const BASE_URL = "https://studiesmasters-backend.onrender.com/api";
 
-// Create Axios instance
 export const apiClient = axios.create({
-  baseURL: BASE,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: false, // optional
+  baseURL: BASE_URL,
+  headers: { "Content-Type": "application/json" },
+  withCredentials: false,
 });
 
-// ✅ Automatically attach token from localStorage (adminToken OR qaoToken)
+// attach token automatically
 apiClient.interceptors.request.use(
   (config) => {
-    try {
-      const adminToken = localStorage.getItem("adminToken");
-      const qaoToken = localStorage.getItem("qaoToken");
-      const token = adminToken || qaoToken; // prioritize adminToken
-
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (e) {
-      console.warn("Could not read token from localStorage:", e);
+    const token =
+      localStorage.getItem("adminToken") ||
+      localStorage.getItem("qaoToken") ||
+      localStorage.getItem("token");
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ✅ Global response interceptor to handle auth errors
+// handle 401 globally
 apiClient.interceptors.response.use(
-  (response) => response,
+  (res) => res,
   (error) => {
-    if (error.response) {
-      // Handle 401 / unauthorized globally
-      if (error.response.status === 401) {
-        console.warn(
-          "⚠️ Unauthorized: token expired or invalid. Clearing tokens."
-        );
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("qaoToken");
-        localStorage.removeItem("role");
-        localStorage.removeItem("userId");
-        // Redirect to login page
-        window.location.href = "/admin/login";
-      }
+    if (error.response?.status === 401) {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("qaoToken");
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      localStorage.removeItem("userId");
+      const path = window.location.pathname.includes("/admin") ? "/admin-login" : "/login";
+      window.location.href = path;
     }
     return Promise.reject(error);
   }
 );
 
-// ✅ Helper for GET requests
-export async function getJson(path) {
-  const res = await apiClient.get(path);
-  return res.data;
-}
-
-// ✅ Helper for POST requests (optional)
-export async function postJson(path, payload) {
-  const res = await apiClient.post(path, payload);
-  return res.data;
-}
-
-export default apiClient;
+export const getJson = async (path) => (await apiClient.get(path)).data;
+export const postJson = async (path, payload) => (await apiClient.post(path, payload)).data;
