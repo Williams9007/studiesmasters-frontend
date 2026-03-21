@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
-import  apiClient  from "../utils/api";
+import { apiClient } from "../utils/api";
 
 export function AccountSettings() {
   const [password, setPassword] = useState("");
