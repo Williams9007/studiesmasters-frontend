@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiClient } from "@/utils/api"; // ✅ use apiClient for requests
+import apiClient from "@/utils/apiClient"; // ✅ use apiClient for requests
 import {
   Card,
   CardHeader,
@@ -48,13 +48,15 @@ export function StudentDashboard() {
         const token = localStorage.getItem("token");
         if (!token) return navigate("/login");
 
-        // ✅ fetch student info via apiClient
+        // ✅ fetch student info
         const { data } = await apiClient.get("/students/me");
         const student = data.user || data;
         setStudentData(student);
 
         // ✅ fetch broadcasts
-        const broadcastsRes = await apiClient.get(`/students/broadcasts/${student._id}`);
+        const broadcastsRes = await apiClient.get(
+          `/students/broadcasts/${student._id}`
+        );
         const fetchedBroadcasts = broadcastsRes.data.broadcasts.map((b) => ({
           ...b,
           open: false,
@@ -63,12 +65,20 @@ export function StudentDashboard() {
         fetchedBroadcasts.forEach((b) => addNotification(b));
 
         // ✅ fetch assignments
-        const assignmentRes = await apiClient.get(`/students/assignments/${student._id}`);
-        setAssignments(Array.isArray(assignmentRes.data) ? assignmentRes.data : []);
+        const assignmentRes = await apiClient.get(
+          `/students/assignments/${student._id}`
+        );
+        setAssignments(
+          Array.isArray(assignmentRes.data) ? assignmentRes.data : []
+        );
 
         // ✅ fetch subjects
-        const subjectRes = await apiClient.get(`/students/subjects/${student._id}`);
-        setSubjects(Array.isArray(subjectRes.data) ? subjectRes.data : []);
+        const subjectRes = await apiClient.get(
+          `/students/subjects/${student._id}`
+        );
+        setSubjects(
+          Array.isArray(subjectRes.data) ? subjectRes.data : []
+        );
 
         // welcome notification
         addNotification({
@@ -90,14 +100,21 @@ export function StudentDashboard() {
   useEffect(() => {
     if (!studentData?._id) return;
 
-    // ✅ use env variable for backend
-    const socket = io(import.meta.env.VITE_API_URL, {
-      query: { userId: studentData._id },
-    });
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    // ✅ connect to Render backend
+    const socket = io(
+      import.meta.env.VITE_API_URL || "https://studiesmasters-backend.onrender.com",
+      {
+        auth: { token, role: "student" },
+        transports: ["websocket"], // ⚡ Render prefers websocket transport
+      }
+    );
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("🟢 Connected to socket:", socket.id);
+      console.log("🟢 Student connected:", socket.id);
     });
 
     socket.on("broadcast:new", (data) => {
@@ -123,10 +140,12 @@ export function StudentDashboard() {
       alert(res.data.message || "Assignment submitted!");
     } catch (err) {
       console.error(err);
+      alert("Failed to submit assignment");
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Loading dashboard...</p>;
+  if (loading)
+    return <p className="text-center mt-10">Loading dashboard...</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 relative">
@@ -166,26 +185,36 @@ export function StudentDashboard() {
                         className="p-3 border-b border-gray-100 text-sm text-gray-700 cursor-pointer hover:bg-gray-50"
                         onClick={() => {
                           setShowNotifications(false);
-                          document.querySelector('[data-value="broadcasts"]').click();
+                          document.querySelector(
+                            '[data-value="broadcasts"]'
+                          ).click();
                           setBroadcasts((prev) =>
-                            prev.map((b) => (b.id === note.id ? { ...b, open: true } : b))
+                            prev.map((b) =>
+                              b.id === note.id ? { ...b, open: true } : b
+                            )
                           );
                         }}
                       >
                         <p className="font-semibold">{note.subjectName}</p>
                         <p>{note.message}</p>
-                        <p className="text-xs text-gray-400">{new Date(note.createdAt).toLocaleString()}</p>
+                        <p className="text-xs text-gray-400">
+                          {new Date(note.createdAt).toLocaleString()}
+                        </p>
                       </div>
                     ))
                   ) : (
-                    <p className="p-3 text-sm text-gray-500 text-center">No notifications</p>
+                    <p className="p-3 text-sm text-gray-500 text-center">
+                      No notifications
+                    </p>
                   )}
                 </div>
               )}
             </div>
 
             <div className="text-center sm:text-right">
-              <p className="font-semibold text-gray-900">{studentData.fullName || "Student"}</p>
+              <p className="font-semibold text-gray-900">
+                {studentData.fullName || "Student"}
+              </p>
               <p className="text-sm text-gray-600 truncate max-w-[150px] sm:max-w-full">
                 {studentData.email}
               </p>
@@ -224,8 +253,12 @@ export function StudentDashboard() {
           <TabsContent value="overview">
             <Card className="shadow-md p-4 sm:p-6">
               <CardHeader>
-                <CardTitle>Welcome, {studentData.fullName || "Student"}!</CardTitle>
-                <CardDescription>Your personalized EduConnect dashboard.</CardDescription>
+                <CardTitle>
+                  Welcome, {studentData.fullName || "Student"}!
+                </CardTitle>
+                <CardDescription>
+                  Your personalized EduConnect dashboard.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
@@ -249,12 +282,17 @@ export function StudentDashboard() {
                   <ul className="list-disc pl-4 space-y-2 text-sm sm:text-base">
                     {subjects.map((s) => (
                       <li key={s._id}>
-                        {s.name} - <span className="font-semibold text-blue-700">₵{s.price}</span>
+                        {s.name} -{" "}
+                        <span className="font-semibold text-blue-700">
+                          ₵{s.price}
+                        </span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-500 text-sm sm:text-base">No subjects assigned.</p>
+                  <p className="text-gray-500 text-sm sm:text-base">
+                    No subjects assigned.
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -271,13 +309,18 @@ export function StudentDashboard() {
                 {broadcasts.length ? (
                   <ul className="space-y-3">
                     {broadcasts.map((b) => (
-                      <li key={b.id} className="border rounded-lg p-3 hover:bg-gray-50">
+                      <li
+                        key={b.id}
+                        className="border rounded-lg p-3 hover:bg-gray-50"
+                      >
                         <div
                           className="flex justify-between items-center cursor-pointer"
                           onClick={() =>
                             setBroadcasts((prev) =>
                               prev.map((item) =>
-                                item.id === b.id ? { ...item, open: !item.open } : item
+                                item.id === b.id
+                                  ? { ...item, open: !item.open }
+                                  : item
                               )
                             )
                           }
@@ -285,12 +328,15 @@ export function StudentDashboard() {
                           <div>
                             <p className="font-semibold">{b.subjectName}</p>
                             <p className="text-xs text-gray-500">
-                              From: {b.sender?.fullName || "Admin"} | {new Date(b.createdAt).toLocaleString()}
+                              From: {b.sender?.fullName || "Admin"} |{" "}
+                              {new Date(b.createdAt).toLocaleString()}
                             </p>
                           </div>
                           <span className="text-gray-400">{b.open ? "−" : "+"}</span>
                         </div>
-                        {b.open && <div className="mt-2 text-sm text-gray-700">{b.message}</div>}
+                        {b.open && (
+                          <div className="mt-2 text-sm text-gray-700">{b.message}</div>
+                        )}
                       </li>
                     ))}
                   </ul>
