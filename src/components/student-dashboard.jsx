@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import apiClient from "@/utils/apiClient"; // include auth token
+import { apiClient } from "@/utils/api"; // ✅ use apiClient for requests
 import {
   Card,
   CardHeader,
@@ -14,8 +14,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
 import { User, BookOpen, Bell } from "lucide-react";
 import { io } from "socket.io-client";
-
-const BASE_URL = "https://studiesmasters-backend.onrender.com";
 
 export function StudentDashboard() {
   const [studentData, setStudentData] = useState(null);
@@ -29,7 +27,6 @@ export function StudentDashboard() {
   const navigate = useNavigate();
   const socketRef = useRef(null);
 
-  /** Add a new broadcast as notification and inbox message */
   const addNotification = (broadcast) => {
     const note = {
       id: broadcast._id || Date.now(),
@@ -37,55 +34,43 @@ export function StudentDashboard() {
       message: broadcast.message,
       sender: broadcast.sender || { fullName: "Admin" },
       createdAt: broadcast.createdAt || new Date(),
-      open: false, // for inbox expand/collapse
+      open: false,
     };
 
     setNotifications((prev) => [note, ...prev]);
     setBroadcasts((prev) => [note, ...prev]);
   };
 
-  /** Fetch student info and related data */
+  // ================= FETCH STUDENT DATA =================
   useEffect(() => {
     const fetchStudentData = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) return navigate("/login");
 
-        // Fetch student info
-        const res = await fetch(`${BASE_URL}/api/students/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch student info");
-
-        const data = await res.json();
+        // ✅ fetch student info via apiClient
+        const { data } = await apiClient.get("/students/me");
         const student = data.user || data;
         setStudentData(student);
 
-        // Fetch broadcasts
+        // ✅ fetch broadcasts
         const broadcastsRes = await apiClient.get(`/students/broadcasts/${student._id}`);
         const fetchedBroadcasts = broadcastsRes.data.broadcasts.map((b) => ({
           ...b,
           open: false,
         }));
         setBroadcasts(fetchedBroadcasts);
-
-        // Initialize notifications from broadcasts
         fetchedBroadcasts.forEach((b) => addNotification(b));
 
-        // Fetch assignments
-        const assignmentRes = await fetch(`${BASE_URL}/api/students/assignments/${student._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const assignmentData = assignmentRes.ok ? await assignmentRes.json() : [];
-        setAssignments(Array.isArray(assignmentData) ? assignmentData : []);
+        // ✅ fetch assignments
+        const assignmentRes = await apiClient.get(`/students/assignments/${student._id}`);
+        setAssignments(Array.isArray(assignmentRes.data) ? assignmentRes.data : []);
 
-        // Fetch subjects
-        const subjectRes = await fetch(`${BASE_URL}/api/students/subjects/${student._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const subjectData = subjectRes.ok ? await subjectRes.json() : [];
-        setSubjects(Array.isArray(subjectData) ? subjectData : []);
+        // ✅ fetch subjects
+        const subjectRes = await apiClient.get(`/students/subjects/${student._id}`);
+        setSubjects(Array.isArray(subjectRes.data) ? subjectRes.data : []);
 
+        // welcome notification
         addNotification({
           subjectName: "Welcome",
           message: `Welcome back, ${student.fullName || "Student"}! 👋`,
@@ -101,11 +86,12 @@ export function StudentDashboard() {
     fetchStudentData();
   }, [navigate]);
 
-  /** Initialize Socket.IO for real-time broadcasts */
+  // ================= SOCKET.IO =================
   useEffect(() => {
     if (!studentData?._id) return;
 
-    const socket = io("http://localhost:5000", {
+    // ✅ use env variable for backend
+    const socket = io(import.meta.env.VITE_API_URL, {
       query: { userId: studentData._id },
     });
     socketRef.current = socket;
@@ -122,7 +108,7 @@ export function StudentDashboard() {
     return () => socket.disconnect();
   }, [studentData?._id]);
 
-  /** Handle assignment submission */
+  // ================= HANDLE ASSIGNMENT SUBMISSION =================
   const handleSubmitAssignment = async (assignmentId, mode, content) => {
     try {
       const formData = new FormData();
@@ -130,12 +116,11 @@ export function StudentDashboard() {
       if (mode === "typed") formData.append("typedAnswer", content);
       else formData.append("file", content);
 
-      const res = await fetch(`${BASE_URL}/api/students/assignments/submit/${assignmentId}`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      alert(data.message || "Assignment submitted!");
+      const res = await apiClient.post(
+        `/students/assignments/submit/${assignmentId}`,
+        formData
+      );
+      alert(res.data.message || "Assignment submitted!");
     } catch (err) {
       console.error(err);
     }
