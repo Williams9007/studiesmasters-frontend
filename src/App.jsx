@@ -1,6 +1,6 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
-import apiClient from "./utils/api"; // ✅ use apiClient instead of axios
+import { apiClient } from "./utils/apiClient"; // ✅ make sure this points to Render backend
 
 // Pages
 import LandingPage from "./components/landing-page.jsx";
@@ -22,39 +22,29 @@ import AdminVerifyOtp from "./components/AdminVerifyOtp.jsx";
 import PrivateAdminRoute from "./utils/PrivateAdminRoute.jsx";
 
 function App() {
-  // ✅ Signup using apiClient
+  // Signup using apiClient
   const handleSignup = async (data) => {
     try {
-      const res = await apiClient.post("/api/auth/register", data); // relative path only
+      const res = await apiClient.post("/auth/register", data); // relative path only
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data.user._id);
       return res.data;
     } catch (err) {
-      console.error(
-        "❌ Backend signup error:",
-        err.response?.data || err.message
-      );
-      throw err.response
-        ? new Error(err.response.data.message)
-        : err;
+      console.error("❌ Backend signup error:", err.response?.data || err.message);
+      throw err.response ? new Error(err.response.data.message) : err;
     }
   };
 
-  // ✅ Login example if you have it
+  // Login using apiClient
   const handleLogin = async (data) => {
     try {
-      const res = await apiClient.post("/api/auth/login", data);
+      const res = await apiClient.post("/auth/login", data); // relative path only
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data.user._id);
       return res.data;
     } catch (err) {
-      console.error(
-        "❌ Backend login error:",
-        err.response?.data || err.message
-      );
-      throw err.response
-        ? new Error(err.response.data.message)
-        : err;
+      console.error("❌ Backend login error:", err.response?.data || err.message);
+      throw err.response ? new Error(err.response.data.message) : err;
     }
   };
 
@@ -63,7 +53,7 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/register-course/:role" element={<RegisterCoursePage />} />
         <Route path="/auth-form/:role" element={<AuthForm onSignup={handleSignup} />} />
         <Route path="/payment" element={<PaymentPage />} />
