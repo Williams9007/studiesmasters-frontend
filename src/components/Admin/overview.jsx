@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import apiClient from "../../utils/apiClient";
+import { apiClient } from "../../utils/api";
 import StatCard from "./StatCard";
 import AlertCard from "./AlertCard";
 import NotificationBell from "./NotificationItem";
@@ -23,8 +23,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-
 export default function Overview() {
   const [students, setStudents] = useState(0);
   const [teachers, setTeachers] = useState(0);
@@ -36,8 +34,9 @@ export default function Overview() {
   const socketRef = useRef(null);
 
   const token = localStorage.getItem("adminToken");
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  // Fetch overview data
+  // ================= FETCH OVERVIEW DATA =================
   const fetchOverview = async () => {
     if (!token) return setError("Admin token not found. Please login.");
 
@@ -55,34 +54,34 @@ export default function Overview() {
       setPayments(paymentRes.data.payments || []);
       setTotalPayments(paymentRes.data.totalAmount || 0);
     } catch (err) {
-      console.error("Error fetching overview data:", err);
+      console.error("❌ Error fetching overview data:", err);
       setError(
         err.response?.data?.message || err.message || "Failed to fetch overview data"
       );
     }
   };
 
-  // Initialize on mount
+  // ================= SOCKET.IO =================
   useEffect(() => {
     fetchOverview();
 
     if (!token) return;
 
-    const socket = io(BASE_URL, { auth: { token, role: "admin" } });
+    const socket = io(BACKEND_URL, { auth: { token, role: "admin" } });
     socketRef.current = socket;
 
-    socket.on("connect", () => console.log("Admin socket connected:", socket.id));
-    socket.on("disconnect", () => console.log("Admin socket disconnected"));
+    socket.on("connect", () => console.log("🟢 Admin socket connected:", socket.id));
+    socket.on("disconnect", () => console.log("🔌 Admin socket disconnected"));
 
-    // Live broadcast updates
-    socket.on("broadcast-sent", (broadcast) => {
+    // Real-time broadcasts
+    socket.on("broadcast:new", (broadcast) => {
       setBroadcastLogs((prev) => [broadcast, ...prev]);
     });
 
     return () => socket.disconnect();
-  }, [token]);
+  }, [token, BACKEND_URL]);
 
-  // Pie chart data
+  // ================= CHART DATA =================
   const userData = [
     { name: "Students", value: students },
     { name: "Teachers", value: teachers },
@@ -90,11 +89,9 @@ export default function Overview() {
   ];
   const PIE_COLORS = ["#8884d8", "#82ca9d", "#ffc658"];
 
-  // Bar chart data
   const paymentByGrade = payments.reduce((acc, p) => {
     const grade = p.grade || "Unknown";
-    if (!acc[grade]) acc[grade] = 0;
-    acc[grade] += p.amount;
+    acc[grade] = (acc[grade] || 0) + p.amount;
     return acc;
   }, {});
   const barData = Object.keys(paymentByGrade).map((grade) => ({
@@ -109,6 +106,7 @@ export default function Overview() {
 
       {error && <AlertCard type="error" message={error} />}
 
+      {/* ================= STATS ================= */}
       <div className="stats-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Students" value={students} />
         <StatCard title="Total Teachers" value={teachers} />
@@ -116,9 +114,10 @@ export default function Overview() {
         <StatCard title="Total Payments (GHS)" value={totalPayments} />
       </div>
 
-      {/* Charts */}
+      {/* ================= CHARTS ================= */}
       <div className="charts-grid grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="pie-chart bg-black p-4 rounded shadow">
+        {/* Pie Chart */}
+        <div className="pie-chart bg-white p-4 rounded shadow">
           <h2 className="text-xl font-semibold mb-2 text-center">User Distribution</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -129,7 +128,6 @@ export default function Overview() {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                fill="#8884d8"
                 label
               >
                 {userData.map((entry, index) => (
@@ -147,7 +145,8 @@ export default function Overview() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bar-chart bg-black p-4 rounded shadow">
+        {/* Bar Chart */}
+        <div className="bar-chart bg-white p-4 rounded shadow">
           <h2 className="text-xl font-semibold mb-2 text-center">Payments by Grade</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -161,8 +160,6 @@ export default function Overview() {
                   <Cell
                     key={`cell-${index}`}
                     fill={BAR_COLORS[index % BAR_COLORS.length]}
-                    stroke="#000"
-                    strokeWidth={0.5}
                   />
                 ))}
               </Bar>
@@ -171,18 +168,22 @@ export default function Overview() {
         </div>
       </div>
 
+      {/* ================= BROADCAST TAB ================= */}
       <div className="mt-6">
         <BroadcastTab />
       </div>
 
+      {/* ================= LIVE BROADCAST LOGS ================= */}
       {broadcastLogs.length > 0 && (
-        <div className="mt-4 bg-black-100 p-3 rounded shadow max-h-64 overflow-y-auto">
+        <div className="mt-4 bg-gray-50 p-3 rounded shadow max-h-64 overflow-y-auto">
           <h3 className="font-semibold mb-2">Live Broadcast Logs</h3>
           {broadcastLogs.map((b, i) => (
-            <div key={i} className="p-2 border-b border-black-300">
+            <div key={i} className="p-2 border-b border-gray-200">
               <p><strong>{b.subject}</strong></p>
               <p>{b.message}</p>
-              <small className="text-black-500">{new Date(b.createdAt).toLocaleString()}</small>
+              <small className="text-gray-500">
+                {new Date(b.createdAt).toLocaleString()}
+              </small>
             </div>
           ))}
         </div>
