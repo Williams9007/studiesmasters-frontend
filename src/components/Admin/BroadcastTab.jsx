@@ -2,9 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
-import { apiClient } from "../../utils/api";
-
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+import { apiClient } from "../../utils/api"; // ✅ use apiClient for requests
 
 export default function BroadcastTab() {
   const [students, setStudents] = useState([]);
@@ -16,15 +14,15 @@ export default function BroadcastTab() {
   const [logs, setLogs] = useState([]);
   const socketRef = useRef(null);
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL; // ✅ use env
+
   // ================= FETCH STUDENTS =================
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         const res = await apiClient.get("/admin/students/list");
         const studentArray = res.data.students || [];
-        studentArray.sort((a, b) =>
-          a.fullName.localeCompare(b.fullName)
-        );
+        studentArray.sort((a, b) => a.fullName.localeCompare(b.fullName));
         setStudents(studentArray);
       } catch (err) {
         console.error("❌ Error fetching students:", err);
@@ -34,25 +32,31 @@ export default function BroadcastTab() {
     fetchStudents();
   }, []);
 
-  // ================= SOCKET =================
+  // ================= SOCKET.IO =================
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) return;
 
-    const socket = io(BASE_URL, { auth: { token } });
+    // ✅ use env variable for backend
+    const socket = io(BACKEND_URL, { auth: { token } });
     socketRef.current = socket;
 
-    socket.on("new-broadcast", (data) =>
-      setLogs((prev) => [data, ...prev])
-    );
+    socket.on("connect", () => {
+      console.log("🟢 Connected to socket:", socket.id);
+    });
+
+    socket.on("new-broadcast", (data) => setLogs((prev) => [data, ...prev]));
+
+    socket.on("disconnect", () => {
+      console.log("🔌 Socket disconnected");
+    });
 
     return () => socket.disconnect();
-  }, []);
+  }, [BACKEND_URL]);
 
-  // ================= SEND =================
+  // ================= SEND BROADCAST =================
   const handleSend = async () => {
-    if (!subject || !message)
-      return alert("Subject and message are required.");
+    if (!subject || !message) return alert("Subject and message are required.");
 
     try {
       const formData = new FormData();
@@ -74,7 +78,6 @@ export default function BroadcastTab() {
       setMessage("");
       setLink("");
       setFile(null);
-
     } catch (err) {
       console.error("❌ Failed to send broadcast:", err);
       alert("Failed to send broadcast");
@@ -83,7 +86,6 @@ export default function BroadcastTab() {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
-
       <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
         ✉ Compose Broadcast
       </h2>
@@ -179,20 +181,11 @@ export default function BroadcastTab() {
       {/* Logs */}
       {logs.length > 0 && (
         <div className="mt-6 border-t pt-4">
-          <h3 className="font-semibold text-gray-700 mb-2">
-            Recent Broadcasts
-          </h3>
-
+          <h3 className="font-semibold text-gray-700 mb-2">Recent Broadcasts</h3>
           {logs.map((log, i) => (
-            <div
-              key={i}
-              className="border p-3 rounded-md mb-2 bg-gray-50"
-            >
-              <p className="font-bold text-gray-800">
-                {log.subject}
-              </p>
+            <div key={i} className="border p-3 rounded-md mb-2 bg-gray-50">
+              <p className="font-bold text-gray-800">{log.subject}</p>
               <p className="text-gray-700">{log.message}</p>
-
               {log.link && (
                 <a
                   href={log.link}
@@ -202,7 +195,6 @@ export default function BroadcastTab() {
                   Open Link
                 </a>
               )}
-
               <small className="block text-gray-400 mt-2">
                 {new Date(log.createdAt).toLocaleString()}
               </small>
