@@ -1,6 +1,6 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
-import { apiClient } from "./utils/apiClient"; // ✅ make sure this points to Render backend
+import apiClient from "./utils/apiClient"; // ✅ default import
 
 // Pages
 import LandingPage from "./components/landing-page.jsx";
@@ -38,7 +38,7 @@ function App() {
   // Login using apiClient
   const handleLogin = async (data) => {
     try {
-      const res = await apiClient.post("/auth/login", data); // relative path only
+      const res = await apiClient.post("/auth/login", data);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data.user._id);
       return res.data;
