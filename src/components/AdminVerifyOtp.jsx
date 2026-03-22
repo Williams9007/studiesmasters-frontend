@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "./config/api";
+import apiClient from "../utils/apiClient";
 import { useNavigate } from "react-router-dom";
 import "./admin-auth.css";
 
@@ -22,7 +22,7 @@ export default function AdminVerifyOtp() {
     }
 
     try {
-      const res = await api.post("/admin/verify-otp", {
+      const res = await apiClient.post("/admin/verify-otp", {
         adminId,
         otp,
       });
