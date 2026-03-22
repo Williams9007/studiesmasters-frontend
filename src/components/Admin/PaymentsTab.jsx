@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { apiClient } from "../../utils/api";
+import apiClient from "../../utils/apiClient";
 
 export default function PaymentsTab() {
   const [payments, setPayments] = useState([]);
@@ -13,7 +13,7 @@ export default function PaymentsTab() {
   const fetchPayments = async () => {
     try {
       const res = await apiClient.get("/admin/payments");
-      setPayments(res.data.payments);
+      setPayments(res.data.payments || []);
     } catch (err) {
       console.error("Error fetching payments", err);
     } finally {
@@ -22,13 +22,21 @@ export default function PaymentsTab() {
   };
 
   const confirmPayment = async (id) => {
-    await apiClient.put(`/admin/payments/${id}/confirm`);
-    fetchPayments();
+    try {
+      await apiClient.put(`/admin/payments/${id}/confirm`);
+      fetchPayments();
+    } catch (err) {
+      console.error("Error confirming payment", err);
+    }
   };
 
   const rejectPayment = async (id) => {
-    await apiClient.put(`/admin/payments/${id}/reject`);
-    fetchPayments();
+    try {
+      await apiClient.put(`/admin/payments/${id}/reject`);
+      fetchPayments();
+    } catch (err) {
+      console.error("Error rejecting payment", err);
+    }
   };
 
   return (
@@ -58,11 +66,7 @@ export default function PaymentsTab() {
 
             <tbody>
               {payments.map((p) => (
-                <tr
-                  key={p._id}
-                  className="border-b hover:bg-gray-50 transition"
-                >
-                  {/* Student Name */}
+                <tr key={p._id} className="border-b hover:bg-gray-50 transition">
                   <td className="p-3 font-medium text-gray-800">
                     {p.studentId?.fullName || "Unknown"}
                   </td>
@@ -75,10 +79,11 @@ export default function PaymentsTab() {
                   </td>
 
                   <td className="p-3">
-                    {new Date(p.transactionDate).toLocaleDateString()}
+                    {p.transactionDate
+                      ? new Date(p.transactionDate).toLocaleDateString()
+                      : "-"}
                   </td>
 
-                  {/* Status Badge */}
                   <td className="p-3">
                     {p.status === "pending" && (
                       <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">
@@ -97,9 +102,8 @@ export default function PaymentsTab() {
                     )}
                   </td>
 
-                  {/* Actions */}
                   <td className="p-3 text-center">
-                    {p.status === "pending" && (
+                    {p.status === "pending" ? (
                       <div className="flex justify-center gap-2">
                         <button
                           onClick={() => confirmPayment(p._id)}
@@ -115,9 +119,7 @@ export default function PaymentsTab() {
                           Reject
                         </button>
                       </div>
-                    )}
-
-                    {p.status !== "pending" && (
+                    ) : (
                       <span className="text-gray-400 text-xs">
                         No actions
                       </span>
