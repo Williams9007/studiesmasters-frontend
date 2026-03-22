@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "./config/api";
+import apiClient from "../utils/apiClient";
 import { useNavigate } from "react-router-dom";
 import "./admin-auth.css";
 
