@@ -17,7 +17,8 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const res = await apiClient.post("/admin/login", data), { email, password });
+      const res = await apiClient.post("/admin/login", { email, password });
+
       localStorage.setItem("adminId", res.data.adminId);
       navigate("/admin/verify-otp");
     } catch (err) {
