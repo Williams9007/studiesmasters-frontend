@@ -2,52 +2,75 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
 import Overview from "./Admin/Overview";
 import BroadcastTab from "./Admin/BroadcastTab";
-import Users from "./Admin/Users"; 
-import PaymentsTab from "./Admin/PaymentsTab"; // ✅ NEW
+import Users from "./Admin/Users";
+import PaymentsTab from "./Admin/PaymentsTab";
 
-// ✅ Use backend URL from .env or fallback to Render URL
+// ✅ Backend URL
 const BASE_URL =
   import.meta.env.VITE_API_URL ||
   "https://studiesmasters-backend.onrender.com";
 
 export default function AdminDashboard({ user = {}, onLogout }) {
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState("overview");
   const [notifications, setNotifications] = useState([]);
   const [recentMessage, setRecentMessage] = useState(null);
+
+  // ================= PROTECT ROUTE =================
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      navigate("/admin-login", { replace: true });
+    }
+  }, [navigate]);
 
   // ================= SOCKET.IO =================
   useEffect(() => {
     if (!user?._id) return;
 
     const token = localStorage.getItem("adminToken");
-    if (!token) return console.warn("Admin token missing");
+    if (!token) return;
 
     const socket = io(BASE_URL, {
-      auth: { token, role: "admin" }, // 🔑 send token & role for auth
-      transports: ["websocket"],      // use websocket only for Render
+      auth: { token, role: "admin" },
+      transports: ["websocket"],
     });
 
-    socket.on("connect", () => console.log("🟢 Admin connected:", socket.id));
+    socket.on("connect", () =>
+      console.log("🟢 Admin connected:", socket.id)
+    );
 
     socket.on("message:new", (data) => {
-      addNotification(`New message from ${data.senderName || "Teacher"}`);
+      addNotification(
+        `New message from ${data.senderName || "Teacher"}`
+      );
     });
 
     socket.on("broadcast:new", (data) => {
-      addNotification(`New broadcast: ${data.subject || "General"}`);
+      addNotification(
+        `New broadcast: ${data.subject || "General"}`
+      );
     });
 
     socket.on("payment:new", (data) => {
-      addNotification(`New payment submitted by ${data.studentName}`);
+      addNotification(
+        `New payment submitted by ${data.studentName}`
+      );
     });
 
-    socket.on("disconnect", () => console.log("🔌 Socket disconnected"));
+    socket.on("disconnect", () =>
+      console.log("🔌 Socket disconnected")
+    );
 
-    return () => socket.disconnect();
+    return () => {
+      socket.disconnect();
+    };
   }, [user?._id]);
 
   // ================= NOTIFICATIONS =================
@@ -61,14 +84,27 @@ export default function AdminDashboard({ user = {}, onLogout }) {
     setNotifications((prev) => [note, ...prev]);
     setRecentMessage(message);
 
-    setTimeout(() => setRecentMessage(null), 5000);
+    setTimeout(() => {
+      setRecentMessage(null);
+    }, 5000);
   };
 
   // ================= LOGOUT =================
   const handleLogout = () => {
+    // Clear storage
     localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminId");
+    sessionStorage.clear();
+
+    // Reset UI state
+    setNotifications([]);
+    setRecentMessage(null);
+
+    // Call parent logout if exists
     if (onLogout) onLogout();
-    window.location.href = "/admin-login";
+
+    // Redirect safely
+    navigate("/admin-login", { replace: true });
   };
 
   // ================= TAB RENDERING =================
@@ -92,7 +128,9 @@ export default function AdminDashboard({ user = {}, onLogout }) {
 
       {/* ================= HEADER ================= */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold">
+          Admin Dashboard
+        </h1>
 
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
@@ -112,25 +150,29 @@ export default function AdminDashboard({ user = {}, onLogout }) {
 
       {/* ================= TABS ================= */}
       <div className="flex gap-4 mb-6 border-b border-gray-700 pb-4">
-        {["overview", "broadcast", "users", "payments"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded capitalize transition ${
-              activeTab === tab
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-gray-700 hover:bg-gray-600"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+        {["overview", "broadcast", "users", "payments"].map(
+          (tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded capitalize transition ${
+                activeTab === tab
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-gray-700 hover:bg-gray-600"
+              }`}
+            >
+              {tab}
+            </button>
+          )
+        )}
       </div>
 
       {/* ================= REAL-TIME BANNER ================= */}
       {recentMessage && (
         <div className="mb-4 w-fit bg-green-500 text-black px-6 py-2 rounded-xl shadow">
-          <p className="text-sm font-medium">{recentMessage}</p>
+          <p className="text-sm font-medium">
+            {recentMessage}
+          </p>
         </div>
       )}
 
