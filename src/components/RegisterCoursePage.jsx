@@ -68,7 +68,7 @@ const gradeOptionsByCurriculum = {
   ],
 };
 
-  };
+
 
   const currentTheme = curricula.find((c) => c.name === selectedCurriculum);
 
