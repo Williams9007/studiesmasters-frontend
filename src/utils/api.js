@@ -1,0 +1,31 @@
+// src/utils/api.js
+import axios from "axios";
+
+const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+const API_BASE_URL = `${BACKEND_URL}/api`;
+
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
+
+// Automatically attach admin token if available
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("adminToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Redirect to login if token is invalid/expired
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("adminToken");
+      window.location.href = "/admin-login";
+    }
+    return Promise.reject(error);
+  }
+);
