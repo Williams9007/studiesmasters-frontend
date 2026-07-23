@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, LockKeyhole, WalletCards } from "lucide-react";
 
 const BASE_URL = (import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV ? "http://localhost:5000" : "https://studiesmasters-backend.onrender.com")).replace(/\/$/, "");
-const money = (amount) => `GHÂ¢ ${Number(amount || 0).toLocaleString()}`;
+const money = (amount) => `GH₵ ${Number(amount || 0).toLocaleString()}`;
 
 const loadPaystack = () => new Promise((resolve, reject) => {
   if (window.PaystackPop) return resolve();
