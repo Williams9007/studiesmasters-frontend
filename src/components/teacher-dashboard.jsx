@@ -1,18 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
 import { useNavigate, useParams } from "react-router-dom";
-=======
-import { useNavigate } from "react-router-dom";
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-<<<<<<< HEAD
 import { BookOpen, User, Bell, CheckCircle, Send, LogOut, PlayCircle, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
@@ -30,19 +25,6 @@ export function TeacherDashboard({ user = {}, onLogout }) {
   const [token, setToken] = useState(null);
   const [teacherProfile, setTeacherProfile] = useState(null);
 
-=======
-import { BookOpen, User, Bell, CheckCircle, Send, LogOut, Menu } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { io } from "socket.io-client";
-
-const BASE_URL = "https://studiesmasters-backend.onrender.com";
-
-export function TeacherDashboard({ user = {}, onLogout }) {
-  const navigate = useNavigate();
-  const [token, setToken] = useState(null);
-
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [recentMessage, setRecentMessage] = useState(null);
@@ -58,7 +40,6 @@ export function TeacherDashboard({ user = {}, onLogout }) {
   const [sending, setSending] = useState(false);
   const [activities, setActivities] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
-<<<<<<< HEAD
   const [classGroups, setClassGroups] = useState([]);
   const displayTeacher = teacherProfile || user;
 
@@ -69,15 +50,10 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     return response.json();
   };
 
-=======
-
-  // Load token
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   useEffect(() => {
     if (typeof window !== "undefined") setToken(localStorage.getItem("token"));
   }, []);
 
-<<<<<<< HEAD
   useEffect(() => {
     if (!teacherId || !token) return;
     fetch(`${BASE_URL}/api/teachers/dashboard/${teacherId}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -114,90 +90,19 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     try {
       const res = await fetch(`${BASE_URL}/api/teachers/${teacherId}/subjects`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await readJson(res);
-=======
-  // Fetch initial data when user exists
-  useEffect(() => {
-    if (!user._id || !token) return;
-
-    addNotification(`Welcome back, ${user.name || "Teacher"}! 👋`);
-    fetchSubjects();
-    fetchBroadcasts();
-    fetchMessages();
-    fetchStudents();
-    fetchAssignments();
-  }, [user._id, token]);
-
-  // -------- SOCKET.IO REAL-TIME SETUP --------
-  useEffect(() => {
-    if (!user._id) return;
-
-    const socket = io(BASE_URL, {
-      withCredentials: true,
-      query: { userId: user._id },
-    });
-
-    socket.on("connect", () => {
-      console.log("🟢 Connected to socket:", socket.id);
-    });
-
-    socket.on("message:new", (data) => {
-      console.log("📩 New message event:", data);
-
-      // Add to messages
-      setMessages(prev => [data, ...prev]);
-
-      // Add to activities
-      setActivities(prev => [
-        {
-          type: "message",
-          message: data.content || data.message,
-          time: new Date().toLocaleString(),
-        },
-        ...prev
-      ]);
-
-      addNotification("New message received 📩");
-    });
-
-    socket.on("disconnect", () => {
-      console.log("🔌 Socket disconnected");
-    });
-
-    return () => socket.disconnect();
-  }, [user._id]);
-
-  // -------- FETCH FUNCTIONS --------
-  const fetchSubjects = async () => {
-    if (!user._id || !token) return;
-    try {
-      const res = await fetch(`${BASE_URL}/api/teachers/${user._id}/subjects`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       setSubjects(data || []);
     } catch (err) { console.error(err); }
   };
 
   const fetchStudents = async () => {
-<<<<<<< HEAD
     if (!teacherId || !token) return;
     try {
       const res = await fetch(`${BASE_URL}/api/teachers/${teacherId}/students`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await readJson(res);
-=======
-    if (!user._id || !token) return;
-    try {
-      const res = await fetch(`${BASE_URL}/api/teachers/${user._id}/students`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       setStudents(data || []);
     } catch (err) { console.error(err); }
   };
 
-<<<<<<< HEAD
   const fetchClassGroups = async () => {
     if (!teacherId || !token) return;
     try {
@@ -212,93 +117,40 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     try {
       const res = await fetch(`${BASE_URL}/api/teachers/${teacherId}/assignments`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await readJson(res);
-=======
-  const fetchAssignments = async () => {
-    if (!user._id || !token) return;
-    try {
-      const res = await fetch(`${BASE_URL}/api/teachers/${user._id}/assignments`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       setAssignments(data || []);
     } catch (err) { console.error(err); }
   };
 
   const fetchBroadcasts = async () => {
-<<<<<<< HEAD
     if (!teacherId || !token) return;
     try {
       const res = await fetch(`${BASE_URL}/api/teachers/teacher/broadcasts/${teacherId}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await readJson(res);
       setBroadcasts(data || []);
       const newActs = (data || []).map(b => ({ type: "broadcast", subject: b.subjectName || "General", message: b.message, time: new Date(b.createdAt).toLocaleString() }));
-=======
-    if (!user._id || !token) return;
-    try {
-      const res = await fetch(`${BASE_URL}/api/teachers/${user._id}/broadcasts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setBroadcasts(data || []);
-
-      const newActs = (data || []).map(b => ({
-        type: "broadcast",
-        subject: b.subjectName || "General",
-        message: b.message,
-        time: new Date(b.createdAt).toLocaleString()
-      }));
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       setActivities(prev => [...newActs, ...prev]);
     } catch (err) { console.error(err); }
   };
 
   const fetchMessages = async () => {
-<<<<<<< HEAD
     if (!teacherId || !token) return;
     try {
       const res = await fetch(`${BASE_URL}/api/messages/teacher/${teacherId}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setMessages(data || []);
       const msgActs = (data || []).map(m => ({ type: "message", message: m.content || m.message, time: new Date(m.createdAt || m.date).toLocaleString() }));
-=======
-    if (!user._id || !token) return;
-    try {
-      const res = await fetch(`${BASE_URL}/api/messages/teacher/${user._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setMessages(data || []);
-
-      const msgActs = (data || []).map(m => ({
-        type: "message",
-        message: m.content || m.message,
-        time: new Date(m.createdAt || m.date).toLocaleString()
-      }));
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       setActivities(prev => [...msgActs, ...prev]);
     } catch (err) { console.error(err); }
   };
 
-<<<<<<< HEAD
-=======
-  // -------- ACTIONS --------
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   const handleSendBroadcast = async () => {
     if (!broadcastMessage.trim() || !broadcastSubject) return alert("Please complete all fields");
     setSending(true);
     try {
-<<<<<<< HEAD
       const res = await fetch(`${BASE_URL}/api/teachers/teacher/broadcast`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ teacherId, subjectId: broadcastSubject, message: broadcastMessage })
-=======
-      const res = await fetch(`${BASE_URL}/api/teachers/broadcast`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ teacherId: user._id, subjectId: broadcastSubject, message: broadcastMessage })
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       });
       if (res.ok) {
         addNotification("Broadcast sent ✅");
@@ -314,11 +166,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       const res = await fetch(`${BASE_URL}/api/teachers/assignments`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-<<<<<<< HEAD
         body: JSON.stringify({ ...newAssignment, teacherId })
-=======
-        body: JSON.stringify({ ...newAssignment, teacherId: user._id })
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       });
       if (res.ok) {
         addNotification("Assignment posted ✅");
@@ -336,11 +184,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       const res = await fetch(`${BASE_URL}/api/messages/reply/${msgId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-<<<<<<< HEAD
         body: JSON.stringify({ reply: replyText, teacherId })
-=======
-        body: JSON.stringify({ reply: replyText, teacherId: user._id })
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       });
       if (res.ok) {
         setReplies(prev => ({ ...prev, [msgId]: "" }));
@@ -364,7 +208,6 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     navigate("/login");
   };
 
-<<<<<<< HEAD
   const openMoodleClassroom = () => {
     window.open(MOODLE_PORTAL_URL, "_blank", "noopener,noreferrer");
   };
@@ -433,17 +276,10 @@ export function TeacherDashboard({ user = {}, onLogout }) {
           <TabsContent value="broadcasts" className="mt-5 grid gap-5 lg:grid-cols-2"><Card><CardHeader><CardTitle>Send a broadcast</CardTitle></CardHeader><CardContent className="space-y-3"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={broadcastSubject} onChange={(event) => setBroadcastSubject(event.target.value)}><option value="">Select subject</option>{subjects.map((subject) => <option key={subject._id} value={subject._id}>{subject.name}</option>)}</select><Textarea placeholder="Write an announcement for students" value={broadcastMessage} onChange={(event) => setBroadcastMessage(event.target.value)} /><Button onClick={handleSendBroadcast} disabled={sending} className="w-full bg-violet-600 hover:bg-violet-700"><Send size={16} />{sending ? "Sending..." : "Send broadcast"}</Button></CardContent></Card><Card><CardHeader><CardTitle>Previous broadcasts</CardTitle></CardHeader><CardContent className="space-y-3">{broadcasts.length ? broadcasts.map((broadcast, index) => <div key={`${broadcast.createdAt}-${index}`} className="rounded-xl border border-slate-200 p-4"><p className="font-bold">{broadcast.subjectName || "General"}</p><p className="mt-1 text-sm text-slate-600">{broadcast.message}</p></div>) : <DashboardEmpty text="No broadcasts have been sent." />}</CardContent></Card></TabsContent>
         </Tabs>
       </main>
-=======
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50">
-      {/* HEADER + TABS + UI remains unchanged */}
-      {/* Your existing header, notifications, tabs and content */}
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     </div>
   );
 }
 
-<<<<<<< HEAD
 function DashboardMetric({ icon, label, value, color }) {
   const colors = { violet: "bg-violet-600", blue: "bg-blue-600", emerald: "bg-emerald-600" };
   return <Card><CardContent className="flex items-center gap-3 p-4"><span className={`flex h-10 w-10 items-center justify-center rounded-xl text-white ${colors[color]}`}>{icon}</span><span><span className="block text-xl font-bold">{value}</span><span className="text-xs font-medium text-slate-500">{label}</span></span></CardContent></Card>;
@@ -454,6 +290,3 @@ function DashboardEmpty({ text }) {
 }
 
 export default TeacherDashboard;
-=======
-export default TeacherDashboard;
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
