@@ -1004,7 +1004,7 @@ item.name === "Standard Plan" && (
 
 <span className="text-xs text-green-600 ml-5">
 
-â˜… Most Popular
+ Most Popular
 
 </span>
 

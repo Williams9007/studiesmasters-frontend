@@ -250,30 +250,6 @@ const LandingPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 text-gray-700">
-            <button
-              type="button"
-              onClick={() => scrollToSection("features")}
-              className="text-sm font-medium text-gray-700 transition hover:text-blue-600"
-            >
-              Features
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("packages")}
-              className="text-sm font-medium text-gray-700 transition hover:text-blue-600"
-            >
-              Programs
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("testimonials")}
-              className="text-sm font-medium text-gray-700 transition hover:text-blue-600"
-            >
-              Reviews
-            </button>
-          </div>
-
           <button
             onClick={handleLoginClick}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm sm:px-5 sm:text-base"
@@ -406,7 +382,7 @@ const LandingPage = () => {
                         /month
                       </span>
                     </p>
-                      <p className="mt-1 text-xs text-slate-500">Billed monthly Â· plan access for {group.duration}</p>
+                      <p className="mt-1 text-xs text-slate-500">Billed monthly A· plan access for {group.duration}</p>
                     </>}
                     <div className="mt-5 border-t border-slate-100 pt-4">
                     <p className="text-xs font-bold uppercase tracking-wide text-slate-500">What&apos;s included</p>
@@ -441,7 +417,7 @@ const LandingPage = () => {
             How It Works
           </h2>
 
-          <div className="grid grid-cols-2 gap-8 text-center md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-10 text-center md:grid-cols-3">
             <Step number="1" title="Register" />
             <Step number="2" title="Join Classes" />
             <Step number="3" title="Track Progress" />
