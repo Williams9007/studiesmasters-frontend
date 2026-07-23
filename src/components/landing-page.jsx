@@ -24,6 +24,7 @@ import {
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { formatCurrency } from "../utils/formatCurrency";
 
 
 import ChatBotWidget from "./ChatBotWidget";
@@ -33,22 +34,97 @@ const whatsappNumber = "233545952096";
 
 const packages = [
   {
-    curriculum: "GES", title: "Main Subscriptions", color: "green", duration: "1 month",
+    curriculum: "GES",
+    title: "Main Subscriptions",
+    color: "green",
+    duration: "1 month",
     subjects: "English + Maths + Science",
-    overview: "Flexible GES support plans for core subjects, homework help and exam preparation.",
+    overview:
+      "Flexible GES support plans for core subjects, homework help and exam preparation.",
     plans: [
-      { name: "Starter Plan", price: "GHâ‚µ250.00", grades: "Basic 4-6, JHS 1-3, SHS 1-3", includes: ["ðŸ‘©â€ðŸ« Live group classes (10â€“15 students)", "ðŸ“˜ Maths + English + Science (core)", "ðŸ“„ Weekly homework", "ðŸ§ª Monthly mini-test"] },
-      { name: "Standard Plan", price: "GHâ‚µ500.00", grades: "Basic 4-6, JHS 1-3, SHS 1-3", includes: ["ðŸ‘©â€ðŸ« Smaller classes (4â€“8 students)", "ðŸ“˜ Maths + English + Science", "ðŸ§‘â€ðŸ« Assigned tutor", "ðŸ“Š Progress tracking (monthly report)", "ðŸ§  Homework marking + feedback", "ðŸ“ž Parent performance updates (monthly)"] },
-      { name: "Premium Plan", price: "GHâ‚µ900.00", grades: "Basic 4-6, JHS 1-3, SHS 1-3", includes: ["ðŸ‘©â€ðŸ« 2â€“3 student micro-group", "ðŸ“˜ Maths + English + Science", "ðŸ“˜ Intensive focus (BECE / WASSCE)", "ðŸ“Š Weekly performance reports", "ðŸ“ Personal study plan"] },
+      {
+        name: "Starter Plan",
+        price: 250,
+        grades: "Basic 4–6, JHS 1–3, SHS 1–3",
+        includes: [
+          "👩‍🏫 Live group classes (10–15 students)",
+          "📘 Maths + English + Science (Core)",
+          "📄 Weekly homework",
+          "🧪 Monthly mini-test",
+        ],
+      },
+      {
+        name: "Standard Plan",
+        price: 500,
+        grades: "Basic 4–6, JHS 1–3, SHS 1–3",
+        includes: [
+          "👩‍🏫 Smaller classes (4–8 students)",
+          "📘 Maths + English + Science",
+          "🧑‍🏫 Assigned tutor",
+          "📊 Progress tracking (Monthly report)",
+          "🧠 Homework marking & feedback",
+          "📞 Parent performance updates (Monthly)",
+        ],
+      },
+      {
+        name: "Premium Plan",
+        price: 900,
+        grades: "Basic 4–6, JHS 1–3, SHS 1–3",
+        includes: [
+          "👩‍🏫 2–3 student micro-group",
+          "📘 Maths + English + Science",
+          "🎯 Intensive focus (BECE/WASSCE)",
+          "📊 Weekly performance reports",
+          "📝 Personal study plan",
+        ],
+      },
     ],
   },
+
   {
-    curriculum: "Cambridge", title: "Main Subscriptions", color: "blue", duration: "1 month",
-    overview: "Cambridge-aligned tutoring for subject mastery, personalised coaching and exam preparation.",
+    curriculum: "Cambridge",
+    title: "Main Subscriptions",
+    color: "blue",
+    duration: "1 month",
+    overview:
+      "Cambridge-aligned tutoring for subject mastery, personalised coaching and exam preparation.",
     plans: [
-      { name: "Starter Plan", price: "GHâ‚µ450.00", grades: "Grade 4-6", includes: ["ðŸ‘©â€ðŸ« Smaller classes (10â€“15 students)", "ðŸ“˜ 3 sessions per week (Maths, basic Science & English)", "ðŸ“Š 60 mins per session", "ðŸ“ Homework + weekly quizzes included"] },
-      { name: "Standard Plan", price: "GHâ‚µ760.00", grades: "Grade 7-9", includes: ["ðŸ‘©â€ðŸ« Smaller classes (5â€“10 students)", "ðŸ“˜ 3 sessions per week (Maths, Science & English)", "ðŸ“Š 60 mins per session", "ðŸ“ Full Cambridge syllabus coverage (IGCSE)", "ðŸ§  Monthly progress report", "ðŸ“ Past paper practice included"] },
-      { name: "Premium Plan", price: "GHâ‚µ1,200.00", grades: "Grade 10-12", includes: ["ðŸ‘¨â€ðŸ« Very small group: 2â€“3 students", "ðŸ“š 3 sessions per week", "ðŸ“Š 60 mins per session", "ðŸ“„ Intensive past-paper marking", "ðŸŽ¯ Weakness-focused tutoring"] },
+      {
+        name: "Starter Plan",
+        price: 450,
+        grades: "Grade 4–6",
+        includes: [
+          "👩‍🏫 Smaller classes (10–15 students)",
+          "📘 3 sessions per week (Maths, Basic Science & English)",
+          "⏱️ 60 minutes per session",
+          "📝 Homework & weekly quizzes included",
+        ],
+      },
+      {
+        name: "Standard Plan",
+        price: 760,
+        grades: "Grade 7–9",
+        includes: [
+          "👩‍🏫 Smaller classes (5–10 students)",
+          "📘 3 sessions per week (Maths, Science & English)",
+          "⏱️ 60 minutes per session",
+          "📚 Full Cambridge syllabus coverage (IGCSE)",
+          "📊 Monthly progress report",
+          "📝 Past paper practice included",
+        ],
+      },
+      {
+        name: "Premium Plan",
+        price: 1200,
+        grades: "Grade 10–12",
+        includes: [
+          "👨‍🏫 Very small group (2–3 students)",
+          "📚 3 sessions per week",
+          "⏱️ 60 minutes per session",
+          "📄 Intensive past-paper marking",
+          "🎯 Weakness-focused tutoring",
+        ],
+      },
     ],
   },
 ];
@@ -56,28 +132,28 @@ const packages = [
 const programs = [
   {
     title: "GES",
-    levels: "Primary 1 â€“ 6 / JHS 1 â€“ 3",
+    levels: "Primary 1 “ 6 / JHS 1 “ 3",
     description: "Build strong foundations in Maths, English and Science.",
-    price: "GHâ‚µ300",
+    price: "GH‚µ300",
     color: "green",
-    features: ["2â€“3 live classes per week", "Homework & worksheets", "Weekly quizzes", "Progress reports","Live group classes (10â€“15 students) "],
+    features: ["2“3 live classes per week", "Homework & worksheets", "Weekly quizzes", "Progress reports","Live group classes (10“15 students) "],
     icon: FaUserGraduate,
   },
   {
     title: "Cambridge Checkpoint",
-    levels: "Years 7 â€“ 9 (JHS 1 â€“ 3)",
+    levels: "Years 7 - 9 (JHS 1 “ 3)",
     description: "Targeted support for Checkpoint exams and beyond.",
-    price: "GHâ‚µ450",
+    price: "GH‚450",
     color: "blue",
     popular: true,
-    features: ["3â€“4 live classes per week", "Exam-style practice", "Monthly mock tests","Live group classes (10â€“15 students) ", "Detailed progress reports"],
+    features: ["3“4 live classes per week", "Exam-style practice", "Monthly mock tests","Live group classes (10â€“15 students) ", "Detailed progress reports"],
     icon: FaBookOpen,
   },
   {
     title: "Cambridge SHS",
-    levels: "Years 10 â€“ 11 (SHS 1 â€“ 2)",
+    levels: "Years 10 “ 11 (SHS 1 “ 2)",
     description: "Intensive preparation for top IGCSE results.",
-    price: "GHâ‚µ1,200",
+    price: "GH‚µ1,200",
     color: "purple",
     features: ["4+ live classes per week", "Past paper mastery", "Exam strategies & marking", "Priority academic support"],
     icon: FaGraduationCap,
@@ -324,7 +400,12 @@ const LandingPage = () => {
                     <h4 className={`mt-4 text-xl font-bold ${theme.heading}`}>{plan.name}</h4>
                     {plan.grades && <p className="mt-2 text-sm text-slate-600">{plan.grades}</p>}
                     {plan.price && <>
-                      <p className={`mt-4 text-3xl font-black ${theme.heading}`}>{plan.price}<span className="ml-1 text-xs font-medium text-slate-600">/month</span></p>
+                    <p className={`mt-4 text-3xl font-black ${theme.heading}`}>
+                      {formatCurrency(plan.price)}
+                      <span className="ml-1 text-xs font-medium text-slate-600">
+                        /month
+                      </span>
+                    </p>
                       <p className="mt-1 text-xs text-slate-500">Billed monthly Â· plan access for {group.duration}</p>
                     </>}
                     <div className="mt-5 border-t border-slate-100 pt-4">
