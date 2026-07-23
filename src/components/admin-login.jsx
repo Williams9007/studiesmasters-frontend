@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { useState, useEffect } from "react";
-=======
-import { useState } from "react";
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 import apiClient from "../utils/apiClient";
 import { useNavigate } from "react-router-dom";
 import "./admin-auth.css";
@@ -10,7 +6,6 @@ import "./admin-auth.css";
 export default function AdminLogin() {
   const navigate = useNavigate();
 
-<<<<<<< HEAD
   useEffect(() => {
     // Clear any stale admin token before starting a new login session
     localStorage.removeItem("adminToken");
@@ -18,8 +13,6 @@ export default function AdminLogin() {
     localStorage.removeItem("adminId");
   }, []);
 
-=======
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -72,8 +65,4 @@ export default function AdminLogin() {
       </form>
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc

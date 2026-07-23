@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-<<<<<<< HEAD
 import apiClient from "../utils/apiClient";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -12,18 +11,6 @@ import { useNavigate } from "react-router-dom";
 function TutorManagerAccess() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-=======
-import api from "./config/axios";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { useNavigate } from "react-router-dom";
-
-const BASE_URL = "https://studiesmasters-backend.onrender.com";
-
-function QaoAccess() {
-  const [qaoCode, setQaoCode] = useState("");
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -32,34 +19,24 @@ function QaoAccess() {
     e.preventDefault();
     setError("");
 
-<<<<<<< HEAD
     if (!email.trim() || !password.trim()) {
-      setError("⚠️ Please enter your email and password.");
-=======
-    if (!qaoCode.trim()) {
-      setError("⚠️ Please enter your QAO access code.");
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
+      setError("âš ï¸ Please enter your email and password.");
       return;
     }
 
     setLoading(true);
 
     try {
-<<<<<<< HEAD
       const res = await apiClient.post("/qao/access", {
         email: email.trim(),
         password: password.trim(),
       });
-=======
-      const res = await axios.post(`${BASE_URL}/api/qao/access`, { qaoCode });
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 
       if (res.data.success) {
         localStorage.setItem("qaoToken", res.data.token);
         localStorage.setItem("qaoUser", JSON.stringify(res.data.user));
         navigate("/qao/dashboard");
       } else {
-<<<<<<< HEAD
         setError(res.data.message || "Login failed. Please check your credentials.");
       }
     } catch (err) {
@@ -70,22 +47,6 @@ function QaoAccess() {
       } else if (err.request) {
         setError("Network error. Please check your internet connection.");
       } else {
-=======
-        setError(res.data.message || "Access denied. Please check your code.");
-      }
-    } catch (err) {
-      console.error("QAO access error:", err);
-
-      // Handle different error scenarios
-      if (err.response) {
-        // Server responded with a status outside 2xx
-        setError(err.response.data.message || "Server error. Please try again.");
-      } else if (err.request) {
-        // Request was made but no response
-        setError("Network error. Please check your internet connection.");
-      } else {
-        // Something else went wrong
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
         setError("Unexpected error occurred. Please try again.");
       }
     } finally {
@@ -94,7 +55,6 @@ function QaoAccess() {
   };
 
   return (
-<<<<<<< HEAD
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-slate-50 to-violet-100 px-4 py-10 sm:px-6 lg:px-8">
       <div className="pointer-events-none absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-violet-200/40 blur-3xl" />
       <div className="pointer-events-none absolute right-10 top-24 h-56 w-56 rounded-full bg-sky-200/40 blur-3xl" />
@@ -168,48 +128,8 @@ function QaoAccess() {
           </div>
         </motion.form>
       </motion.div>
-=======
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-purple-50">
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6 w-full max-w-md p-6 bg-white rounded-lg shadow-md"
-      >
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
-          QAO Dashboard Access
-        </h2>
-
-        <div className="flex flex-col space-y-2">
-          <Label htmlFor="qaoCode">QAO Access Code</Label>
-          <Input
-            id="qaoCode"
-            type="password"
-            placeholder="Enter access code"
-            value={qaoCode}
-            onChange={(e) => setQaoCode(e.target.value)}
-            required
-            className="focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {error && (
-          <p className="text-red-600 text-sm text-center">{error}</p>
-        )}
-
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-2 rounded-lg hover:opacity-90 transition"
-        >
-          {loading ? "Verifying..." : "Access Dashboard"}
-        </Button>
-      </form>
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     </div>
   );
 }
 
-<<<<<<< HEAD
 export default TutorManagerAccess;
-=======
-export default QaoAccess;
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc

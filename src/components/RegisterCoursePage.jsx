@@ -42,40 +42,10 @@ const RegisterCoursePage = () => {
     ],
   };  
 
-<<<<<<< HEAD
   const gradeOptionsByCurriculum = {
     GES: ["4", "5-6", "JHS 1-3", "SHS 1-3"],
     Cambridge: ["Stage 4-6", "Stage 7-11", "Stage 12-13"],
   };
-=======
-const gradeOptionsByCurriculum = {
-  GES: [
-    "Basic 4",
-    "Basic 5",
-    "Basic 6",
-    "JHS 1",
-    "JHS 2",
-    "JHS 3",
-    "SHS 1",
-    "SHS 2",
-    "SHS 3",
-  ],
-  Cambridge: [
-    "Stage 4",
-    "Stage 5",
-    "Stage 6",
-    "Stage 7",
-    "Stage 8",
-    "Stage 9",
-    "Stage 10",
-    "Stage 11",
-    "Stage 12",
-    "Stage 13",
-  ],
-};
-
-
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 
   const currentTheme = curricula.find((c) => c.name === selectedCurriculum);
 

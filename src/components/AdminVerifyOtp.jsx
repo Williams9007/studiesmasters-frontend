@@ -1,14 +1,8 @@
-<<<<<<< HEAD
 // src/components/AdminVerifyOtp.jsx
 import { useState, useEffect } from "react";
 import apiClient from "../utils/apiClient";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-=======
-import { useState } from "react";
-import apiClient from "../utils/apiClient";
-import { useNavigate } from "react-router-dom";
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 import "./admin-auth.css";
 
 export default function AdminVerifyOtp() {
@@ -17,7 +11,6 @@ export default function AdminVerifyOtp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-<<<<<<< HEAD
   const isTokenValid = (token) => {
     if (!token) return false;
     try {
@@ -29,7 +22,7 @@ export default function AdminVerifyOtp() {
     }
   };
 
-  // ✅ Auto-redirect only if admin token is valid
+  // âœ… Auto-redirect only if admin token is valid
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) return;
@@ -43,8 +36,6 @@ export default function AdminVerifyOtp() {
     }
   }, [navigate]);
 
-=======
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   const handleVerify = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -58,53 +49,40 @@ export default function AdminVerifyOtp() {
     }
 
     try {
-<<<<<<< HEAD
-      console.log("📤 Sending OTP verification request...");
-=======
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
+      console.log("ðŸ“¤ Sending OTP verification request...");
       const res = await apiClient.post("/admin/verify-otp", {
         adminId,
         otp,
       });
 
-<<<<<<< HEAD
-      console.log("✅ OTP verification response:", res.data);
+      console.log("âœ… OTP verification response:", res.data);
 
-      // ✅ Store token securely
+      // âœ… Store token securely
       const token = res.data.token;
       if (!token) {
-        console.error("❌ No token in response:", res.data);
+        console.error("âŒ No token in response:", res.data);
         setError("No token received from server. Response: " + JSON.stringify(res.data));
         setLoading(false);
         return;
       }
 
-      console.log("💾 Storing token in localStorage...");
+      console.log("ðŸ’¾ Storing token in localStorage...");
       localStorage.setItem("adminToken", token);
       localStorage.setItem("adminRole", res.data.role || "admin");
       localStorage.removeItem("adminId");
       
-      console.log("✅ Token and role stored");
-      console.log("📍 adminToken exists:", !!localStorage.getItem("adminToken"));
-      console.log("📍 adminRole exists:", !!localStorage.getItem("adminRole"));
+      console.log("âœ… Token and role stored");
+      console.log("ðŸ“ adminToken exists:", !!localStorage.getItem("adminToken"));
+      console.log("ðŸ“ adminRole exists:", !!localStorage.getItem("adminRole"));
 
-      console.log("🔄 Navigating to dashboard...");
+      console.log("ðŸ”„ Navigating to dashboard...");
       
-      // ✅ Redirect to dashboard
+      // âœ… Redirect to dashboard
       navigate("/admin/dashboard", { replace: true });
     } catch (err) {
-      console.error("❌ OTP verification failed");
+      console.error("âŒ OTP verification failed");
       console.error("Error response:", err.response?.data);
       console.error("Full error:", err);
-=======
-      // ✅ Store token
-      localStorage.setItem("adminToken", res.data.token);
-      localStorage.removeItem("adminId");
-
-      // ✅ Redirect to dashboard
-      navigate("/admin/dashboard", { replace: true });
-    } catch (err) {
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       setError(err.response?.data?.message || "Invalid OTP");
     } finally {
       setLoading(false);

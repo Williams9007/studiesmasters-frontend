@@ -1,7 +1,6 @@
 // src/utils/apiClient.js
 import axios from "axios";
 
-<<<<<<< HEAD
 const apiClient = axios.create({
   // Keep every authenticated request on the same backend used for login.
   baseURL: `${(import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "")}/api`,
@@ -56,46 +55,6 @@ apiClient.interceptors.response.use(
       }
     }
 
-=======
-const BASE_URL = "https://studiesmasters-backend.onrender.com/api";
-
-const apiClient = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: false,
-});
-
-// Attach token automatically
-apiClient.interceptors.request.use(
-  (config) => {
-    const token =
-      localStorage.getItem("adminToken") ||
-      localStorage.getItem("qaoToken") ||
-      localStorage.getItem("token");
-
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Handle 401 globally
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.clear();
-      const path = window.location.pathname.includes("/admin")
-        ? "/admin-login"
-        : "/login";
-      window.location.href = path;
-    }
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     return Promise.reject(error);
   }
 );

@@ -13,11 +13,7 @@ export default function PaymentsTab() {
   const fetchPayments = async () => {
     try {
       const res = await apiClient.get("/admin/payments");
-<<<<<<< HEAD
       setPayments(res.data.payments);
-=======
-      setPayments(res.data.payments || []);
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     } catch (err) {
       console.error("Error fetching payments", err);
     } finally {
@@ -26,7 +22,6 @@ export default function PaymentsTab() {
   };
 
   const confirmPayment = async (id) => {
-<<<<<<< HEAD
     await apiClient.put(`/admin/payments/${id}/confirm`);
     fetchPayments();
   };
@@ -34,29 +29,12 @@ export default function PaymentsTab() {
   const rejectPayment = async (id) => {
     await apiClient.put(`/admin/payments/${id}/reject`);
     fetchPayments();
-=======
-    try {
-      await apiClient.put(`/admin/payments/${id}/confirm`);
-      fetchPayments();
-    } catch (err) {
-      console.error("Error confirming payment", err);
-    }
-  };
-
-  const rejectPayment = async (id) => {
-    try {
-      await apiClient.put(`/admin/payments/${id}/reject`);
-      fetchPayments();
-    } catch (err) {
-      console.error("Error rejecting payment", err);
-    }
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   };
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-xl">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        💳 Payment Records
+        ðŸ’³ Payment Records
       </h2>
 
       {loading ? (
@@ -80,15 +58,11 @@ export default function PaymentsTab() {
 
             <tbody>
               {payments.map((p) => (
-<<<<<<< HEAD
                 <tr
                   key={p._id}
                   className="border-b hover:bg-gray-50 transition"
                 >
                   {/* Student Name */}
-=======
-                <tr key={p._id} className="border-b hover:bg-gray-50 transition">
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
                   <td className="p-3 font-medium text-gray-800">
                     {p.studentId?.fullName || "Unknown"}
                   </td>
@@ -97,22 +71,14 @@ export default function PaymentsTab() {
                   <td className="p-3">{p.package}</td>
 
                   <td className="p-3 font-semibold text-blue-600">
-                    ₵{p.amount}
+                    â‚µ{p.amount}
                   </td>
 
                   <td className="p-3">
-<<<<<<< HEAD
                     {new Date(p.transactionDate).toLocaleDateString()}
                   </td>
 
                   {/* Status Badge */}
-=======
-                    {p.transactionDate
-                      ? new Date(p.transactionDate).toLocaleDateString()
-                      : "-"}
-                  </td>
-
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
                   <td className="p-3">
                     {p.status === "pending" && (
                       <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">
@@ -131,14 +97,9 @@ export default function PaymentsTab() {
                     )}
                   </td>
 
-<<<<<<< HEAD
                   {/* Actions */}
                   <td className="p-3 text-center">
                     {p.status === "pending" && (
-=======
-                  <td className="p-3 text-center">
-                    {p.status === "pending" ? (
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
                       <div className="flex justify-center gap-2">
                         <button
                           onClick={() => confirmPayment(p._id)}
@@ -154,13 +115,9 @@ export default function PaymentsTab() {
                           Reject
                         </button>
                       </div>
-<<<<<<< HEAD
                     )}
 
                     {p.status !== "pending" && (
-=======
-                    ) : (
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
                       <span className="text-gray-400 text-xs">
                         No actions
                       </span>

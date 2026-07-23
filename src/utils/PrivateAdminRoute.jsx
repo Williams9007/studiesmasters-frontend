@@ -1,6 +1,5 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-<<<<<<< HEAD
 import { jwtDecode } from "jwt-decode";
 
 const isAdminTokenValid = (token) => {
@@ -19,29 +18,19 @@ const isAdminTokenValid = (token) => {
 const PrivateAdminRoute = ({ children }) => {
   const token = localStorage.getItem("adminToken");
   const valid = isAdminTokenValid(token);
-  console.log("🔐 PrivateAdminRoute check - Token exists:", !!token);
-  console.log("🔐 PrivateAdminRoute check - Token valid:", valid);
+  console.log("ðŸ” PrivateAdminRoute check - Token exists:", !!token);
+  console.log("ðŸ” PrivateAdminRoute check - Token valid:", valid);
 
   if (!valid) {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminRole");
     localStorage.removeItem("adminId");
-    console.log("❌ Invalid or expired admin token, redirecting to login");
+    console.log("âŒ Invalid or expired admin token, redirecting to login");
     return <Navigate to="/admin-login" replace />;
   }
 
-  console.log("✅ Admin token valid, rendering dashboard");
+  console.log("âœ… Admin token valid, rendering dashboard");
   return children;
 };
 
 export default PrivateAdminRoute;
-=======
-
-const PrivateAdminRoute = ({ children }) => {
-  const token = localStorage.getItem("adminToken");
-  if (!token) return <Navigate to="/admin-login" replace />;
-  return children;
-};
-
-export default PrivateAdminRoute;
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc

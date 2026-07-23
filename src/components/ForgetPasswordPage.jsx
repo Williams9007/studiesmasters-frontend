@@ -1,26 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import apiClient from "../utils/apiClient";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-=======
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-
-const BASE_URL = "https://studiesmasters-backend.onrender.com";
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 
 export default function ForgetPasswordPage() {
   const navigate = useNavigate();
@@ -31,10 +16,6 @@ export default function ForgetPasswordPage() {
   const handleForgetPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
-<<<<<<< HEAD
-=======
-
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     try {
       if (!email) {
         alert("Please enter your email address");
@@ -42,45 +23,14 @@ export default function ForgetPasswordPage() {
         return;
       }
 
-<<<<<<< HEAD
       const endpoint = role === "teacher" ? "/teachers/forget-password" : "/students/forget-password";
       const response = await apiClient.post(endpoint, { email });
 
       if (response.status === 200) {
-        alert(response.data.message || "✅ Password reset link sent! Check your email.");
+        alert(response.data.message || "âœ… Password reset link sent! Check your email.");
         setTimeout(() => navigate("/login"), 1200);
       } else {
-        alert(response.data.message || "❌ Failed to send reset link. Try again.");
-=======
-      // ✅ Use deployed backend
-      const endpoint =
-        role === "teacher"
-          ? `${BASE_URL}/api/teachers/forget-password`
-          : `${BASE_URL}/api/students/forget-password`;
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        const text = await response.text();
-        console.error("Response not JSON:", text);
-        alert("Server did not respond correctly. Please try again later.");
-        setLoading(false);
-        return;
-      }
-
-      if (response.ok) {
-        alert(data.message || "✅ Password reset link sent! Check your email.");
-        setTimeout(() => navigate("/login"), 1200);
-      } else {
-        alert(data.message || "❌ Failed to send reset link. Try again.");
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
+        alert(response.data.message || "âŒ Failed to send reset link. Try again.");
       }
     } catch (err) {
       console.error("Forget password error:", err);
@@ -91,7 +41,6 @@ export default function ForgetPasswordPage() {
   };
 
   return (
-<<<<<<< HEAD
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 px-4 py-12">
       <motion.div
         className="absolute left-[-80px] top-20 h-56 w-56 rounded-full bg-sky-500/20 blur-3xl"
@@ -122,7 +71,7 @@ export default function ForgetPasswordPage() {
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             >
-              🔐
+              ðŸ”
             </motion.div>
             <div>
               <CardTitle className="text-3xl font-semibold text-white">Forgot Password</CardTitle>
@@ -144,36 +93,10 @@ export default function ForgetPasswordPage() {
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent className="border border-slate-200 bg-white shadow-lg">
-=======
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100">
-      <Card className="w-full max-w-md shadow-lg border-0 bg-white/90 backdrop-blur-md rounded-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            Forgot Password
-          </CardTitle>
-          <p className="text-sm text-gray-500 mt-1">
-            Select your role and enter your email to reset your password
-          </p>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={handleForgetPassword} className="space-y-6">
-            {/* Role Selector */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reset password as
-              </label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
                   <SelectItem value="student">Student</SelectItem>
                   <SelectItem value="teacher">Teacher</SelectItem>
                 </SelectContent>
               </Select>
-<<<<<<< HEAD
             </motion.div>
 
             <motion.div
@@ -182,21 +105,11 @@ export default function ForgetPasswordPage() {
               transition={{ duration: 0.2 }}
             >
               <label className="block text-sm font-semibold text-slate-700 mb-3">Email address</label>
-=======
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
               <Input
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-<<<<<<< HEAD
                 className="border-slate-300 bg-white text-slate-900 shadow-sm"
               />
             </motion.div>
@@ -219,42 +132,12 @@ export default function ForgetPasswordPage() {
                 className="font-semibold text-slate-900 hover:text-indigo-700"
               >
                 Sign in
-=======
-                className="focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-2 rounded-lg shadow-md hover:opacity-90 transition"
-              disabled={loading}
-            >
-              {loading ? "Sending..." : "Send Reset Link"}
-            </Button>
-
-            {/* Back to Login */}
-            <div className="text-center mt-4">
-              <button
-                type="button"
-                onClick={() => navigate("/login")}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                Back to Login
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
               </button>
             </div>
           </form>
         </CardContent>
-<<<<<<< HEAD
       </motion.div>
     </div>
   );
 }
 
-=======
-      </Card>
-    </div>
-  );
-}
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc

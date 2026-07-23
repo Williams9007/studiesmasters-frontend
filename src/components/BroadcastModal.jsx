@@ -58,7 +58,7 @@ export default function BroadcastModal({ users, currentUserRole, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-xl w-[500px] shadow-lg">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          📢 Broadcast Message
+          ðŸ“¢ Broadcast Message
         </h2>
 
         {/* Subject */}
@@ -88,11 +88,7 @@ export default function BroadcastModal({ users, currentUserRole, onClose }) {
             <option value="all">All Roles</option>
             <option value="students">Students</option>
             <option value="teachers">Teachers</option>
-<<<<<<< HEAD
             <option value="qaos">Tutor Managers</option>
-=======
-            <option value="qaos">QAOs</option>
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
           </select>
 
           <input
@@ -124,7 +120,7 @@ export default function BroadcastModal({ users, currentUserRole, onClose }) {
                   <br />
                   <span className="text-gray-500 text-xs">{u.email}</span>
                   {u.subject && (
-                    <span className="text-gray-400 text-xs"> — {u.subject}</span>
+                    <span className="text-gray-400 text-xs"> â€” {u.subject}</span>
                   )}
                 </span>
               </label>
