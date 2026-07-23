@@ -1,7 +1,4 @@
 node_modules
-<<<<<<< HEAD
 .env
 .git_disabled
-=======
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 #backend/

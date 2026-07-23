@@ -115,7 +115,6 @@
 .animate-welcome-fade {
   animation: welcome-fade 3s cubic-bezier(.2,.8,.2,1) forwards;
 }
-<<<<<<< HEAD
 
 @keyframes auth-orbit {
   0%, 100% { transform: translate(0, 0) rotate(-5deg); }
@@ -155,5 +154,3 @@
 .dashboard-orb-two { width: 13rem; height: 13rem; bottom: -8rem; right: 20%; background: #7c3aed; animation-delay: 1.2s; }
 
 @media (prefers-reduced-motion: reduce) { .dashboard-orb { animation: none; } }
-=======
->>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
