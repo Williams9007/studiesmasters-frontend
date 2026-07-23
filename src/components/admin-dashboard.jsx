@@ -1,4 +1,5 @@
 // src/components/AdminDashboard.jsx
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -57,6 +58,35 @@ export default function AdminDashboard({ onLogout }) {
       console.error("❌ Invalid token format or decode error:", err);
       console.error("Token was:", token);
       localStorage.removeItem("adminToken");
+=======
+"use client";
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
+
+import Overview from "./Admin/Overview";
+import BroadcastTab from "./Admin/BroadcastTab";
+import Users from "./Admin/Users";
+import PaymentsTab from "./Admin/PaymentsTab";
+
+// ✅ Backend URL
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://studiesmasters-backend.onrender.com";
+
+export default function AdminDashboard({ user = {}, onLogout }) {
+  const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState("overview");
+  const [notifications, setNotifications] = useState([]);
+  const [recentMessage, setRecentMessage] = useState(null);
+
+  // ================= PROTECT ROUTE =================
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       navigate("/admin-login", { replace: true });
     }
   }, [navigate]);
@@ -65,6 +95,7 @@ export default function AdminDashboard({ onLogout }) {
   useEffect(() => {
     if (!user?._id) return;
 
+<<<<<<< HEAD
     let socket;
     try {
       socket = io(BASE_URL, {
@@ -93,6 +124,44 @@ export default function AdminDashboard({ onLogout }) {
 
     return () => {
       if (socket) socket.disconnect();
+=======
+    const token = localStorage.getItem("adminToken");
+    if (!token) return;
+
+    const socket = io(BASE_URL, {
+      auth: { token, role: "admin" },
+      transports: ["websocket"],
+    });
+
+    socket.on("connect", () =>
+      console.log("🟢 Admin connected:", socket.id)
+    );
+
+    socket.on("message:new", (data) => {
+      addNotification(
+        `New message from ${data.senderName || "Teacher"}`
+      );
+    });
+
+    socket.on("broadcast:new", (data) => {
+      addNotification(
+        `New broadcast: ${data.subject || "General"}`
+      );
+    });
+
+    socket.on("payment:new", (data) => {
+      addNotification(
+        `New payment submitted by ${data.studentName}`
+      );
+    });
+
+    socket.on("disconnect", () =>
+      console.log("🔌 Socket disconnected")
+    );
+
+    return () => {
+      socket.disconnect();
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     };
   }, [user?._id]);
 
@@ -107,14 +176,37 @@ export default function AdminDashboard({ onLogout }) {
     setNotifications((prev) => [note, ...prev]);
     setRecentMessage(message);
 
+<<<<<<< HEAD
     setTimeout(() => setRecentMessage(null), 5000);
+=======
+    setTimeout(() => {
+      setRecentMessage(null);
+    }, 5000);
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   };
 
   // ================= LOGOUT =================
   const handleLogout = () => {
+<<<<<<< HEAD
     localStorage.removeItem("adminToken");
     if (onLogout) onLogout();
     window.location.href = "/admin-login";
+=======
+    // Clear storage
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminId");
+    sessionStorage.clear();
+
+    // Reset UI state
+    setNotifications([]);
+    setRecentMessage(null);
+
+    // Call parent logout if exists
+    if (onLogout) onLogout();
+
+    // Redirect safely
+    navigate("/admin-login", { replace: true });
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   };
 
   // ================= TAB RENDERING =================
@@ -128,13 +220,17 @@ export default function AdminDashboard({ onLogout }) {
         return <Users />;
       case "payments":
         return <PaymentsTab />;
+<<<<<<< HEAD
       case "class-groups":
         return <ClassGroups />;
+=======
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       default:
         return <Overview />;
     }
   };
 
+<<<<<<< HEAD
   const tabs = [
     { id: "overview", label: "Overview", icon: FaChartPie },
     { id: "broadcast", label: "Broadcasts", icon: FaBullhorn },
@@ -224,6 +320,63 @@ export default function AdminDashboard({ onLogout }) {
           <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">{renderContent()}</div>
         </main>
       </div>
+=======
+  return (
+    <div className="min-h-screen bg-gray-900 text-white p-6">
+
+      {/* ================= HEADER ================= */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">
+          Admin Dashboard
+        </h1>
+
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+            <span className="font-bold">
+              {user?.name?.charAt(0) || "A"}
+            </span>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 transition"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
+      {/* ================= TABS ================= */}
+      <div className="flex gap-4 mb-6 border-b border-gray-700 pb-4">
+        {["overview", "broadcast", "users", "payments"].map(
+          (tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded capitalize transition ${
+                activeTab === tab
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-gray-700 hover:bg-gray-600"
+              }`}
+            >
+              {tab}
+            </button>
+          )
+        )}
+      </div>
+
+      {/* ================= REAL-TIME BANNER ================= */}
+      {recentMessage && (
+        <div className="mb-4 w-fit bg-green-500 text-black px-6 py-2 rounded-xl shadow">
+          <p className="text-sm font-medium">
+            {recentMessage}
+          </p>
+        </div>
+      )}
+
+      {/* ================= MAIN CONTENT ================= */}
+      <div>{renderContent()}</div>
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     </div>
   );
 }

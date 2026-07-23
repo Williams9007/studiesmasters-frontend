@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // src/components/Admin/StatCard.jsx
 import { FaGraduationCap, FaChalkboardTeacher, FaUserShield, FaCoins } from "react-icons/fa";
 
@@ -41,3 +42,14 @@ export default function StatCard({ title, value, icon: CustomIcon, subtext }) {
   );
 }
 
+=======
+// src/components/admin/StatCard.jsx
+export default function StatCard({ title, value }) {
+  return (
+    <div className="bg-gray-800 p-4 rounded-lg text-center">
+      <p className="text-gray-400 text-sm">{title}</p>
+      <p className="text-2xl font-bold mt-1">{value}</p>
+    </div>
+  );
+}
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc

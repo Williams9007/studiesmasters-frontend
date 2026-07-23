@@ -1,5 +1,6 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
+<<<<<<< HEAD
 import { jwtDecode } from "jwt-decode";
 
 const isAdminTokenValid = (token) => {
@@ -34,3 +35,13 @@ const PrivateAdminRoute = ({ children }) => {
 };
 
 export default PrivateAdminRoute;
+=======
+
+const PrivateAdminRoute = ({ children }) => {
+  const token = localStorage.getItem("adminToken");
+  if (!token) return <Navigate to="/admin-login" replace />;
+  return children;
+};
+
+export default PrivateAdminRoute;
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc

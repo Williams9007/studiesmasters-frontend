@@ -1,10 +1,18 @@
+<<<<<<< HEAD
+=======
+// src/components/Admin/BroadcastTab.jsx
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import apiClient from "../../utils/apiClient";
 
+<<<<<<< HEAD
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+=======
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 
 export default function BroadcastTab() {
   const [students, setStudents] = useState([]);
@@ -22,15 +30,22 @@ export default function BroadcastTab() {
       try {
         const res = await apiClient.get("/admin/students/list");
         const studentArray = res.data.students || [];
+<<<<<<< HEAD
         studentArray.sort((a, b) =>
           a.fullName.localeCompare(b.fullName)
         );
+=======
+        studentArray.sort((a, b) => a.fullName.localeCompare(b.fullName));
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
         setStudents(studentArray);
       } catch (err) {
         console.error("❌ Error fetching students:", err);
       }
     };
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     fetchStudents();
   }, []);
 
@@ -42,17 +57,25 @@ export default function BroadcastTab() {
     const socket = io(BASE_URL, { auth: { token } });
     socketRef.current = socket;
 
+<<<<<<< HEAD
     socket.on("new-broadcast", (data) =>
       setLogs((prev) => [data, ...prev])
     );
+=======
+    socket.on("new-broadcast", (data) => setLogs((prev) => [data, ...prev]));
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 
     return () => socket.disconnect();
   }, []);
 
   // ================= SEND =================
   const handleSend = async () => {
+<<<<<<< HEAD
     if (!subject || !message)
       return alert("Subject and message are required.");
+=======
+    if (!subject || !message) return alert("Subject and message are required.");
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 
     try {
       const formData = new FormData();
@@ -74,7 +97,10 @@ export default function BroadcastTab() {
       setMessage("");
       setLink("");
       setFile(null);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     } catch (err) {
       console.error("❌ Failed to send broadcast:", err);
       alert("Failed to send broadcast");
@@ -83,6 +109,7 @@ export default function BroadcastTab() {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
+<<<<<<< HEAD
 
       <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
         ✉ Compose Broadcast
@@ -93,6 +120,13 @@ export default function BroadcastTab() {
         <label className="block text-sm font-semibold text-gray-600 mb-1">
           To
         </label>
+=======
+      <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">✉ Compose Broadcast</h2>
+
+      {/* Receiver */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-600 mb-1">To</label>
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
         <select
           value={studentId}
           onChange={(e) => setStudentId(e.target.value)}
@@ -109,9 +143,13 @@ export default function BroadcastTab() {
 
       {/* Subject */}
       <div>
+<<<<<<< HEAD
         <label className="block text-sm font-semibold text-gray-600 mb-1">
           Subject
         </label>
+=======
+        <label className="block text-sm font-semibold text-gray-600 mb-1">Subject</label>
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
         <input
           type="text"
           placeholder="Enter subject..."
@@ -123,9 +161,13 @@ export default function BroadcastTab() {
 
       {/* Message */}
       <div>
+<<<<<<< HEAD
         <label className="block text-sm font-semibold text-gray-600 mb-1">
           Message
         </label>
+=======
+        <label className="block text-sm font-semibold text-gray-600 mb-1">Message</label>
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
         <textarea
           rows={6}
           placeholder="Write your message here..."
@@ -137,9 +179,13 @@ export default function BroadcastTab() {
 
       {/* Link */}
       <div>
+<<<<<<< HEAD
         <label className="block text-sm font-semibold text-gray-600 mb-1">
           Optional Link
         </label>
+=======
+        <label className="block text-sm font-semibold text-gray-600 mb-1">Optional Link</label>
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
         <input
           type="text"
           placeholder="https://example.com"
@@ -151,6 +197,7 @@ export default function BroadcastTab() {
 
       {/* Attachment */}
       <div>
+<<<<<<< HEAD
         <label className="block text-sm font-semibold text-gray-600 mb-1">
           Attachment (Image / PDF)
         </label>
@@ -164,6 +211,11 @@ export default function BroadcastTab() {
             Attached: {file.name}
           </p>
         )}
+=======
+        <label className="block text-sm font-semibold text-gray-600 mb-1">Attachment (Image / PDF)</label>
+        <input type="file" onChange={(e) => setFile(e.target.files[0])} className="w-full text-black" />
+        {file && <p className="text-sm text-gray-500 mt-1">Attached: {file.name}</p>}
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       </div>
 
       {/* Send Button */}
@@ -179,6 +231,7 @@ export default function BroadcastTab() {
       {/* Logs */}
       {logs.length > 0 && (
         <div className="mt-6 border-t pt-4">
+<<<<<<< HEAD
           <h3 className="font-semibold text-gray-700 mb-2">
             Recent Broadcasts
           </h3>
@@ -203,6 +256,18 @@ export default function BroadcastTab() {
                 </a>
               )}
 
+=======
+          <h3 className="font-semibold text-gray-700 mb-2">Recent Broadcasts</h3>
+          {logs.map((log, i) => (
+            <div key={i} className="border p-3 rounded-md mb-2 bg-gray-50">
+              <p className="font-bold text-gray-800">{log.subject}</p>
+              <p className="text-gray-700">{log.message}</p>
+              {log.link && (
+                <a href={log.link} target="_blank" className="text-blue-600 underline text-sm">
+                  Open Link
+                </a>
+              )}
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
               <small className="block text-gray-400 mt-2">
                 {new Date(log.createdAt).toLocaleString()}
               </small>

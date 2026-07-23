@@ -1,4 +1,5 @@
 import { useState } from "react";
+<<<<<<< HEAD
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
@@ -15,6 +16,20 @@ export default function ResetPasswordPage() {
   const roleFromLink = roleParam === "teacher" ? "teacher" : roleParam === "student" ? "student" : "student";
   const [role, setRole] = useState(roleFromLink);
   const roleLocked = roleParam !== null;
+=======
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+
+const BASE_URL = "https://studiesmasters-backend.onrender.com";
+
+export default function ResetPasswordPage() {
+  const { token } = useParams();
+  const navigate = useNavigate();
+
+  const [role, setRole] = useState("student"); // choose who is resetting
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,6 +49,7 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     try {
+<<<<<<< HEAD
       const endpoint =
         role === "teacher"
           ? `/teachers/reset-password/${token}`
@@ -50,12 +66,38 @@ export default function ResetPasswordPage() {
     } catch (err) {
       console.error("Reset password error:", err.response?.data || err.message || err);
       alert(err.response?.data?.message || "Something went wrong. Try again later.");
+=======
+      // Use deployed backend route
+      const endpoint =
+        role === "teacher"
+          ? `${BASE_URL}/api/teachers/reset-password/${token}`
+          : `${BASE_URL}/api/students/reset-password/${token}`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || "✅ Password reset successful! You can now log in.");
+        navigate("/login");
+      } else {
+        alert(data.message || "❌ Reset failed, please try again.");
+      }
+    } catch (err) {
+      console.error("Reset password error:", err);
+      alert("Something went wrong. Try again later.");
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     } finally {
       setLoading(false);
     }
   };
 
   return (
+<<<<<<< HEAD
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 px-4 py-14">
       <motion.div
         className="pointer-events-none absolute left-[-80px] top-20 h-56 w-56 rounded-full bg-sky-500/20 blur-3xl"
@@ -105,17 +147,40 @@ export default function ResetPasswordPage() {
               transition={{ duration: 0.25 }}
             >
               <label className="block text-sm font-semibold text-slate-200 mb-3">
+=======
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100">
+      <Card className="w-full max-w-md shadow-lg border-0 bg-white/90 backdrop-blur-md rounded-2xl">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-gray-800">
+            Reset Password
+          </CardTitle>
+          <p className="text-sm text-gray-500 mt-1">
+            Enter your new password below
+          </p>
+        </CardHeader>
+
+        <CardContent>
+          <form onSubmit={handleResetPassword} className="space-y-6">
+            {/* Role Selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
                 Reset password as
               </label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
+<<<<<<< HEAD
                 className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30"
                 disabled={roleLocked}
+=======
+                className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500"
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
               >
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
               </select>
+<<<<<<< HEAD
               {roleLocked && (
                 <p className="mt-2 text-xs text-slate-500">
                   This role was selected from your reset link.
@@ -129,6 +194,13 @@ export default function ResetPasswordPage() {
               transition={{ duration: 0.25 }}
             >
               <label className="block text-sm font-semibold text-slate-200 mb-3">
+=======
+            </div>
+
+            {/* New Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
                 New Password
               </label>
               <Input
@@ -136,6 +208,7 @@ export default function ResetPasswordPage() {
                 placeholder="Enter new password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+<<<<<<< HEAD
                 className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
               />
             </motion.div>
@@ -146,6 +219,15 @@ export default function ResetPasswordPage() {
               transition={{ duration: 0.25 }}
             >
               <label className="block text-sm font-semibold text-slate-200 mb-3">
+=======
+                className="focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
                 Confirm Password
               </label>
               <Input
@@ -153,6 +235,7 @@ export default function ResetPasswordPage() {
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+<<<<<<< HEAD
                 className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
               />
             </motion.div>
@@ -169,6 +252,22 @@ export default function ResetPasswordPage() {
           </form>
         </CardContent>
       </motion.div>
+=======
+                className="focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-2 rounded-lg shadow-md hover:opacity-90 transition"
+              disabled={loading}
+            >
+              {loading ? "Resetting..." : "Reset Password"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     </div>
   );
 }

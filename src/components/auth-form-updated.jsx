@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -26,11 +27,29 @@ const INCLUDED_SUBJECTS = ["English", "Maths", "Science"];
 
 export function StudentRegistrationForm() {
   const navigate = useNavigate();
+=======
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { ArrowLeft, GraduationCap } from "lucide-react";
+
+export function AuthForm() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const role = location.state?.role || "student";
+  const selectedCurriculum = (location.state?.curriculum || "GES").toUpperCase();
+  const selectedPackage = (location.state?.packageName || "GES-EC").toUpperCase();
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 
   const BACKEND_URL =
     import.meta.env.VITE_BACKEND_URL ||
     "https://studiesmasters-backend.onrender.com";
 
+<<<<<<< HEAD
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -1546,4 +1565,221 @@ function InputField({
 
   );
 
+=======
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    grade: "",
+    subjects: [],
+  });
+
+  const [subjects, setSubjects] = useState([]);
+  const [subjectsLoading, setSubjectsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [totalAmount, setTotalAmount] = useState(0);
+
+  const curriculumGrades = {
+    GES: ["Basic 4", "Basic 5", "Basic 6", "JHS 1", "JHS 2", "JHS 3", "SHS 1", "SHS 2", "SHS 3"],
+    CAMBRIDGE: ["Stage 4", "Stage 5", "Stage 6", "Stage 7", "Stage 8", "Stage 9", "Stage 10", "Stage 11", "Stage 12", "Stage 13"],
+  };
+
+  const gradeOptionsByPackage = {
+    "GES-EC": curriculumGrades.GES,
+    "GES-WC": curriculumGrades.GES,
+    "GES-EPC": ["BECE", "WASSCE", "NOVDEC"],
+    "GES-VC": ["SHS 1", "SHS 2", "SHS 3"],
+    "GES-SC": curriculumGrades.GES,
+    "CAMBRIDGE-EC": curriculumGrades.CAMBRIDGE,
+    "CAMBRIDGE-WC": curriculumGrades.CAMBRIDGE,
+    "CAMBRIDGE-OC": curriculumGrades.CAMBRIDGE,
+  };
+
+  const gradesToShow = gradeOptionsByPackage[selectedPackage] || [];
+
+  // ===================== FETCH SUBJECTS =====================
+  useEffect(() => {
+    if (!formData.grade) return;
+
+    const fetchSubjects = async () => {
+      setSubjectsLoading(true);
+      setError("");
+
+      try {
+        const url = `${BACKEND_URL}/api/subjects/by-package/${selectedPackage}?grade=${encodeURIComponent(formData.grade)}`;
+        const res = await fetch(url);
+
+        if (!res.ok) throw new Error("Failed to fetch subjects");
+
+        const data = await res.json();
+        setSubjects(data);
+      } catch (err) {
+        console.error("Error fetching subjects:", err);
+        setError("Unable to load subjects.");
+        setSubjects([]);
+      } finally {
+        setSubjectsLoading(false);
+      }
+    };
+
+    fetchSubjects();
+  }, [formData.grade, selectedPackage]);
+
+  // ===================== CALCULATE TOTAL =====================
+  useEffect(() => {
+    const total = formData.subjects.reduce((sum, id) => {
+      const s = subjects.find((x) => x._id === id);
+      return sum + (s?.price || 0);
+    }, 0);
+    setTotalAmount(total);
+  }, [formData.subjects, subjects]);
+
+  // ===================== HANDLE SUBMIT =====================
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const payload = {
+        ...formData,
+        curriculum: selectedCurriculum,
+        package: selectedPackage,
+        totalAmount,
+      };
+
+      // ✅ FIXED ENDPOINT — THIS ONE WORKS
+      const res = await fetch(`${BACKEND_URL}/api/students/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => {
+        throw new Error("Invalid JSON response from server");
+      });
+
+      if (!res.ok) throw new Error(data.message || "Signup failed");
+
+      localStorage.setItem("user", JSON.stringify(data.student || data.user));
+
+      const selectedSubjects = subjects.filter((s) =>
+        formData.subjects.includes(s._id)
+      );
+
+      navigate("/payment", {
+        state: {
+          user: data.student || data.user,
+          curriculum: selectedCurriculum,
+          package: selectedPackage,
+          grade: formData.grade,
+          subjects: selectedSubjects,
+          totalAmount,
+          role,
+        },
+      });
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="max-w-md w-full shadow-lg">
+        <CardHeader className="text-center relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="absolute left-4 top-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
+            <GraduationCap className="h-6 w-6 text-white" />
+          </div>
+          <CardTitle className="text-2xl mt-4 capitalize">{role} Signup</CardTitle>
+          <CardDescription>Create your account to get started</CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {error && <p className="text-red-600 text-center text-sm">{error}</p>}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <InputField label="Full Name" value={formData.fullName} onChange={(v) => setFormData({ ...formData, fullName: v })} />
+            <InputField label="Email" type="email" value={formData.email} onChange={(v) => setFormData({ ...formData, email: v })} />
+            <InputField label="Phone" value={formData.phone} onChange={(v) => setFormData({ ...formData, phone: v })} />
+            <InputField label="Password" type="password" value={formData.password} onChange={(v) => setFormData({ ...formData, password: v })} />
+
+            <div>
+              <Label>Grade / Level</Label>
+              <select
+                required
+                value={formData.grade}
+                onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
+                className="w-full border rounded-lg p-2"
+              >
+                <option value="">Select Grade</option>
+                {gradesToShow.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <Label>Select Subjects (2–3)</Label>
+              {subjectsLoading ? (
+                <p className="text-sm">Loading subjects...</p>
+              ) : subjects.length === 0 ? (
+                <p className="text-sm">No subjects available for this grade.</p>
+              ) : (
+                <select
+                  multiple
+                  required
+                  value={formData.subjects}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      subjects: Array.from(e.target.selectedOptions, (o) => o.value),
+                    })
+                  }
+                  className="w-full border rounded-lg p-2"
+                >
+                  {subjects.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.name} — ¢{s.price}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Hold Ctrl (Windows) / Cmd (Mac) to select multiple
+              </p>
+            </div>
+
+            <div className="text-lg font-semibold">Total Amount: ¢{totalAmount}</div>
+
+            <Button type="submit" disabled={loading || subjectsLoading} className="w-full">
+              {loading ? "Signing up..." : "Sign Up"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function InputField({ label, value, onChange, type = "text" }) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <Input type={type} value={value} required onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 }

@@ -3,6 +3,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import apiClient from "../utils/apiClient";
 
 export function AccountSettings() {
+<<<<<<< HEAD
+=======
+  const [password, setPassword] = useState("");
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   const [email, setEmail] = useState("");
   const [helpContent, setHelpContent] = useState("");
   const [loadingHelp, setLoadingHelp] = useState(false);
@@ -10,11 +14,28 @@ export function AccountSettings() {
   // 🔹 Change Password Handler
   const handleChangePassword = async () => {
     try {
+<<<<<<< HEAD
       const response = await apiClient.post("/students/change-password/request");
       alert(response.data.message || "Check your email to confirm the password change.");
     } catch (err) {
       console.error("Failed to change password:", err);
       alert(err.response?.data?.message || "Failed to send a confirmation link. Please try again.");
+=======
+      if (!password) {
+        alert("Please enter a new password.");
+        return;
+      }
+
+      const response = await apiClient.post("/auth/change-password", {
+        newPassword: password,
+      });
+
+      alert(response.data.message || "Password changed successfully!");
+      setPassword("");
+    } catch (err) {
+      console.error("Failed to change password:", err);
+      alert(err.response?.data?.message || "Failed to change password.");
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     }
   };
 
@@ -26,12 +47,23 @@ export function AccountSettings() {
         return;
       }
 
+<<<<<<< HEAD
       const response = await apiClient.post("/api/auth/change-email", { newEmail: email });
+=======
+      const response = await apiClient.post("/auth/change-email", {
+        newEmail: email,
+      });
+
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       alert(response.data.message || "Email changed successfully!");
       setEmail("");
     } catch (err) {
       console.error("Failed to change email:", err);
+<<<<<<< HEAD
       alert("Failed to change email. Please try again.");
+=======
+      alert(err.response?.data?.message || "Failed to change email.");
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     }
   };
 
@@ -39,11 +71,19 @@ export function AccountSettings() {
   const fetchHelpContent = async () => {
     try {
       setLoadingHelp(true);
+<<<<<<< HEAD
       const response = await apiClient.get("/api/help");
       setHelpContent(response.data.content || "No help content available.");
     } catch (err) {
       console.error("Failed to fetch help content:", err);
       alert("Failed to fetch help content. Please try again.");
+=======
+      const response = await apiClient.get("/help");
+      setHelpContent(response.data.content || "No help content available.");
+    } catch (err) {
+      console.error("Failed to fetch help content:", err);
+      alert("Failed to fetch help content.");
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
     } finally {
       setLoadingHelp(false);
     }
@@ -52,6 +92,10 @@ export function AccountSettings() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-4">Account Settings</h1>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       <Tabs defaultValue="change-password" className="rounded-xl bg-white shadow-md">
         <TabsList className="flex p-1 bg-blue-50 rounded-xl">
           <TabsTrigger value="change-password" className="flex-1 text-center py-2 rounded-lg font-semibold">
@@ -65,6 +109,7 @@ export function AccountSettings() {
           </TabsTrigger>
         </TabsList>
 
+<<<<<<< HEAD
         {/* Change Password Tab */}
         <TabsContent value="change-password" className="p-6">
           <h2 className="text-lg font-semibold mb-4">Change Password</h2>
@@ -115,6 +160,58 @@ export function AccountSettings() {
               <p className="text-gray-600">{helpContent || "No help content available."}</p>
             )}
           </div>
+=======
+        {/* Change Password */}
+        <TabsContent value="change-password" className="p-6">
+          <input
+            type="password"
+            placeholder="Enter new password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border rounded p-2 mb-4"
+          />
+          <button
+            onClick={handleChangePassword}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          >
+            Change Password
+          </button>
+        </TabsContent>
+
+        {/* Change Email */}
+        <TabsContent value="change-email" className="p-6">
+          <input
+            type="email"
+            placeholder="Enter new email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border rounded p-2 mb-4"
+          />
+          <button
+            onClick={handleChangeEmail}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          >
+            Change Email
+          </button>
+        </TabsContent>
+
+        {/* Help */}
+        <TabsContent value="help" className="p-6">
+          <button
+            onClick={fetchHelpContent}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-4"
+          >
+            Fetch Help Content
+          </button>
+
+          {loadingHelp ? (
+            <p>Loading...</p>
+          ) : (
+            <p className="text-gray-600">
+              {helpContent || "No help content available."}
+            </p>
+          )}
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
         </TabsContent>
       </Tabs>
     </div>

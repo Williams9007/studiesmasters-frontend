@@ -1,0 +1,13 @@
+{
+  "root": "dist",
+  "clean_urls": true,
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": ".*",
+      "dest": "/index.html"
+    }
+  ]
+}

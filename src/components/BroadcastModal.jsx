@@ -88,7 +88,11 @@ export default function BroadcastModal({ users, currentUserRole, onClose }) {
             <option value="all">All Roles</option>
             <option value="students">Students</option>
             <option value="teachers">Teachers</option>
+<<<<<<< HEAD
             <option value="qaos">Tutor Managers</option>
+=======
+            <option value="qaos">QAOs</option>
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
           </select>
 
           <input

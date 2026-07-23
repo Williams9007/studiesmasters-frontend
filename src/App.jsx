@@ -5,17 +5,28 @@ import apiClient from "./utils/apiClient"; // ✅ default import
 // Pages
 import LandingPage from "./components/landing-page.jsx";
 import LoginPage from "./components/LoginPage.jsx";
+<<<<<<< HEAD
 import FreeTrialClass from "./components/FreeTrialClass.jsx";
 import { StudentDashboard } from "./components/student-dashboard.jsx";
 import { StudentRegistrationForm } from "./components/auth-form-updated.jsx";
+=======
+import RegisterCoursePage from "./components/RegisterCoursePage.jsx";
+import { StudentDashboard } from "./components/student-dashboard.jsx";
+import { AuthForm } from "./components/auth-form-updated.jsx";
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 import PaymentPage from "./components/payment-flow.jsx";
 import { AccountSettings } from "./components/AccountSettings.jsx";
 import ForgetPasswordPage from "./components/ForgetPasswordPage.jsx";
 import ResetPasswordPage from "./components/ResetPasswordPage.jsx";
 import ErrorBoundary from "./components/error-boundary.jsx";
+<<<<<<< HEAD
 import PolicyPage from "./components/PolicyPage.jsx";
 import TutorManagerDashboard from "./components/qao-dashboard.jsx";
 import TutorManagerAccess from "./components/qao-access.jsx";
+=======
+import QaoDashboard from "./components/qao-dashboard.jsx";
+import QaoAccess from "./components/qao-access.jsx";
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 import { TeacherDashboard } from "./components/teacher-dashboard.jsx";
 import AdminDashboard from "./components/admin-dashboard.jsx";
 import AdminLogin from "./components/admin-login.jsx";
@@ -55,6 +66,7 @@ function App() {
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+<<<<<<< HEAD
         <Route path="/register" element={<StudentRegistrationForm />} />
         <Route path="/register-course/:role" element={<Navigate to="/register" replace />} />
         <Route path="/auth-form/:role" element={<Navigate to="/register" replace />} />
@@ -63,6 +75,15 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/qao/dashboard" element={<TutorManagerDashboard />} />
         <Route path="/qao/access" element={<TutorManagerAccess />} />
+=======
+        <Route path="/register-course/:role" element={<RegisterCoursePage />} />
+        <Route path="/auth-form/:role" element={<AuthForm onSignup={handleSignup} />} />
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/forget-password" element={<ForgetPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/qao/dashboard" element={<QaoDashboard />} />
+        <Route path="/qao/access" element={<QaoAccess />} />
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
 
         {/* Admin login & OTP */}
         <Route path="/admin-login" element={<AdminLogin />} />
@@ -83,9 +104,12 @@ function App() {
           }
         />
 
+<<<<<<< HEAD
         <Route path="/policies" element={<PolicyPage />} />
         <Route path="/free-trial" element={<FreeTrialClass />} />
 
+=======
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
         {/* Convenience redirect */}
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 

@@ -3,21 +3,33 @@ import { Button } from "@/components/ui/button";
 import apiClient from "@/utils/apiClient";
 
 export default function AddAccountModal({ onClose }) {
+<<<<<<< HEAD
   const [role, setRole] = useState("teacher");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+=======
+  const [role, setRole] = useState("student");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
   const [loading, setLoading] = useState(false);
 
   const handleCreate = async (e) => {
     e.preventDefault();
 
+<<<<<<< HEAD
     if (!name || !email) {
+=======
+    if (!name || !email || !password) {
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       alert("Please fill in all required fields.");
       return;
     }
 
     setLoading(true);
     try {
+<<<<<<< HEAD
       const res = await apiClient.post("/admin/users/create", {
         fullName: name,
         email,
@@ -27,6 +39,19 @@ export default function AddAccountModal({ onClose }) {
       setName("");
       setEmail("");
       setRole("teacher");
+=======
+      const res = await apiClient.post("/admin/users", {
+        role,
+        name,
+        email,
+        password,
+      });
+      alert(res.message || "Account created successfully!");
+      setName("");
+      setEmail("");
+      setPassword("");
+      setRole("student");
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
       onClose();
     } catch (err) {
       alert(err.response?.data?.message || "Error creating account");
@@ -49,7 +74,11 @@ export default function AddAccountModal({ onClose }) {
             >
               <option value="student">Student</option>
               <option value="teacher">Teacher</option>
+<<<<<<< HEAD
               <option value="qao">Tutor Manager</option>
+=======
+              <option value="qao">QAO</option>
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
             </select>
           </div>
 
@@ -75,6 +104,20 @@ export default function AddAccountModal({ onClose }) {
             />
           </div>
 
+<<<<<<< HEAD
+=======
+          <div>
+            <label className="block mb-1">Password</label>
+            <input
+              type="password"
+              className="border rounded p-2 w-full"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+            />
+          </div>
+
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={onClose}>
               Cancel
@@ -91,4 +134,8 @@ export default function AddAccountModal({ onClose }) {
       </div>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 8ddc26ece182e2445f99f3923ba32f7dfd1086dc
