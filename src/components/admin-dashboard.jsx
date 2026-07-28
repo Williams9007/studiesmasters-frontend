@@ -16,7 +16,7 @@ import {
   FaLayerGroup,
 } from "react-icons/fa";
 
-import Overview from "./Admin/overview";
+import Overview from "./Admin/Overview";
 import BroadcastTab from "./Admin/BroadcastTab";
 import Users from "./Admin/Users";
 import PaymentsTab from "./Admin/PaymentsTab";
