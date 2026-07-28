@@ -42,10 +42,10 @@ export default function ResetPasswordPage() {
       const response = await apiClient.post(endpoint, { newPassword });
 
       if (response.status === 200) {
-        alert(response.data.message || "âœ… Password reset successful! You can now log in.");
+        alert(response.data.message || "Password reset successful! You can now log in.");
         navigate("/login");
       } else {
-        alert(response.data.message || "âŒ Reset failed, please try again.");
+        alert(response.data.message || "Reset failed, please try again.");
       }
     } catch (err) {
       console.error("Reset password error:", err.response?.data || err.message || err);
@@ -86,7 +86,7 @@ export default function ResetPasswordPage() {
               animate={{ rotate: [0, 8, -8, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             >
-              ðŸ”
+              🔐
             </motion.div>
             <div>
               <CardTitle className="text-3xl font-semibold text-white">Reset your password</CardTitle>

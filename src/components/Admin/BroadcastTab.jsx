@@ -8,7 +8,10 @@ const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 export default function BroadcastTab() {
   const [students, setStudents] = useState([]);
-  const [studentId, setStudentId] = useState("");
+  const [teachers, setTeachers] = useState([]);
+  const [tutorManagers, setTutorManagers] = useState([]);
+  const [recipientType, setRecipientType] = useState("all");
+  const [selectedRecipientId, setSelectedRecipientId] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [link, setLink] = useState("");
@@ -16,22 +19,35 @@ export default function BroadcastTab() {
   const [logs, setLogs] = useState([]);
   const socketRef = useRef(null);
 
-  // ================= FETCH STUDENTS =================
+  // ================= FETCH USERS =================
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchUsers = async () => {
       try {
-        const res = await apiClient.get("/admin/students/list");
-        const studentArray = res.data.students || [];
-        studentArray.sort((a, b) =>
+        const [studentsRes, teachersRes, managersRes] = await Promise.all([
+          apiClient.get("/admin/students/list"),
+          apiClient.get("/admin/teachers/list"),
+          apiClient.get("/admin/qao-users"),
+        ]);
+
+        const studentArray = (studentsRes.data.students || []).sort((a, b) =>
           a.fullName.localeCompare(b.fullName)
         );
+        const teacherArray = (teachersRes.data.teachers || []).sort((a, b) =>
+          a.fullName.localeCompare(b.fullName)
+        );
+        const managerArray = (managersRes.data.qaoUsers || []).sort((a, b) =>
+          a.fullName.localeCompare(b.fullName)
+        );
+
         setStudents(studentArray);
+        setTeachers(teacherArray);
+        setTutorManagers(managerArray);
       } catch (err) {
-        console.error("âŒ Error fetching students:", err);
+        console.error("❌ Error fetching users:", err);
       }
     };
 
-    fetchStudents();
+    fetchUsers();
   }, []);
 
   // ================= SOCKET =================
@@ -59,25 +75,26 @@ export default function BroadcastTab() {
       formData.append("subject", subject);
       formData.append("message", message);
       formData.append("link", link);
+      formData.append("recipientType", recipientType);
       if (file) formData.append("attachment", file);
 
-      if (studentId) {
-        formData.append("studentId", studentId);
-        await apiClient.post("/admin/broadcast/student", formData);
-      } else {
-        await apiClient.post("/admin/broadcast/all", formData);
+      if (selectedRecipientId) {
+        formData.append("recipientId", selectedRecipientId);
       }
 
-      alert("Broadcast sent successfully âœ…");
+      await apiClient.post("/admin/broadcasts/send", formData);
+
+      alert("Broadcast sent successfully ✅");
 
       setSubject("");
       setMessage("");
       setLink("");
       setFile(null);
+      setSelectedRecipientId("");
 
     } catch (err) {
-      console.error("âŒ Failed to send broadcast:", err);
-      alert("Failed to send broadcast");
+      console.error("❌ Failed to send broadcast:", err);
+      alert(err.response?.data?.message || "Failed to send broadcast");
     }
   };
 
@@ -85,27 +102,66 @@ export default function BroadcastTab() {
     <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
 
       <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
-        âœ‰ Compose Broadcast
+        ✉️ Compose Broadcast
       </h2>
 
-      {/* Receiver */}
+      {/* Receiver Type */}
       <div>
         <label className="block text-sm font-semibold text-gray-600 mb-1">
-          To
+          Send To
         </label>
         <select
-          value={studentId}
-          onChange={(e) => setStudentId(e.target.value)}
+          value={recipientType}
+          onChange={(e) => {
+            setRecipientType(e.target.value);
+            setSelectedRecipientId("");
+          }}
           className="w-full border p-2 rounded-md text-black"
         >
-          <option value="">All Students</option>
-          {students.map((s) => (
-            <option key={s._id} value={s._id}>
-              {s.fullName} | {s.grade}
-            </option>
-          ))}
+          <option value="all">All Users</option>
+          <option value="students">All Students</option>
+          <option value="teachers">All Teachers</option>
+          <option value="tutormanagers">All Tutor Managers</option>
+          <option value="single">Specific User</option>
         </select>
       </div>
+
+      {/* Specific User Selector */}
+      {recipientType === "single" && (
+        <div>
+          <label className="block text-sm font-semibold text-gray-600 mb-1">
+            Select User
+          </label>
+          <select
+            value={selectedRecipientId}
+            onChange={(e) => setSelectedRecipientId(e.target.value)}
+            className="w-full border p-2 rounded-md text-black"
+          >
+            <option value="">-- Select a user --</option>
+            <optgroup label="Students">
+              {students.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.fullName} ({s.email})
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Teachers">
+              {teachers.map((t) => (
+                <option key={t._id} value={t._id}>
+                  {t.fullName} ({t.email})
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Tutor Managers">
+              {tutorManagers.map((tm) => (
+                <option key={tm._id} value={tm._id}>
+                  {tm.fullName || tm.name} ({tm.email})
+                </option>
+              ))}
+            </optgroup>
+          </select>
+        </div>
+      )}
 
       {/* Subject */}
       <div>

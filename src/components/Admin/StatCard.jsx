@@ -28,7 +28,7 @@ export default function StatCard({ title, value, icon: CustomIcon, subtext }) {
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{title}</p>
           <p className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">
             {typeof value === "number" && (title || "").toLowerCase().includes("ghs")
-              ? `â‚µ${value.toLocaleString()}`
+              ? `₵${value.toLocaleString()}`
               : value}
           </p>
           {subtext && <p className="mt-1 text-xs text-slate-400">{subtext}</p>}

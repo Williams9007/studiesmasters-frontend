@@ -20,7 +20,7 @@ function TutorManagerAccess() {
     setError("");
 
     if (!email.trim() || !password.trim()) {
-      setError("âš ï¸ Please enter your email and password.");
+      setError("Please enter your email and password.");
       return;
     }
 

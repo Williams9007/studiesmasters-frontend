@@ -18,18 +18,18 @@ const isAdminTokenValid = (token) => {
 const PrivateAdminRoute = ({ children }) => {
   const token = localStorage.getItem("adminToken");
   const valid = isAdminTokenValid(token);
-  console.log("ðŸ” PrivateAdminRoute check - Token exists:", !!token);
-  console.log("ðŸ” PrivateAdminRoute check - Token valid:", valid);
+  console.log("PrivateAdminRoute check - Token exists:", !!token);
+  console.log("PrivateAdminRoute check - Token valid:", valid);
 
   if (!valid) {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminRole");
     localStorage.removeItem("adminId");
-    console.log("âŒ Invalid or expired admin token, redirecting to login");
+    console.log("Invalid or expired admin token, redirecting to login");
     return <Navigate to="/admin-login" replace />;
   }
 
-  console.log("âœ… Admin token valid, rendering dashboard");
+  console.log("Admin token valid, rendering dashboard");
   return children;
 };
 

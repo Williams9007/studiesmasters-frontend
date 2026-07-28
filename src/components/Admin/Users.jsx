@@ -47,6 +47,8 @@ export default function Users() {
     );
   });
 
+  const [selectedUserSubjects, setSelectedUserSubjects] = useState([]);
+
   const handleView = async (id, role) => {
     try {
       const res = await apiClient.get(`/admin/users/${id}/${role}`);
@@ -58,7 +60,21 @@ export default function Users() {
         role: user.role || role || "N/A",
         status: user.status || "active",
         joined: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-",
+        curriculum: user.curriculum || "",
       });
+      
+      // Fetch subjects if viewing a teacher
+      if (role === "teacher") {
+        try {
+          const subjectsRes = await apiClient.get(`/teachers/${id}/subjects`);
+          setSelectedUserSubjects(subjectsRes.data || []);
+        } catch (e) {
+          console.error("Error fetching subjects:", e);
+          setSelectedUserSubjects([]);
+        }
+      } else {
+        setSelectedUserSubjects([]);
+      }
     } catch (err) {
       console.error("Error fetching user profile:", err);
       alert("Failed to fetch user profile.");
@@ -98,7 +114,7 @@ export default function Users() {
       payload.curriculum = newUser.curriculum;
     }
 
-    if (role === "qao") {
+    if (role === "tutormanager" || role === "qao") {
       payload.name = newUser.fullName;
     }
 
@@ -174,7 +190,7 @@ export default function Users() {
 
         {/* Role Filter Tabs */}
         <div className="flex items-center gap-1 rounded-xl bg-slate-200/60 p-1 text-xs font-semibold text-slate-600">
-          {["all", "teacher", "qao", "admin"].map((role) => (
+          {["all", "teacher", "tutormanager", "admin"].map((role) => (
             <button
               key={role}
               onClick={() => setRoleFilter(role)}
@@ -182,7 +198,7 @@ export default function Users() {
                 roleFilter === role ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"
               }`}
             >
-              {role === "qao" ? "Tutor Managers" : role === "all" ? "All Users" : `${role}s`}
+              {role === "tutormanager" ? "Tutor Managers" : role === "all" ? "All Users" : `${role}s`}
             </button>
           ))}
         </div>
@@ -224,13 +240,27 @@ export default function Users() {
   {
     selectedUser && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div className="bg-white p-6 rounded w-96 text-black shadow-lg">
+        <div className="bg-white p-6 rounded w-[28rem] text-black shadow-lg">
           <h3 className="text-xl font-bold mb-4">User Profile</h3>
           <p><strong>Name:</strong> {selectedUser.name}</p>
           <p><strong>Email:</strong> {selectedUser.email}</p>
           <p><strong>Role:</strong> {selectedUser.role}</p>
           <p><strong>Status:</strong> {selectedUser.status}</p>
           <p><strong>Joined:</strong> {selectedUser.joined}</p>
+          {selectedUser.curriculum && <p><strong>Curriculum:</strong> {selectedUser.curriculum}</p>}
+          {selectedUserSubjects.length > 0 && (
+            <div className="mt-3">
+              <p><strong>Assigned Subjects:</strong></p>
+              <ul className="list-disc list-inside mt-1 text-sm">
+                {selectedUserSubjects.map((subject, idx) => (
+                  <li key={subject._id || subject.id || subject.name || idx}>{subject.name || subject}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {!selectedUserSubjects.length && selectedUser.role === "teacher" && (
+            <p className="mt-2 text-xs text-slate-500">No subjects assigned.</p>
+          )}
           <button onClick={() => setSelectedUser(null)} className="mt-4 bg-gray-600 text-white px-4 py-2 rounded">Close</button>
         </div>
       </div>
@@ -263,7 +293,7 @@ export default function Users() {
               className="border p-2 rounded text-black"
             >
               <option value="teacher">Teacher</option>
-              <option value="qao">Tutor Manager</option>
+              <option value="tutormanager">Tutor Manager</option>
               <option value="admin">Admin</option>
             </select>
 

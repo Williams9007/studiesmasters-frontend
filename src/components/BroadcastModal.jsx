@@ -15,10 +15,10 @@ export default function BroadcastModal({ users, currentUserRole, onClose }) {
     return users.filter((u) => {
       const matchSearch =
         u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase()) ||
-        (u.subject && u.subject.toLowerCase().includes(search.toLowerCase()));
-      const matchRole = roleFilter === "all" || u.role === roleFilter;
-      return matchSearch && matchRole;
+        u.email.toLowerCase().includes(search.toLowerCase());
+      const normalizedRole = roleFilter === "all" || 
+        (roleFilter === "tutormanagers" ? u.role === "qao" : u.role === roleFilter);
+      return matchSearch && normalizedRole;
     });
   }, [search, roleFilter, users]);
 
@@ -58,7 +58,7 @@ export default function BroadcastModal({ users, currentUserRole, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-xl w-[500px] shadow-lg">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          ðŸ“¢ Broadcast Message
+          📢 Broadcast Message
         </h2>
 
         {/* Subject */}
@@ -88,7 +88,7 @@ export default function BroadcastModal({ users, currentUserRole, onClose }) {
             <option value="all">All Roles</option>
             <option value="students">Students</option>
             <option value="teachers">Teachers</option>
-            <option value="qaos">Tutor Managers</option>
+            <option value="tutormanagers">Tutor Managers</option>
           </select>
 
           <input
@@ -120,7 +120,7 @@ export default function BroadcastModal({ users, currentUserRole, onClose }) {
                   <br />
                   <span className="text-gray-500 text-xs">{u.email}</span>
                   {u.subject && (
-                    <span className="text-gray-400 text-xs"> â€” {u.subject}</span>
+                    <span className="text-gray-400 text-xs"> — {u.subject}</span>
                   )}
                 </span>
               </label>

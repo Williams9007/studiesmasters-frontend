@@ -27,10 +27,10 @@ export default function ForgetPasswordPage() {
       const response = await apiClient.post(endpoint, { email });
 
       if (response.status === 200) {
-        alert(response.data.message || "âœ… Password reset link sent! Check your email.");
+        alert(response.data.message || "Password reset link sent! Check your email.");
         setTimeout(() => navigate("/login"), 1200);
       } else {
-        alert(response.data.message || "âŒ Failed to send reset link. Try again.");
+        alert(response.data.message || "Failed to send reset link. Try again.");
       }
     } catch (err) {
       console.error("Forget password error:", err);
@@ -71,7 +71,7 @@ export default function ForgetPasswordPage() {
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             >
-              ðŸ”
+              🔐
             </motion.div>
             <div>
               <CardTitle className="text-3xl font-semibold text-white">Forgot Password</CardTitle>

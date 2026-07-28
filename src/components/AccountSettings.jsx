@@ -7,7 +7,7 @@ export function AccountSettings() {
   const [helpContent, setHelpContent] = useState("");
   const [loadingHelp, setLoadingHelp] = useState(false);
 
-  // ðŸ”¹ Change Password Handler
+  // Change Password Handler
   const handleChangePassword = async () => {
     try {
       const response = await apiClient.post("/students/change-password/request");
@@ -18,7 +18,7 @@ export function AccountSettings() {
     }
   };
 
-  // ðŸ”¹ Change Email Handler
+  // Change Email Handler
   const handleChangeEmail = async () => {
     try {
       if (!email) {
@@ -35,7 +35,7 @@ export function AccountSettings() {
     }
   };
 
-  // ðŸ”¹ Fetch Help Content
+  // Fetch Help Content
   const fetchHelpContent = async () => {
     try {
       setLoadingHelp(true);

@@ -12,8 +12,6 @@ import { BookOpen, User, Bell, CheckCircle, Send, LogOut, PlayCircle, ArrowUpRig
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
 import { FaUsers } from "react-icons/fa";
-import TeacherAssignments from "./TeacherAssignments";
-import TeacherQuizzes from "./TeacherQuizzes";
 
 const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
 const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://moodle.org/";
@@ -29,18 +27,19 @@ export function TeacherDashboard({ user = {}, onLogout }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [recentMessage, setRecentMessage] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [selectedMessage, setSelectedMessage] = useState(null);
   const [replies, setReplies] = useState({});
   const [subjects, setSubjects] = useState([]);
   const [students, setStudents] = useState([]);
   const [broadcastSubject, setBroadcastSubject] = useState("");
   const [broadcastMessage, setBroadcastMessage] = useState("");
   const [broadcasts, setBroadcasts] = useState([]);
-  const [assignments, setAssignments] = useState([]);
-  const [newAssignment, setNewAssignment] = useState({ title: "", description: "", className: "", subjectId: "" });
-  const [sending, setSending] = useState(false);
-  const [activities, setActivities] = useState([]);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [classGroups, setClassGroups] = useState([]);
+    const [resources, setResources] = useState([]);
+    const [newResource, setNewResource] = useState({ title: "", description: "", fileUrl: "", subject: "", curriculum: "", classGroupId: "" });
+    const [sending, setSending] = useState(false);
+    const [activities, setActivities] = useState([]);
+    const [activeTab, setActiveTab] = useState("overview");
+    const [classGroups, setClassGroups] = useState([]);
   const displayTeacher = teacherProfile || user;
 
   const readJson = async (response) => {
@@ -68,8 +67,9 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     fetchSubjects();
     fetchBroadcasts();
     fetchStudents();
-    fetchAssignments();
+    fetchResources();
     fetchClassGroups();
+    fetchMessages();
   }, [teacherId, token]);
 
   useEffect(() => {
@@ -112,12 +112,12 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     } catch (err) { console.error(err); }
   };
 
-  const fetchAssignments = async () => {
+  const fetchResources = async () => {
     if (!teacherId || !token) return;
     try {
-      const res = await fetch(`${BASE_URL}/api/teachers/${teacherId}/assignments`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${BASE_URL}/api/resources/my-resources`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await readJson(res);
-      setAssignments(data || []);
+      setResources(data.resources || []);
     } catch (err) { console.error(err); }
   };
 
@@ -137,9 +137,20 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     try {
       const res = await fetch(`${BASE_URL}/api/messages/teacher/${teacherId}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      setMessages(data || []);
-      const msgActs = (data || []).map(m => ({ type: "message", message: m.content || m.message, time: new Date(m.createdAt || m.date).toLocaleString() }));
-      setActivities(prev => [...msgActs, ...prev]);
+      const messagesList = (data?.messages || []).filter(Boolean);
+      setMessages(messagesList);
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteMessage = async (recipientId) => {
+    if (!token) return;
+    try {
+      await fetch(`${BASE_URL}/api/messages/recipient/${recipientId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessages((prev) => prev.filter((m) => m.recipientId !== recipientId));
+      if (selectedMessage?.recipientId === recipientId) setSelectedMessage(null);
     } catch (err) { console.error(err); }
   };
 
@@ -150,7 +161,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       const res = await fetch(`${BASE_URL}/api/teachers/teacher/broadcast`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ teacherId, subjectId: broadcastSubject, message: broadcastMessage })
+        body: JSON.stringify({ teacherId, classGroupId: broadcastSubject, message: broadcastMessage })
       });
       if (res.ok) {
         addNotification("Broadcast sent ✅");
@@ -160,18 +171,28 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     } catch (err) { console.error(err); } finally { setSending(false); }
   };
 
-  const handlePostAssignment = async () => {
-    if (!newAssignment.title || !newAssignment.description || !newAssignment.subjectId) return alert("Complete all fields");
+  const handleResourceFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setNewResource((prev) => ({ ...prev, fileUrl: reader.result, fileType: file.type }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmitResource = async () => {
+    if (!newResource.title || !newResource.fileUrl) return alert("Title and file URL are required");
     try {
-      const res = await fetch(`${BASE_URL}/api/teachers/assignments`, {
+      const res = await fetch(`${BASE_URL}/api/resources/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...newAssignment, teacherId })
+        body: JSON.stringify({ ...newResource, teacherId })
       });
       if (res.ok) {
-        addNotification("Assignment posted ✅");
-        setNewAssignment({ title: "", description: "", className: "", subjectId: "" });
-        fetchAssignments();
+        addNotification("Resource submitted ✅");
+        setNewResource({ title: "", description: "", fileUrl: "", subject: "", curriculum: "", classGroupId: "" });
+        fetchResources();
       }
     } catch (err) { console.error(err); }
   };
@@ -244,21 +265,147 @@ export function TeacherDashboard({ user = {}, onLogout }) {
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px)", backgroundSize: "30px 30px", maskImage: "linear-gradient(to right, black, transparent)" }} />
         </motion.section>
 
-        <section className="mt-5 grid gap-4 sm:grid-cols-3">
+        <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <DashboardMetric icon={<BookOpen size={20} />} label="Subjects" value={subjects.length} color="violet" />
           <DashboardMetric icon={<User size={20} />} label="Students" value={students.length} color="blue" />
-          <DashboardMetric icon={<CheckCircle size={20} />} label="Assignments" value={assignments.length} color="emerald" />
+          <DashboardMetric icon={<CheckCircle size={20} />} label="Resources" value={resources.length} color="emerald" />
+          <DashboardMetric icon={<FaUsers size={20} />} label="Class Groups" value={classGroups.length} color="amber" />
         </section>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-7">
-          <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm">
-          <TabsTrigger value="overview" className="min-h-10 px-4">Overview</TabsTrigger>
-          <TabsTrigger value="students" className="min-h-10 px-4">Students</TabsTrigger>
-          <TabsTrigger value="class-groups" className="min-h-10 px-4">Class Groups</TabsTrigger>
-          <TabsTrigger value="assignments" className="min-h-10 px-4">Assignments</TabsTrigger>
-          <TabsTrigger value="quizzes" className="min-h-10 px-4">Quizzes</TabsTrigger>
-          <TabsTrigger value="broadcasts" className="min-h-10 px-4">Broadcasts</TabsTrigger>
-          </TabsList>
+         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-7">
+
+  <TabsList
+    className="
+      grid
+      w-full
+      grid-cols-2
+      gap-2
+      rounded-xl
+      border
+      border-slate-200
+      bg-white
+      p-2
+      shadow-sm
+
+      sm:grid-cols-3
+      md:grid-cols-4
+      lg:grid-cols-6
+    "
+  >
+
+    <TabsTrigger
+      value="overview"
+      className="
+        rounded-lg
+        px-2
+        py-2.5
+        text-xs
+        font-semibold
+        whitespace-nowrap
+
+        sm:px-3
+        sm:py-3
+        sm:text-sm
+      "
+    >
+      Overview
+    </TabsTrigger>
+
+
+    <TabsTrigger
+      value="students"
+      className="
+        rounded-lg
+        px-2
+        py-2.5
+        text-xs
+        font-semibold
+        whitespace-nowrap
+
+        sm:px-3
+        sm:py-3
+        sm:text-sm
+      "
+    >
+      Students
+    </TabsTrigger>
+
+
+    <TabsTrigger
+      value="class-groups"
+      className="
+        rounded-lg
+        px-2
+        py-2.5
+        text-xs
+        font-semibold
+        whitespace-nowrap
+
+        sm:px-3
+        sm:py-3
+        sm:text-sm
+      "
+    >
+      Class Groups
+    </TabsTrigger>
+
+
+    <TabsTrigger
+      value="resources"
+      className="
+        rounded-lg
+        px-2
+        py-2.5
+        text-xs
+        font-semibold
+        whitespace-nowrap
+
+        sm:px-3
+        sm:py-3
+        sm:text-sm
+      "
+    >
+      Resources
+    </TabsTrigger>
+
+
+    <TabsTrigger
+      value="broadcasts"
+      className="
+        rounded-lg
+        px-2
+        py-2.5
+        text-xs
+        font-semibold
+        whitespace-nowrap
+
+        sm:px-3
+        sm:py-3
+        sm:text-sm
+      "
+    >
+      Broadcasts
+    </TabsTrigger>
+
+    <TabsTrigger
+      value="messages"
+      className="
+        rounded-lg
+        px-2
+        py-2.5
+        text-xs
+        font-semibold
+        whitespace-nowrap
+
+        sm:px-3
+        sm:py-3
+        sm:text-sm
+      "
+    >
+      Messages
+    </TabsTrigger>
+
+  </TabsList>
 
           <TabsContent value="overview" className="mt-5 grid gap-5 lg:grid-cols-2">
             <Card><CardHeader><CardTitle>Your subjects</CardTitle><CardDescription>Subjects currently assigned to you.</CardDescription></CardHeader><CardContent className="space-y-3">{subjects.length ? subjects.map((subject) => <div key={subject._id || subject.id || subject.name} className="flex items-center justify-between rounded-xl bg-violet-50 px-4 py-3"><span><span className="block font-semibold">{subject.name || "Subject"}</span><span className="text-xs text-slate-500">{subject.grade || "Class not set"}</span></span><BookOpen size={18} className="text-violet-600" /></div>) : <DashboardEmpty text="No subjects are assigned yet." />}</CardContent></Card>
@@ -269,11 +416,127 @@ export function TeacherDashboard({ user = {}, onLogout }) {
 
           <TabsContent value="class-groups" className="mt-5"><Card><CardHeader><CardTitle>Your Class Groups</CardTitle><CardDescription>Groups assigned to you.</CardDescription></CardHeader><CardContent>{classGroups.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{classGroups.map((group) => <div key={group._id} className="rounded-xl border border-slate-200 p-4"><p className="font-bold"><FaUsers className="inline mr-2 text-blue-600" />{group.code}</p><p className="mt-1 text-sm text-slate-600">{group.curriculum} · Grade {group.grade}</p><p className="text-xs text-slate-500">Subject: {group.subject}</p><p className="text-xs text-slate-500">Students: {group.students?.length || 0} / {group.capacity}</p></div>)}</div> : <DashboardEmpty text="You don't have assigned class groups yet." />}</CardContent></Card></TabsContent>
 
-          <TabsContent value="assignments" className="mt-5"><TeacherAssignments teacherId={teacherId} token={token} /></TabsContent>
+          <TabsContent value="resources" className="mt-5 grid gap-5 lg:grid-cols-2">
+            <Card>
+              <CardHeader><CardTitle>Submit Resource</CardTitle><CardDescription>Upload lesson notes and learning materials.</CardDescription></CardHeader>
+              <CardContent className="space-y-3">
+                <Input placeholder="Title" value={newResource.title} onChange={(e) => setNewResource({ ...newResource, title: e.target.value })} />
+                <Textarea placeholder="Description" value={newResource.description} onChange={(e) => setNewResource({ ...newResource, description: e.target.value })} />
+                <Input type="file" accept=".pdf,.doc,.docx" onChange={handleResourceFileChange} />
+                {newResource.fileUrl && <p className="text-xs text-slate-500">File selected: {newResource.fileType || "pdf"}</p>}
+                <Input placeholder="Subject" value={newResource.subject} onChange={(e) => setNewResource({ ...newResource, subject: e.target.value })} />
+                <Input placeholder="Curriculum" value={newResource.curriculum} onChange={(e) => setNewResource({ ...newResource, curriculum: e.target.value })} />
+                <Button onClick={handleSubmitResource} className="w-full bg-violet-600 hover:bg-violet-700">Submit Resource</Button>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>My Resources</CardTitle><CardDescription>Track your submissions and reviews.</CardDescription></CardHeader>
+              <CardContent className="space-y-3">
+                {resources.length ? resources.map((r) => (
+                  <div key={r._id} className="rounded-xl border border-slate-200 p-4">
+                    <p className="font-bold">{r.title}</p>
+                    <p className="text-sm text-slate-600">{r.description}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className={`rounded-full px-2 py-1 text-xs font-semibold ${r.approved ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                        {r.approved ? "Approved" : "Pending"}
+                      </span>
+                      {r.comment && <span className="text-xs text-slate-500">Comment: {r.comment}</span>}
+                    </div>
+                  </div>
+                )) : <DashboardEmpty text="No resources submitted yet." />}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          <TabsContent value="quizzes" className="mt-5"><TeacherQuizzes teacherId={teacherId} token={token} /></TabsContent>
+          <TabsContent value="broadcasts" className="mt-5 grid gap-5 lg:grid-cols-2"><Card><CardHeader><CardTitle>Send a broadcast</CardTitle></CardHeader><CardContent className="space-y-3"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={broadcastSubject} onChange={(event) => setBroadcastSubject(event.target.value)}><option value="">Select class group</option>{classGroups.map((group) => <option key={group._id} value={group._id}>{group.code} - {group.curriculum} · Grade {group.grade}</option>)}</select><Textarea placeholder="Write an announcement for students in this class group" value={broadcastMessage} onChange={(event) => setBroadcastMessage(event.target.value)} /><Button onClick={handleSendBroadcast} disabled={sending} className="w-full bg-violet-600 hover:bg-violet-700"><Send size={16} />{sending ? "Sending..." : "Send broadcast"}</Button></CardContent></Card><Card><CardHeader><CardTitle>Previous broadcasts</CardTitle></CardHeader><CardContent className="space-y-3">{broadcasts.length ? broadcasts.map((broadcast, index) => <div key={`${broadcast.createdAt}-${index}`} className="rounded-xl border border-slate-200 p-4"><p className="font-bold">{broadcast.subjectName || "General"}</p><p className="mt-1 text-sm text-slate-600">{broadcast.message}</p></div>) : <DashboardEmpty text="No broadcasts have been sent." />}</CardContent></Card></TabsContent>
 
-          <TabsContent value="broadcasts" className="mt-5 grid gap-5 lg:grid-cols-2"><Card><CardHeader><CardTitle>Send a broadcast</CardTitle></CardHeader><CardContent className="space-y-3"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={broadcastSubject} onChange={(event) => setBroadcastSubject(event.target.value)}><option value="">Select subject</option>{subjects.map((subject) => <option key={subject._id} value={subject._id}>{subject.name}</option>)}</select><Textarea placeholder="Write an announcement for students" value={broadcastMessage} onChange={(event) => setBroadcastMessage(event.target.value)} /><Button onClick={handleSendBroadcast} disabled={sending} className="w-full bg-violet-600 hover:bg-violet-700"><Send size={16} />{sending ? "Sending..." : "Send broadcast"}</Button></CardContent></Card><Card><CardHeader><CardTitle>Previous broadcasts</CardTitle></CardHeader><CardContent className="space-y-3">{broadcasts.length ? broadcasts.map((broadcast, index) => <div key={`${broadcast.createdAt}-${index}`} className="rounded-xl border border-slate-200 p-4"><p className="font-bold">{broadcast.subjectName || "General"}</p><p className="mt-1 text-sm text-slate-600">{broadcast.message}</p></div>) : <DashboardEmpty text="No broadcasts have been sent." />}</CardContent></Card></TabsContent>
+          <TabsContent value="messages" className="mt-5">
+            <Card>
+              <CardHeader>
+                <CardTitle>Messages from Admin & Tutor Manager</CardTitle>
+                <CardDescription>Broadcasts and announcements sent to you.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {messages.length ? (
+                  <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+                    {/* Inbox list */}
+                    <div className="space-y-2 overflow-y-auto max-h-[520px] pr-1">
+                      {messages.map((msg) => (
+                        <div
+                          key={msg._id}
+                          onClick={() => setSelectedMessage(msg)}
+                          className={`cursor-pointer rounded-xl border p-3 transition ${
+                            selectedMessage?._id === msg._id
+                              ? "border-violet-500 bg-violet-50"
+                              : "border-slate-200 hover:border-violet-300 hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-slate-900">{msg.subject || "Broadcast"}</p>
+                              <p className="mt-1 truncate text-xs text-slate-500">
+                                From: {msg.senderName || "Unknown"} · <span className="font-medium">{msg.roleLabel || msg.senderRole || "System"}</span>
+                              </p>
+                              <p className="mt-1 text-xs text-slate-400">{new Date(msg.createdAt).toLocaleString()}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleDeleteMessage(msg.recipientId); }}
+                              className="rounded-lg border border-rose-200 p-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                              title="Delete message"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Message detail */}
+                    <div className="rounded-xl border border-slate-200 bg-white p-4">
+                      {selectedMessage ? (
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-xs text-slate-500">Subject</p>
+                            <p className="text-lg font-semibold text-slate-900">{selectedMessage.subject || "Broadcast"}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500">From</p>
+                            <p className="text-sm text-slate-900">
+                              {selectedMessage.senderName || "Unknown"} · <span className="font-medium">{selectedMessage.roleLabel || selectedMessage.senderRole || "System"}</span>
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500">Message</p>
+                            <p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-800">
+                              {selectedMessage.body || selectedMessage.message || selectedMessage.content}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500">Received</p>
+                            <p className="text-xs text-slate-400">{new Date(selectedMessage.createdAt).toLocaleString()}</p>
+                          </div>
+                          <div className="pt-2">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMessage(selectedMessage.recipientId)}
+                              className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                            >
+                              Delete message
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-slate-500">Select a message to read it.</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <DashboardEmpty text="No messages yet." />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
     </div>
@@ -281,7 +544,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
 }
 
 function DashboardMetric({ icon, label, value, color }) {
-  const colors = { violet: "bg-violet-600", blue: "bg-blue-600", emerald: "bg-emerald-600" };
+  const colors = { violet: "bg-violet-600", blue: "bg-blue-600", emerald: "bg-emerald-600", amber: "bg-amber-500" };
   return <Card><CardContent className="flex items-center gap-3 p-4"><span className={`flex h-10 w-10 items-center justify-center rounded-xl text-white ${colors[color]}`}>{icon}</span><span><span className="block text-xl font-bold">{value}</span><span className="text-xs font-medium text-slate-500">{label}</span></span></CardContent></Card>;
 }
 

@@ -34,7 +34,7 @@ export default function PaymentsTab() {
   return (
     <div className="bg-white p-6 rounded-2xl shadow-xl">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        ðŸ’³ Payment Records
+        💳 Payment Records
       </h2>
 
       {loading ? (
@@ -71,7 +71,7 @@ export default function PaymentsTab() {
                   <td className="p-3">{p.package}</td>
 
                   <td className="p-3 font-semibold text-blue-600">
-                    â‚µ{p.amount}
+                    ₵{p.amount}
                   </td>
 
                   <td className="p-3">

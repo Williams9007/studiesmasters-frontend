@@ -45,37 +45,37 @@ const packages = [
       {
         name: "Starter Plan",
         price: 250,
-        grades: "Basic 4–6, JHS 1–3, SHS 1–3",
+        grades: "Basic 4-6, JHS 1-3, SHS 1-3",
         includes: [
-          "👩‍🏫 Live group classes (10–15 students)",
-          "📘 Maths + English + Science (Core)",
-          "📄 Weekly homework",
-          "🧪 Monthly mini-test",
+          "Live group classes (10-15 students)",
+          "Maths + English + Science (Core)",
+          "Weekly homework",
+          "Monthly mini-test",
         ],
       },
       {
         name: "Standard Plan",
         price: 500,
-        grades: "Basic 4–6, JHS 1–3, SHS 1–3",
+        grades: "Basic 4-6, JHS 1-3, SHS 1-3",
         includes: [
-          "👩‍🏫 Smaller classes (4–8 students)",
-          "📘 Maths + English + Science",
-          "🧑‍🏫 Assigned tutor",
-          "📊 Progress tracking (Monthly report)",
-          "🧠 Homework marking & feedback",
-          "📞 Parent performance updates (Monthly)",
+          "Smaller classes (4-8 students)",
+          "Maths + English + Science",
+          "Assigned tutor",
+          "Progress tracking (Monthly report)",
+          "Homework marking & feedback",
+          "Parent performance updates (Monthly)",
         ],
       },
       {
         name: "Premium Plan",
         price: 900,
-        grades: "Basic 4–6, JHS 1–3, SHS 1–3",
+        grades: "Basic 4-6, JHS 1-3, SHS 1-3",
         includes: [
-          "👩‍🏫 2–3 student micro-group",
-          "📘 Maths + English + Science",
-          "🎯 Intensive focus (BECE/WASSCE)",
-          "📊 Weekly performance reports",
-          "📝 Personal study plan",
+          "2-3 student micro-group",
+          "Maths + English + Science",
+          "Intensive focus (BECE/WASSCE)",
+          "Weekly performance reports",
+          "Personal study plan",
         ],
       },
     ],
@@ -92,37 +92,37 @@ const packages = [
       {
         name: "Starter Plan",
         price: 450,
-        grades: "Grade 4–6",
+        grades: "Grade 4-6",
         includes: [
-          "👩‍🏫 Smaller classes (10–15 students)",
-          "📘 3 sessions per week (Maths, Basic Science & English)",
-          "⏱️ 60 minutes per session",
-          "📝 Homework & weekly quizzes included",
+          "Smaller classes (10-15 students)",
+          "3 sessions per week (Maths, Basic Science & English)",
+          "60 minutes per session",
+          "Homework & weekly quizzes included",
         ],
       },
       {
         name: "Standard Plan",
         price: 760,
-        grades: "Grade 7–9",
+        grades: "Grade 7-9",
         includes: [
-          "👩‍🏫 Smaller classes (5–10 students)",
-          "📘 3 sessions per week (Maths, Science & English)",
-          "⏱️ 60 minutes per session",
-          "📚 Full Cambridge syllabus coverage (IGCSE)",
-          "📊 Monthly progress report",
-          "📝 Past paper practice included",
+          "Smaller classes (5-10 students)",
+          "3 sessions per week (Maths, Science & English)",
+          "60 minutes per session",
+          "Full Cambridge syllabus coverage (IGCSE)",
+          "Monthly progress report",
+          "Past paper practice included",
         ],
       },
       {
         name: "Premium Plan",
         price: 1200,
-        grades: "Grade 10–12",
+        grades: "Grade 10-12",
         includes: [
-          "👨‍🏫 Very small group (2–3 students)",
-          "📚 3 sessions per week",
-          "⏱️ 60 minutes per session",
-          "📄 Intensive past-paper marking",
-          "🎯 Weakness-focused tutoring",
+          "Very small group (2-3 students)",
+          "3 sessions per week",
+          "60 minutes per session",
+          "Intensive past-paper marking",
+          "Weakness-focused tutoring",
         ],
       },
     ],
@@ -132,28 +132,28 @@ const packages = [
 const programs = [
   {
     title: "GES",
-    levels: "Primary 1 “ 6 / JHS 1 “ 3",
+    levels: "Primary 1 - 6 / JHS 1 - 3",
     description: "Build strong foundations in Maths, English and Science.",
-    price: "GH‚µ300",
+    price: "GH₵300",
     color: "green",
-    features: ["2“3 live classes per week", "Homework & worksheets", "Weekly quizzes", "Progress reports","Live group classes (10“15 students) "],
+    features: ["2-3 live classes per week", "Homework & worksheets", "Weekly quizzes", "Progress reports", "Live group classes (10-15 students)"],
     icon: FaUserGraduate,
   },
   {
     title: "Cambridge Checkpoint",
-    levels: "Years 7 - 9 (JHS 1 “ 3)",
+    levels: "Years 7 - 9 (JHS 1 - 3)",
     description: "Targeted support for Checkpoint exams and beyond.",
-    price: "GH‚450",
+    price: "GH₵450",
     color: "blue",
     popular: true,
-    features: ["3“4 live classes per week", "Exam-style practice", "Monthly mock tests","Live group classes (10â€“15 students) ", "Detailed progress reports"],
+    features: ["3-4 live classes per week", "Exam-style practice", "Monthly mock tests", "Live group classes (10-15 students)", "Detailed progress reports"],
     icon: FaBookOpen,
   },
   {
     title: "Cambridge SHS",
-    levels: "Years 10 “ 11 (SHS 1 “ 2)",
+    levels: "Years 10 - 11 (SHS 1 - 2)",
     description: "Intensive preparation for top IGCSE results.",
-    price: "GH‚µ1,200",
+    price: "GH₵1,200",
     color: "purple",
     features: ["4+ live classes per week", "Past paper mastery", "Exam strategies & marking", "Priority academic support"],
     icon: FaGraduationCap,
@@ -248,6 +248,12 @@ const LandingPage = () => {
                 Tracked Results, Real Impact!
               </p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button type="button" onClick={() => scrollToSection("features")} className="text-xs font-medium text-gray-700 transition hover:text-blue-600 whitespace-nowrap sm:text-sm">Features</button>
+            <button type="button" onClick={() => scrollToSection("packages")} className="text-xs font-medium text-gray-700 transition hover:text-blue-600 whitespace-nowrap sm:text-sm">Programs</button>
+            <button type="button" onClick={() => scrollToSection("testimonials")} className="text-xs font-medium text-gray-700 transition hover:text-blue-600 whitespace-nowrap sm:text-sm">Reviews</button>
           </div>
 
           <button
@@ -382,10 +388,10 @@ const LandingPage = () => {
                         /month
                       </span>
                     </p>
-                      <p className="mt-1 text-xs text-slate-500">Billed monthly A· plan access for {group.duration}</p>
+                      <p className="mt-1 text-xs text-slate-500">Billed monthly - plan access for {group.duration}</p>
                     </>}
                     <div className="mt-5 border-t border-slate-100 pt-4">
-                    <p className="text-xs font-bold uppercase tracking-wide text-slate-500">What&apos;s included</p>
+                    <p className="text-xs font-bold uppercase tracking-wide text-slate-500">What's included</p>
                     <ul className="mt-3 space-y-3 text-sm text-slate-700">
                       {plan.includes.map((item) => <li key={item} className="flex items-start gap-3"><FaCheck className={`mt-0.5 shrink-0 ${theme.heading}`} /><span>{item}</span></li>)}
                     </ul>

@@ -22,7 +22,7 @@ export default function AdminVerifyOtp() {
     }
   };
 
-  // âœ… Auto-redirect only if admin token is valid
+  // ✅ Auto-redirect only if admin token is valid
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) return;
@@ -49,38 +49,38 @@ export default function AdminVerifyOtp() {
     }
 
     try {
-      console.log("ðŸ“¤ Sending OTP verification request...");
+      console.log("📤 Sending OTP verification request...");
       const res = await apiClient.post("/admin/verify-otp", {
         adminId,
         otp,
       });
 
-      console.log("âœ… OTP verification response:", res.data);
+      console.log("✅ OTP verification response:", res.data);
 
-      // âœ… Store token securely
+      // ✅ Store token securely
       const token = res.data.token;
       if (!token) {
-        console.error("âŒ No token in response:", res.data);
+        console.error("❌ No token in response:", res.data);
         setError("No token received from server. Response: " + JSON.stringify(res.data));
         setLoading(false);
         return;
       }
 
-      console.log("ðŸ’¾ Storing token in localStorage...");
+      console.log("💾 Storing token in localStorage...");
       localStorage.setItem("adminToken", token);
       localStorage.setItem("adminRole", res.data.role || "admin");
       localStorage.removeItem("adminId");
       
-      console.log("âœ… Token and role stored");
-      console.log("ðŸ“ adminToken exists:", !!localStorage.getItem("adminToken"));
-      console.log("ðŸ“ adminRole exists:", !!localStorage.getItem("adminRole"));
+      console.log("✅ Token and role stored");
+      console.log("📍 adminToken exists:", !!localStorage.getItem("adminToken"));
+      console.log("📍 adminRole exists:", !!localStorage.getItem("adminRole"));
 
-      console.log("ðŸ”„ Navigating to dashboard...");
+      console.log("🔀 Navigating to dashboard...");
       
-      // âœ… Redirect to dashboard
+      // ✅ Redirect to dashboard
       navigate("/admin/dashboard", { replace: true });
     } catch (err) {
-      console.error("âŒ OTP verification failed");
+      console.error("❌ OTP verification failed");
       console.error("Error response:", err.response?.data);
       console.error("Full error:", err);
       setError(err.response?.data?.message || "Invalid OTP");

@@ -22,12 +22,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const BASE_URL = "https://studiesmasters-backend.onrender.com";
+const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
 
 export default function Overview() {
   const [students, setStudents] = useState(0);
   const [teachers, setTeachers] = useState(0);
-  const [qaoUsers, setQaoUsers] = useState([]);
+  const [tutorManagers, setTutorManagers] = useState([]);
   const [payments, setPayments] = useState([]);
   const [totalPayments, setTotalPayments] = useState(0);
   const [error, setError] = useState("");
@@ -42,8 +42,8 @@ export default function Overview() {
       const teacherRes = await apiClient.get("/admin/teachers");
       setTeachers(teacherRes.data.totalTeachers || 0);
 
-      const qaoRes = await apiClient.get("/admin/qao-users");
-      setQaoUsers(qaoRes.data.qaoUsers || []);
+      const managerRes = await apiClient.get("/admin/qao-users");
+      setTutorManagers(managerRes.data.qaoUsers || []);
 
       const paymentRes = await apiClient.get("/payments/admin/history");
       setPayments(paymentRes.data.payments || []);
@@ -76,7 +76,7 @@ export default function Overview() {
   const userData = [
     { name: "Students", value: students },
     { name: "Teachers", value: teachers },
-    { name: "QAO Users", value: qaoUsers.length },
+    { name: "Tutor Managers", value: tutorManagers.length },
   ];
   const PIE_COLORS = ["#8884d8", "#82ca9d", "#ffc658"];
 
@@ -96,7 +96,7 @@ export default function Overview() {
       <div className="stats-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Students" value={students} />
         <StatCard title="Total Teachers" value={teachers} />
-        <StatCard title="Total QAO Users" value={qaoUsers.length} />
+        <StatCard title="Total Tutor Managers" value={tutorManagers.length} />
         <StatCard title="Total Payments (GHS)" value={totalPayments} />
       </div>
 
