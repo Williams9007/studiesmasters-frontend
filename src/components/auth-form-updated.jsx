@@ -426,7 +426,7 @@ export function StudentRegistrationForm() {
 
   return (
 
-    <div className="relative min-h-screen overflow-hidden bg-slate-50 px-4 py-8 sm:py-12">
+    <div className="relative min-h-screen overflow-hidden bg-slate-50 px-3 py-6 sm:px-4 sm:py-12">
       <motion.div
         aria-hidden="true"
         animate={{ x: [0, 35, 0], y: [0, -20, 0], scale: [1, 1.08, 1] }}
@@ -449,7 +449,7 @@ export function StudentRegistrationForm() {
       <Card className="overflow-hidden border-white/80 bg-white/95 shadow-2xl shadow-blue-950/10 backdrop-blur">
 
 
-        <CardHeader className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-blue-700 px-6 py-7 text-center text-white sm:px-8">
+        <CardHeader className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-blue-700 px-4 py-5 text-center text-white sm:px-8 sm:py-7">
           <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full border border-white/15" />
           <div className="absolute -bottom-20 -left-14 h-44 w-44 rounded-full bg-cyan-400/15 blur-2xl" />
 
@@ -457,7 +457,7 @@ export function StudentRegistrationForm() {
             variant="ghost"
             size="sm"
             onClick={()=>navigate(-1)}
-            className="absolute left-4 top-4 text-white hover:bg-white/10 hover:text-white"
+            className="absolute left-3 top-3 text-white hover:bg-white/10 hover:text-white sm:left-4 sm:top-4"
           >
             <ArrowLeft className="h-4 w-4"/>
           </Button>
@@ -467,13 +467,14 @@ export function StudentRegistrationForm() {
             animate={{ y: [0, -4, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             className="relative
-          w-16 h-16 mx-auto
+          w-14 h-14 mx-auto
           rounded-2xl
           bg-gradient-to-br
           from-cyan-400
           to-blue-500
           flex items-center justify-center
           shadow-lg shadow-cyan-400/30
+          sm:w-16 sm:h-16
           ">
 
             <GraduationCap
@@ -483,18 +484,18 @@ export function StudentRegistrationForm() {
           </motion.div>
 
 
-          <CardTitle className="relative mt-5 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <CardTitle className="relative mt-3 text-xl font-bold tracking-tight text-white sm:mt-5 sm:text-3xl">
             StudiesMasters Student Registration
           </CardTitle>
 
 
-          <CardDescription className="relative mt-2 text-blue-100">
+          <CardDescription className="relative mt-1.5 text-sm text-blue-100 sm:mt-2 sm:text-base">
             Start Your Child's Learning Journey
           </CardDescription>
 
-          <div className="relative mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-medium text-blue-100">
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-cyan-300" />Personalised learning</span>
-            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-cyan-300" />Secure registration</span>
+          <div className="relative mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[11px] font-medium text-blue-100 sm:mt-6 sm:gap-x-5 sm:gap-y-2 sm:text-xs">
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-cyan-300 sm:h-4 sm:w-4" />Personalised learning</span>
+            <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-cyan-300 sm:h-4 sm:w-4" />Secure registration</span>
           </div>
 
 
@@ -502,12 +503,12 @@ export function StudentRegistrationForm() {
 
 
 
-        <CardContent className="p-4 sm:p-5 md:p-6">
+        <CardContent className="p-3 sm:p-5 md:p-6">
 
 
         {error && (
 
-          <p className="text-red-600 text-center mb-4">
+          <p className="text-red-600 text-center mb-4 text-sm sm:text-base">
             {error}
           </p>
 
@@ -517,10 +518,10 @@ export function StudentRegistrationForm() {
 
 <form 
 onSubmit={handleSubmit}
-className="space-y-6"
+className="space-y-5 sm:space-y-6"
 >
 
-<div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-sm text-slate-700">
+<div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-3.5 text-sm text-slate-700 sm:p-4">
   <div className="flex items-start gap-3">
     <span className="mt-0.5 rounded-lg bg-blue-600 p-1.5 text-white"><Sparkles className="h-4 w-4" /></span>
     <p><strong className="text-slate-900">A quick start:</strong> Complete the details below and our academic team will use them to recommend the best learning plan.</p>
@@ -532,9 +533,9 @@ className="space-y-6"
 {/* ================= STUDENT INFORMATION ================= */}
 
 
-<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5">
+<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 sm:p-5">
 
-<h2 className="mb-4 text-lg font-bold text-slate-900">
+<h2 className="mb-3 text-base font-bold text-slate-900 sm:mb-4 sm:text-lg">
 Student Information
 </h2>
 
@@ -673,10 +674,10 @@ value={grade}
 {/* ================= PARENT INFORMATION ================= */}
 
 
-<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5">
+<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 sm:p-5">
 
 
-<h2 className="mb-4 text-lg font-bold text-slate-900">
+<h2 className="mb-3 text-base font-bold text-slate-900 sm:mb-4 sm:text-lg">
 Parent / Guardian Information
 </h2>
 
@@ -811,10 +812,10 @@ v
 {/* ================= ACADEMIC ================= */}
 
 
-<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5">
+<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 sm:p-5">
 
 
-<h2 className="mb-4 text-lg font-bold text-slate-900">
+<h2 className="mb-3 text-base font-bold text-slate-900 sm:mb-4 sm:text-lg">
 Academic Support Needed
 </h2>
 
@@ -870,7 +871,7 @@ Not Sure
 
 
 
-<h3 className="font-semibold mt-5 mb-2">
+<h3 className="font-semibold mt-4 mb-2 text-sm sm:text-base">
 Learning Goals
 </h3>
 
@@ -888,7 +889,7 @@ Learning Goals
 
 <label
 key={goal}
-className="block"
+className="block text-sm sm:text-base"
 >
 
 
@@ -922,16 +923,16 @@ handleGoalChange(goal)
 {/* ================= LEARNING PLAN ================= */}
 
 
-<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5">
+<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 sm:p-5">
 
 
-<h2 className="mb-4 text-lg font-bold text-slate-900">
+<h2 className="mb-3 text-base font-bold text-slate-900 sm:mb-4 sm:text-lg">
 Select a Learning Plan ({formData.curriculum})
 </h2>
 
 
 
-<div className="grid md:grid-cols-2 gap-4">
+<div className="grid gap-3 md:grid-cols-2 md:gap-4">
 
 
 {
@@ -943,8 +944,9 @@ plans[formData.curriculum].map((item)=>(
 key={item.name}
 
 className={`
-border rounded-xl p-4 cursor-pointer
+border rounded-xl p-3.5 cursor-pointer
 transition
+sm:p-4
 ${
 formData.plan === item.name
 ?
@@ -976,7 +978,7 @@ updateField("plan", e.target.value);
 />
 
 
-<span className="ml-2 font-semibold">
+<span className="ml-2 font-semibold text-sm sm:text-base">
 
 {item.name}
 
@@ -1031,14 +1033,13 @@ item.name === "Standard Plan" && (
 
 
 
-
 {/* ================= ADDONS ================= */}
 
 
-<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5">
+<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 sm:p-5">
 
 
-<h2 className="mb-4 text-lg font-bold text-slate-900">
+<h2 className="mb-3 text-base font-bold text-slate-900 sm:mb-4 sm:text-lg">
 
 Add Ons
 
@@ -1057,7 +1058,7 @@ addOns[formData.curriculum].map((addon)=>(
 
 key={addon.name}
 
-className="flex items-center gap-2"
+className="flex items-center gap-2 text-sm sm:text-base"
 
 >
 
@@ -1095,7 +1096,6 @@ GHS {addon.price}/month
 
 
 ))
-
 }
 
 
@@ -1109,15 +1109,13 @@ GHS {addon.price}/month
 
 
 
-
-
 {/* ================= SCHEDULE ================= */}
 
 
-<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5">
+<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 sm:p-5">
 
 
-<h2 className="mb-4 text-lg font-bold text-slate-900">
+<h2 className="mb-3 text-base font-bold text-slate-900 sm:mb-4 sm:text-lg">
 
 Preferred Learning Schedule
 
@@ -1134,7 +1132,7 @@ Choose exactly 3 days each week ({formData.preferredDays.length}/3 selected)
 
 
 
-<div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+<div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
 
 
 {
@@ -1156,7 +1154,7 @@ Choose exactly 3 days each week ({formData.preferredDays.length}/3 selected)
 
 key={day}
 
-className="flex gap-2 items-center"
+className="flex gap-2 items-center text-sm sm:text-base"
 
 >
 
@@ -1192,7 +1190,6 @@ onChange={()=>handleDayChange(day)}
 
 
 </div>
-
 
 
 
@@ -1260,16 +1257,13 @@ Flexible
 
 
 
-
-
-
 {/* ================= ADDITIONAL INFORMATION ================= */}
 
 
-<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5">
+<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 sm:p-5">
 
 
-<h2 className="mb-4 text-lg font-bold text-slate-900">
+<h2 className="mb-3 text-base font-bold text-slate-900 sm:mb-4 sm:text-lg">
 
 Additional Information
 
@@ -1285,6 +1279,8 @@ border
 rounded-lg
 p-3
 min-h-[80px]
+text-sm
+sm:text-base
 "
 
 placeholder="
@@ -1317,17 +1313,12 @@ e.target.value
 
 
 
-
-
-
-
-
 {/* ================= CONSENT & ACCEPTANCE ================= */}
 
-<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 sm:p-5">
-  <h2 className="mb-4 text-lg font-bold text-slate-900">Consent &amp; Acceptance</h2>
-<div className="mt-5 border-t border-slate-200 pt-4">
-  <p className="mb-3 text-sm font-semibold text-slate-800">Consent &amp; Acceptance <span className="text-red-600">*</span></p>
+<section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5 sm:p-5">
+  <h2 className="mb-3 text-base font-bold text-slate-900 sm:mb-4 sm:text-lg">Consent & Acceptance</h2>
+<div className="mt-4 border-t border-slate-200 pt-4 sm:mt-5">
+  <p className="mb-3 text-sm font-semibold text-slate-800">Consent & Acceptance <span className="text-red-600">*</span></p>
 
   <label className="flex gap-2 items-start text-sm">
     <input
@@ -1336,7 +1327,7 @@ e.target.value
       checked={formData.acceptTerms}
       onChange={(e) => updateField("acceptTerms", e.target.checked)}
     />
-    <span>I have read and accept the <a className="text-blue-700 underline" href="/policies" target="_blank" rel="noreferrer">Terms &amp; Conditions</a>.</span>
+    <span>I have read and accept the <a className="text-blue-700 underline" href="/policies" target="_blank" rel="noreferrer">Terms & Conditions</a>.</span>
   </label>
 
   <label className="mt-3 flex gap-2 items-start text-sm">
@@ -1367,17 +1358,13 @@ e.target.value
 
 
 
-
-
-
-
 {/* ================= PAYMENT SUMMARY ================= */}
 
 
-<section className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 p-4 sm:p-5">
+<section className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 p-3.5 sm:p-5">
 
 
-<h2 className="mb-3 text-lg font-bold text-slate-900">
+<h2 className="mb-3 text-base font-bold text-slate-900 sm:text-lg">
 
 Payment Summary
 
@@ -1385,7 +1372,7 @@ Payment Summary
 
 
 
-<div className="space-y-2">
+<div className="space-y-2 text-sm sm:text-base">
 
 
 <p>
@@ -1444,7 +1431,7 @@ formData.addOns.join(", ")
 
 
 
-<p className="text-xl font-bold">
+<p className="text-lg font-bold sm:text-xl">
 
 Total:
 
@@ -1462,15 +1449,13 @@ GHS {totalAmount}/month
 
 
 
-
-
           <Button
 
 type="submit"
 
 disabled={loading}
 
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 py-6 text-lg font-bold shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-cyan-700"
+            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 py-5 text-base font-bold shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-cyan-700 sm:py-6 sm:text-lg"
 
 >
 
