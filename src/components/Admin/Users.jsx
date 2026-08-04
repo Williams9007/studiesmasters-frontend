@@ -97,7 +97,7 @@ export default function Users() {
       return;
     }
 
-    const role = newUser.role.toLowerCase();
+    let role = newUser.role.toLowerCase();
     const payload = {
       fullName: newUser.fullName,
       email: newUser.email,
@@ -115,6 +115,9 @@ export default function Users() {
     }
 
     if (role === "tutormanager" || role === "qao") {
+      // Backend schema/route expects "tutor-manager" (with hyphen)
+      if (role === "tutormanager") role = "tutor-manager";
+      payload.role = role;
       payload.name = newUser.fullName;
     }
 

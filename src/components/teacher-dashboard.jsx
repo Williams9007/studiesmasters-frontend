@@ -236,58 +236,60 @@ export function TeacherDashboard({ user = {}, onLogout }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-200"><BookOpen size={20} /></span>
-            <div><h1 className="font-bold">StudiesMasters</h1><p className="text-xs text-slate-500">Teacher portal</p></div>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-200 sm:h-10 sm:w-10"><BookOpen size={18} className="sm:hidden" /><BookOpen size={20} className="hidden sm:block" /></span>
+            <div className="min-w-0"><h1 className="truncate text-sm font-bold sm:text-base">StudiesMasters</h1><p className="hidden text-xs text-slate-500 sm:block">Teacher portal</p></div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <div className="relative">
-              <button type="button" onClick={() => setShowDropdown((open) => !open)} className="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100" aria-label="Notifications"><Bell size={19} />{notifications.length > 0 && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-violet-600" />}</button>
-              {showDropdown && <div className="absolute right-0 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"><div className="border-b px-4 py-3 text-sm font-bold">Notifications</div>{notifications.length ? notifications.slice(0, 5).map((note) => <div key={note.id} className="border-b border-slate-100 px-4 py-3 text-sm last:border-0"><p>{note.message}</p><p className="mt-1 text-xs text-slate-400">{note.time}</p></div>) : <p className="p-4 text-sm text-slate-500">No notifications yet.</p>}</div>}
+              <button type="button" onClick={() => setShowDropdown((open) => !open)} className="relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 sm:h-10 sm:w-10" aria-label="Notifications"><Bell size={18} className="sm:hidden" /><Bell size={19} className="hidden sm:block" />{notifications.length > 0 && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-violet-600" />}</button>
+              {showDropdown && <div className="absolute right-0 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"><div className="border-b px-4 py-3 text-sm font-bold">Notifications</div>{notifications.length ? notifications.slice(0, 5).map((note) => <div key={note.id} className="border-b border-slate-100 px-4 py-3 text-sm last:border-0"><p>{note.message}</p><p className="mt-1 text-xs text-slate-400">{note.time}</p></div>) : <p className="p-4 text-sm text-slate-500">No notifications yet.</p>}</div>}
             </div>
-            <span className="hidden text-right sm:block"><span className="block text-sm font-bold">{displayTeacher.fullName || displayTeacher.name || "Teacher"}</span><span className="block text-xs text-slate-500">Teaching workspace</span></span>
-            <button type="button" onClick={handleLogout} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600"><LogOut size={16} /><span className="hidden sm:inline">Logout</span></button>
+            <span className="hidden text-right md:block"><span className="block text-sm font-bold">{displayTeacher.fullName || displayTeacher.name || "Teacher"}</span><span className="block text-xs text-slate-500">Teaching workspace</span></span>
+            <button type="button" onClick={handleLogout} className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600 sm:px-3"><LogOut size={16} /><span className="hidden sm:inline">Logout</span></button>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-700 via-indigo-800 to-slate-950 px-6 py-8 text-white shadow-xl sm:px-9 sm:py-10">
+      <main className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8">
+        <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-700 via-indigo-800 to-slate-950 px-4 py-5 text-white shadow-xl sm:rounded-3xl sm:px-9 sm:py-10">
           <motion.div aria-hidden="true" animate={{ x: [0, 18, 0], y: [0, -12, 0], scale: [1, 1.08, 1] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-fuchsia-400/25 blur-2xl" />
           <motion.div aria-hidden="true" animate={{ x: [0, -18, 0], y: [0, 12, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} className="absolute -bottom-20 right-1/4 h-48 w-48 rounded-full bg-cyan-400/20 blur-2xl" />
-          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl"><p className="text-sm font-semibold text-violet-200">Teacher workspace</p><h2 className="mt-2 text-3xl font-bold sm:text-4xl">Welcome back, {displayTeacher.fullName?.split(" ")[0] || displayTeacher.name?.split(" ")[0] || "Teacher"}.</h2><p className="mt-3 text-sm leading-6 text-violet-100 sm:text-base">Manage your subjects, students, assignments, and class announcements from one place.</p></div>
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.18, type: "spring", stiffness: 180 }}>
-              <Button onClick={openMoodleClassroom} className="group h-12 rounded-xl bg-yellow-400 px-5 text-base font-bold text-slate-950 shadow-lg shadow-yellow-500/20 transition hover:bg-yellow-300"><PlayCircle size={20} />Start class <ArrowUpRight size={17} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></Button>
+          <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl"><p className="text-sm font-semibold text-violet-200">Teacher workspace</p><h2 className="mt-2 text-2xl font-bold sm:text-4xl">Welcome back, {displayTeacher.fullName?.split(" ")[0] || displayTeacher.name?.split(" ")[0] || "Teacher"}.</h2><p className="mt-2 text-sm leading-6 text-violet-100 sm:mt-3 sm:text-base">Manage your subjects, students, assignments, and class announcements from one place.</p></div>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.18, type: "spring", stiffness: 180 }} className="w-full lg:w-auto">
+              <Button onClick={openMoodleClassroom} className="group h-12 w-full rounded-xl bg-yellow-400 px-5 text-base font-bold text-slate-950 shadow-lg shadow-yellow-500/20 transition hover:bg-yellow-300 lg:w-auto"><PlayCircle size={20} />Start class <ArrowUpRight size={17} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></Button>
             </motion.div>
           </div>
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px)", backgroundSize: "30px 30px", maskImage: "linear-gradient(to right, black, transparent)" }} />
         </motion.section>
 
-        <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <DashboardMetric icon={<BookOpen size={20} />} label="Subjects" value={subjects.length} color="violet" />
-          <DashboardMetric icon={<User size={20} />} label="Students" value={students.length} color="blue" />
-          <DashboardMetric icon={<CheckCircle size={20} />} label="Resources" value={resources.length} color="emerald" />
-          <DashboardMetric icon={<FaUsers size={20} />} label="Class Groups" value={classGroups.length} color="amber" />
+        <section className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:grid-cols-4 sm:gap-3">
+          <DashboardMetric icon={<><BookOpen size={18} className="sm:hidden" /><BookOpen size={20} className="hidden sm:block" /></>} label="Subjects" value={subjects.length} color="violet" />
+          <DashboardMetric icon={<><User size={18} className="sm:hidden" /><User size={20} className="hidden sm:block" /></>} label="Students" value={students.length} color="blue" />
+          <DashboardMetric icon={<><CheckCircle size={18} className="sm:hidden" /><CheckCircle size={20} className="hidden sm:block" /></>} label="Resources" value={resources.length} color="emerald" />
+          <DashboardMetric icon={<><FaUsers size={18} className="sm:hidden" /><FaUsers size={20} className="hidden sm:block" /></>} label="Class Groups" value={classGroups.length} color="amber" />
         </section>
 
-         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-7">
+         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 sm:mt-7">
 
   <TabsList
     className="
       grid
       w-full
       grid-cols-2
-      gap-2
+      gap-1.5
       rounded-xl
       border
       border-slate-200
       bg-white
-      p-2
+      p-1.5
       shadow-sm
 
       sm:grid-cols-3
+      sm:gap-2
+      sm:p-2
       md:grid-cols-4
       lg:grid-cols-6
     "
@@ -298,7 +300,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       className="
         rounded-lg
         px-2
-        py-2.5
+        py-2
         text-xs
         font-semibold
         whitespace-nowrap
@@ -317,7 +319,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       className="
         rounded-lg
         px-2
-        py-2.5
+        py-2
         text-xs
         font-semibold
         whitespace-nowrap
@@ -336,7 +338,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       className="
         rounded-lg
         px-2
-        py-2.5
+        py-2
         text-xs
         font-semibold
         whitespace-nowrap
@@ -355,7 +357,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       className="
         rounded-lg
         px-2
-        py-2.5
+        py-2
         text-xs
         font-semibold
         whitespace-nowrap
@@ -374,7 +376,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       className="
         rounded-lg
         px-2
-        py-2.5
+        py-2
         text-xs
         font-semibold
         whitespace-nowrap
@@ -392,7 +394,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       className="
         rounded-lg
         px-2
-        py-2.5
+        py-2
         text-xs
         font-semibold
         whitespace-nowrap
@@ -407,16 +409,16 @@ export function TeacherDashboard({ user = {}, onLogout }) {
 
   </TabsList>
 
-          <TabsContent value="overview" className="mt-5 grid gap-5 lg:grid-cols-2">
+          <TabsContent value="overview" className="mt-4 grid gap-4 sm:mt-5 sm:gap-5 lg:grid-cols-2">
             <Card><CardHeader><CardTitle>Your subjects</CardTitle><CardDescription>Subjects currently assigned to you.</CardDescription></CardHeader><CardContent className="space-y-3">{subjects.length ? subjects.map((subject) => <div key={subject._id || subject.id || subject.name} className="flex items-center justify-between rounded-xl bg-violet-50 px-4 py-3"><span><span className="block font-semibold">{subject.name || "Subject"}</span><span className="text-xs text-slate-500">{subject.grade || "Class not set"}</span></span><BookOpen size={18} className="text-violet-600" /></div>) : <DashboardEmpty text="No subjects are assigned yet." />}</CardContent></Card>
             <Card><CardHeader><CardTitle>Recent activity</CardTitle><CardDescription>Latest broadcasts and messages.</CardDescription></CardHeader><CardContent className="space-y-3">{activities.length ? activities.slice(0, 5).map((activity, index) => <div key={`${activity.time}-${index}`} className="rounded-xl border border-slate-100 px-4 py-3"><p className="font-medium">{activity.subject || activity.type}</p><p className="mt-1 text-sm text-slate-600">{activity.message}</p><p className="mt-1 text-xs text-slate-400">{activity.time}</p></div>) : <DashboardEmpty text="No recent activity." />}</CardContent></Card>
           </TabsContent>
 
-          <TabsContent value="students" className="mt-5"><Card><CardHeader><CardTitle>Students</CardTitle><CardDescription>Students assigned to your classes. Only names are shown for privacy.</CardDescription></CardHeader><CardContent>{students.length ? <div className="overflow-x-auto"><table className="w-full min-w-[480px] text-left text-sm"><thead className="border-b text-xs uppercase text-slate-500"><tr><th className="pb-3">Name</th><th className="pb-3">Class</th></tr></thead><tbody>{students.map((student) => <tr key={student._id} className="border-b border-slate-100 last:border-0"><td className="py-4 font-semibold">{student.name || student.fullName}</td><td className="py-4 text-slate-600">{student.className || student.grade || "-"}</td></tr>)}</tbody></table></div> : <DashboardEmpty text="No students are assigned to your classes yet." />}</CardContent></Card></TabsContent>
+          <TabsContent value="students" className="mt-4 sm:mt-5"><Card><CardHeader><CardTitle>Students</CardTitle><CardDescription>Students assigned to your classes. Only names are shown for privacy.</CardDescription></CardHeader><CardContent>{students.length ? <div className="overflow-x-auto"><table className="w-full min-w-[480px] text-left text-sm"><thead className="border-b text-xs uppercase text-slate-500"><tr><th className="pb-3">Name</th><th className="pb-3">Class</th></tr></thead><tbody>{students.map((student) => <tr key={student._id} className="border-b border-slate-100 last:border-0"><td className="py-4 font-semibold">{student.name || student.fullName}</td><td className="py-4 text-slate-600">{student.className || student.grade || "-"}</td></tr>)}</tbody></table></div> : <DashboardEmpty text="No students are assigned to your classes yet." />}</CardContent></Card></TabsContent>
 
-          <TabsContent value="class-groups" className="mt-5"><Card><CardHeader><CardTitle>Your Class Groups</CardTitle><CardDescription>Groups assigned to you.</CardDescription></CardHeader><CardContent>{classGroups.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{classGroups.map((group) => <div key={group._id} className="rounded-xl border border-slate-200 p-4"><p className="font-bold"><FaUsers className="inline mr-2 text-blue-600" />{group.code}</p><p className="mt-1 text-sm text-slate-600">{group.curriculum} · Grade {group.grade}</p><p className="text-xs text-slate-500">Subject: {group.subject}</p><p className="text-xs text-slate-500">Students: {group.students?.length || 0} / {group.capacity}</p></div>)}</div> : <DashboardEmpty text="You don't have assigned class groups yet." />}</CardContent></Card></TabsContent>
+          <TabsContent value="class-groups" className="mt-4 sm:mt-5"><Card><CardHeader><CardTitle>Your Class Groups</CardTitle><CardDescription>Groups assigned to you.</CardDescription></CardHeader><CardContent>{classGroups.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{classGroups.map((group) => <div key={group._id} className="rounded-xl border border-slate-200 p-4"><p className="font-bold"><FaUsers className="inline mr-2 text-blue-600" />{group.code}</p><p className="mt-1 text-sm text-slate-600">{group.curriculum} · Grade {group.grade}</p><p className="text-xs text-slate-500">Subject: {group.subject}</p><p className="text-xs text-slate-500">Students: {group.students?.length || 0} / {group.capacity}</p></div>)}</div> : <DashboardEmpty text="You don't have assigned class groups yet." />}</CardContent></Card></TabsContent>
 
-          <TabsContent value="resources" className="mt-5 grid gap-5 lg:grid-cols-2">
+          <TabsContent value="resources" className="mt-4 grid gap-4 sm:mt-5 sm:gap-5 lg:grid-cols-2">
             <Card>
               <CardHeader><CardTitle>Submit Resource</CardTitle><CardDescription>Upload lesson notes and learning materials.</CardDescription></CardHeader>
               <CardContent className="space-y-3">
@@ -448,9 +450,9 @@ export function TeacherDashboard({ user = {}, onLogout }) {
             </Card>
           </TabsContent>
 
-          <TabsContent value="broadcasts" className="mt-5 grid gap-5 lg:grid-cols-2"><Card><CardHeader><CardTitle>Send a broadcast</CardTitle></CardHeader><CardContent className="space-y-3"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={broadcastSubject} onChange={(event) => setBroadcastSubject(event.target.value)}><option value="">Select class group</option>{classGroups.map((group) => <option key={group._id} value={group._id}>{group.code} - {group.curriculum} · Grade {group.grade}</option>)}</select><Textarea placeholder="Write an announcement for students in this class group" value={broadcastMessage} onChange={(event) => setBroadcastMessage(event.target.value)} /><Button onClick={handleSendBroadcast} disabled={sending} className="w-full bg-violet-600 hover:bg-violet-700"><Send size={16} />{sending ? "Sending..." : "Send broadcast"}</Button></CardContent></Card><Card><CardHeader><CardTitle>Previous broadcasts</CardTitle></CardHeader><CardContent className="space-y-3">{broadcasts.length ? broadcasts.map((broadcast, index) => <div key={`${broadcast.createdAt}-${index}`} className="rounded-xl border border-slate-200 p-4"><p className="font-bold">{broadcast.subjectName || "General"}</p><p className="mt-1 text-sm text-slate-600">{broadcast.message}</p></div>) : <DashboardEmpty text="No broadcasts have been sent." />}</CardContent></Card></TabsContent>
+          <TabsContent value="broadcasts" className="mt-4 grid gap-4 sm:mt-5 sm:gap-5 lg:grid-cols-2"><Card><CardHeader><CardTitle>Send a broadcast</CardTitle></CardHeader><CardContent className="space-y-3"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={broadcastSubject} onChange={(event) => setBroadcastSubject(event.target.value)}><option value="">Select class group</option>{classGroups.map((group) => <option key={group._id} value={group._id}>{group.code} - {group.curriculum} · Grade {group.grade}</option>)}</select><Textarea placeholder="Write an announcement for students in this class group" value={broadcastMessage} onChange={(event) => setBroadcastMessage(event.target.value)} /><Button onClick={handleSendBroadcast} disabled={sending} className="w-full bg-violet-600 hover:bg-violet-700"><Send size={16} />{sending ? "Sending..." : "Send broadcast"}</Button></CardContent></Card><Card><CardHeader><CardTitle>Previous broadcasts</CardTitle></CardHeader><CardContent className="space-y-3">{broadcasts.length ? broadcasts.map((broadcast, index) => <div key={`${broadcast.createdAt}-${index}`} className="rounded-xl border border-slate-200 p-4"><p className="font-bold">{broadcast.subjectName || "General"}</p><p className="mt-1 text-sm text-slate-600">{broadcast.message}</p></div>) : <DashboardEmpty text="No broadcasts have been sent." />}</CardContent></Card></TabsContent>
 
-          <TabsContent value="messages" className="mt-5">
+          <TabsContent value="messages" className="mt-4 sm:mt-5">
             <Card>
               <CardHeader>
                 <CardTitle>Messages from Admin & Tutor Manager</CardTitle>
@@ -545,7 +547,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
 
 function DashboardMetric({ icon, label, value, color }) {
   const colors = { violet: "bg-violet-600", blue: "bg-blue-600", emerald: "bg-emerald-600", amber: "bg-amber-500" };
-  return <Card><CardContent className="flex items-center gap-3 p-4"><span className={`flex h-10 w-10 items-center justify-center rounded-xl text-white ${colors[color]}`}>{icon}</span><span><span className="block text-xl font-bold">{value}</span><span className="text-xs font-medium text-slate-500">{label}</span></span></CardContent></Card>;
+  return <Card><CardContent className="flex items-center gap-2 p-2.5 sm:gap-3 sm:p-4"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white sm:h-10 sm:w-10 sm:rounded-xl ${colors[color]}`}>{icon}</span><span className="min-w-0"><span className="block text-base font-bold leading-none sm:text-xl">{value}</span><span className="mt-0.5 block truncate text-[10px] font-medium text-slate-500 sm:mt-1 sm:text-xs">{label}</span></span></CardContent></Card>;
 }
 
 function DashboardEmpty({ text }) {

@@ -1,8 +1,7 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
-import apiClient from "./utils/apiClient"; // ✅ default import
+import apiClient from "./utils/apiClient";
 
-// Pages
 import LandingPage from "./components/landing-page.jsx";
 import LoginPage from "./components/LoginPage.jsx";
 import FreeTrialClass from "./components/FreeTrialClass.jsx";
@@ -21,12 +20,13 @@ import AdminDashboard from "./components/admin-dashboard.jsx";
 import AdminLogin from "./components/admin-login.jsx";
 import AdminVerifyOtp from "./components/AdminVerifyOtp.jsx";
 import PrivateAdminRoute from "./utils/PrivateAdminRoute.jsx";
+import NotificationSettings from "./components/NotificationSettings.jsx";
+import NotificationPrompt from "./components/NotificationPrompt.jsx";
 
 function App() {
-  // Signup using apiClient
   const handleSignup = async (data) => {
     try {
-      const res = await apiClient.post("/auth/register", data); // relative path only
+      const res = await apiClient.post("/auth/register", data);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data.user._id);
       return res.data;
@@ -36,7 +36,6 @@ function App() {
     }
   };
 
-  // Login using apiClient
   const handleLogin = async (data) => {
     try {
       const res = await apiClient.post("/auth/login", data);
@@ -51,8 +50,8 @@ function App() {
 
   return (
     <ErrorBoundary>
+      <NotificationPrompt />
       <Routes>
-        {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/register" element={<StudentRegistrationForm />} />
@@ -63,33 +62,16 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/qao/dashboard" element={<TutorManagerDashboard />} />
         <Route path="/qao/access" element={<TutorManagerAccess />} />
-
-        {/* Admin login & OTP */}
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin/verify-otp" element={<AdminVerifyOtp />} />
-
-        {/* Protected routes */}
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/teacher/dashboard/:id" element={<TeacherDashboard />} />
         <Route path="/account-settings" element={<AccountSettings />} />
-
-        {/* Admin protected dashboard */}
-        <Route
-          path="/admin/dashboard"
-          element={
-            <PrivateAdminRoute>
-              <AdminDashboard />
-            </PrivateAdminRoute>
-          }
-        />
-
+        <Route path="/admin/dashboard" element={<PrivateAdminRoute><AdminDashboard /></PrivateAdminRoute>} />
         <Route path="/policies" element={<PolicyPage />} />
         <Route path="/free-trial" element={<FreeTrialClass />} />
-
-        {/* Convenience redirect */}
+        <Route path="/notifications" element={<NotificationSettings />} />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-
-        {/* Fallback */}
         <Route path="*" element={<div className="p-6">Page Not Found</div>} />
       </Routes>
     </ErrorBoundary>

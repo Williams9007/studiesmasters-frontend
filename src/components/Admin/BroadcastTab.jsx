@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { io } from "socket.io-client";
 import apiClient from "../../utils/apiClient";
 
@@ -12,6 +12,8 @@ export default function BroadcastTab() {
   const [tutorManagers, setTutorManagers] = useState([]);
   const [recipientType, setRecipientType] = useState("all");
   const [selectedRecipientId, setSelectedRecipientId] = useState("");
+  const [selectedRecipientModel, setSelectedRecipientModel] = useState("");
+  const [userSearch, setUserSearch] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [link, setLink] = useState("");
@@ -29,15 +31,13 @@ export default function BroadcastTab() {
           apiClient.get("/admin/qao-users"),
         ]);
 
-        const studentArray = (studentsRes.data.students || []).sort((a, b) =>
-          a.fullName.localeCompare(b.fullName)
+        const getName = (u) => String(u?.fullName || u?.name || "");
+        const safeSort = (arr) => (Array.isArray(arr) ? arr : []).sort((a, b) =>
+          getName(a).localeCompare(getName(b))
         );
-        const teacherArray = (teachersRes.data.teachers || []).sort((a, b) =>
-          a.fullName.localeCompare(b.fullName)
-        );
-        const managerArray = (managersRes.data.qaoUsers || []).sort((a, b) =>
-          a.fullName.localeCompare(b.fullName)
-        );
+        const studentArray = safeSort(studentsRes.data?.students);
+        const teacherArray = safeSort(teachersRes.data?.teachers);
+        const managerArray = safeSort(managersRes.data?.qaoUsers);
 
         setStudents(studentArray);
         setTeachers(teacherArray);
@@ -80,6 +80,9 @@ export default function BroadcastTab() {
 
       if (selectedRecipientId) {
         formData.append("recipientId", selectedRecipientId);
+        if (selectedRecipientModel) {
+          formData.append("recipientModel", selectedRecipientModel);
+        }
       }
 
       await apiClient.post("/admin/broadcasts/send", formData);
@@ -91,6 +94,7 @@ export default function BroadcastTab() {
       setLink("");
       setFile(null);
       setSelectedRecipientId("");
+      setSelectedRecipientModel("");
 
     } catch (err) {
       console.error("❌ Failed to send broadcast:", err);
@@ -115,6 +119,7 @@ export default function BroadcastTab() {
           onChange={(e) => {
             setRecipientType(e.target.value);
             setSelectedRecipientId("");
+            setSelectedRecipientModel("");
           }}
           className="w-full border p-2 rounded-md text-black"
         >
@@ -126,40 +131,96 @@ export default function BroadcastTab() {
         </select>
       </div>
 
-      {/* Specific User Selector */}
+      {/* Specific User Selector — searchable */}
       {recipientType === "single" && (
         <div>
           <label className="block text-sm font-semibold text-gray-600 mb-1">
             Select User
           </label>
+          <input
+            type="text"
+            placeholder="Type to search users..."
+            value={userSearch}
+            onChange={(e) => {
+              setUserSearch(e.target.value);
+              setSelectedRecipientId("");
+              setSelectedRecipientModel("");
+            }}
+            className="w-full border p-2 rounded-md text-black mb-2"
+          />
           <select
             value={selectedRecipientId}
-            onChange={(e) => setSelectedRecipientId(e.target.value)}
+            onChange={(e) => {
+              const id = e.target.value;
+              setSelectedRecipientId(id);
+              if (!id) {
+                setSelectedRecipientModel("");
+                return;
+              }
+              // Determine which model the selected user belongs to
+              const isStudent = students.some((s) => String(s._id) === String(id));
+              const isTeacher = teachers.some((t) => String(t._id) === String(id));
+              setSelectedRecipientModel(
+                isStudent ? "Student" : isTeacher ? "Teacher" : "QaoUser"
+              );
+            }}
             className="w-full border p-2 rounded-md text-black"
           >
             <option value="">-- Select a user --</option>
-            <optgroup label="Students">
-              {students.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.fullName} ({s.email})
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Teachers">
-              {teachers.map((t) => (
-                <option key={t._id} value={t._id}>
-                  {t.fullName} ({t.email})
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Tutor Managers">
-              {tutorManagers.map((tm) => (
-                <option key={tm._id} value={tm._id}>
-                  {tm.fullName || tm.name} ({tm.email})
-                </option>
-              ))}
-            </optgroup>
+            {userSearch.trim() === "" ? (
+              <>
+                <optgroup label="Students">
+                  {students.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.fullName} ({s.email})
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Teachers">
+                  {teachers.map((t) => (
+                    <option key={t._id} value={t._id}>
+                      {t.fullName} ({t.email})
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Tutor Managers">
+                  {tutorManagers.map((tm) => (
+                    <option key={tm._id} value={tm._id}>
+                      {tm.fullName || tm.name} ({tm.email})
+                    </option>
+                  ))}
+                </optgroup>
+              </>
+            ) : (
+              <>
+                {[...students, ...teachers, ...tutorManagers]
+                  .filter((u) => {
+                    const name = (u.fullName || u.name || "").toLowerCase();
+                    const email = (u.email || "").toLowerCase();
+                    const q = userSearch.toLowerCase();
+                    return name.includes(q) || email.includes(q);
+                  })
+                  .map((u) => (
+                    <option key={u._id} value={u._id}>
+                      {(u.fullName || u.name)} ({u.email})
+                    </option>
+                  ))}
+                {[...students, ...teachers, ...tutorManagers].filter((u) => {
+                  const name = (u.fullName || u.name || "").toLowerCase();
+                  const email = (u.email || "").toLowerCase();
+                  const q = userSearch.toLowerCase();
+                  return name.includes(q) || email.includes(q);
+                }).length === 0 && (
+                  <option disabled>No users match your search</option>
+                )}
+              </>
+            )}
           </select>
+          {selectedRecipientModel && (
+            <p className="text-xs text-gray-500 mt-1">
+              Selected: {selectedRecipientModel}
+            </p>
+          )}
         </div>
       )}
 

@@ -28,6 +28,7 @@ import { formatCurrency } from "../utils/formatCurrency";
 
 
 import ChatBotWidget from "./ChatBotWidget";
+import NotificationSettings from "./NotificationSettings";
 
 const contactNumber = "0545952096";
 const whatsappNumber = "233545952096";
@@ -549,6 +550,10 @@ const LandingPage = () => {
               </a>
             </div>
           </div>
+        </div>
+
+        <div className="mt-8 border-t border-gray-700 pt-6">
+          <NotificationSettings />
         </div>
 
         <p className="text-center text-gray-500 mt-10">

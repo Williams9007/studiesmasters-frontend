@@ -5,6 +5,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.4s ease-out forwards;
+}
+
 /* Reset & basic styles */
 @layer base {
   *, *::before, *::after {
@@ -154,3 +163,86 @@
 .dashboard-orb-two { width: 13rem; height: 13rem; bottom: -8rem; right: 20%; background: #7c3aed; animation-delay: 1.2s; }
 
 @media (prefers-reduced-motion: reduce) { .dashboard-orb { animation: none; } }
+
+/* ===== Mobile / PWA safe-area utilities ===== */
+.mobile-shell {
+  /* Allow content to use the full screen on notched devices */
+  padding-top: env(safe-area-inset-top);
+}
+
+.mobile-nav {
+  /* Keep the bottom nav above the home indicator */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Prevent text selection on tap-hold for nav items (native app feel) */
+.mobile-nav a {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== Global mobile button sizing optimizations ===== */
+/* On small screens, reduce button padding and font size so everything fits */
+@media (max-width: 639px) {
+  button,
+  .btn-gradient,
+  .btn {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 0.5rem;
+  }
+
+  /* Compact form inputs on mobile */
+  input,
+  textarea,
+  select {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
+    font-size: 0.85rem;
+  }
+
+  /* Reduce max-width on containers so content fits without horizontal scroll */
+  .max-w-7xl,
+  .max-w-6xl,
+  .max-w-5xl,
+  .max-w-4xl {
+    max-width: 95vw;
+  }
+
+  /* Make grid gaps smaller on mobile */
+  .gap-8 {
+    gap: 1rem;
+  }
+  .gap-6 {
+    gap: 0.75rem;
+  }
+}
+
+/* Extra-small screens (under 360px) — ultra-compact */
+@media (max-width: 360px) {
+  button,
+  .btn-gradient,
+  .btn {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+  }
+  h3 {
+    font-size: 1.1rem;
+  }
+}

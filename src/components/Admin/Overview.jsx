@@ -5,7 +5,6 @@ import { useEffect, useState, useRef } from "react";
 import apiClient from "../../utils/apiClient";
 import StatCard from "./StatCard";
 import AlertCard from "./AlertCard";
-import NotificationBell from "./NotificationItem";
 import BroadcastTab from "./BroadcastTab";
 import { io } from "socket.io-client";
 import {
@@ -90,7 +89,6 @@ export default function Overview() {
 
   return (
     <div className="overview-container p-4 space-y-6 relative">
-      <NotificationBell />
       {error && <AlertCard type="error" message={error} />}
 
       <div className="stats-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

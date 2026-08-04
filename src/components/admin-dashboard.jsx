@@ -21,6 +21,7 @@ import BroadcastTab from "./Admin/BroadcastTab";
 import Users from "./Admin/Users";
 import PaymentsTab from "./Admin/PaymentsTab";
 import ClassGroups from "./Admin/ClassGroups";
+import NotificationBell from "./Admin/NotificationItem";
 
 
 
@@ -951,6 +952,10 @@ sm:justify-end
 
 
 
+
+
+{/* NOTIFICATIONS */}
+<NotificationBell />
 
 
 {/* PROFILE */}

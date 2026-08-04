@@ -1,0 +1,60 @@
+{
+  "name": "StudiesMasters - Online Learning Platform",
+  "short_name": "StudiesMasters",
+  "description": "Online learning platform offering live classes for GES & Cambridge students.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#2563EB",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Student Dashboard",
+      "short_name": "Dashboard",
+      "url": "/student/dashboard",
+      "description": "Open your student dashboard"
+    },
+    {
+      "name": "Free Trial Class",
+      "short_name": "Free Trial",
+      "url": "/free-trial",
+      "description": "Book a free trial class"
+    },
+    {
+      "name": "Login",
+      "short_name": "Login",
+      "url": "/login",
+      "description": "Sign in to your account"
+    }
+  ]
+}

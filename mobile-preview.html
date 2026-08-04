@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mobile-Responsive Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Force a 360px phone frame so the responsive columns are easy to read */
+    .phone-frame { max-width: 360px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <div class="max-w-5xl mx-auto p-4">
+    <header class="mb-8 phone-frame">
+      <h1 class="text-2xl font-bold">Mobile-Responsive Redesign Preview</h1>
+      <p class="text-sm text-slate-600 mt-1">Resize your browser, or open the gray "phone" box below in DevTools device mode.</p>
+    </header>
+
+    <!-- ============ 1. PAYMENT FLOW ============ -->
+    <section class="phone-frame mb-10">
+      <h2 class="text-lg font-semibold mb-2">1. payment-flow.jsx (main container + header)</h2>
+      <p class="text-xs text-slate-500 mb-3">Before: <code class="bg-slate-200 px-1 rounded">px-6 py-8</code> / title <code class="bg-slate-200 px-1 rounded">text-3xl</code>. After: <code class="bg-slate-200 px-1 rounded">px-4 py-6 sm:px-6 sm:py-8</code> / title <code class="bg-slate-200 px-1 rounded">text-2xl sm:text-3xl</code>.</p>
+      <main class="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 md:py-8">
+        <header class="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-6 shadow-sm sm:px-6 sm:py-8">
+          <div>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Confirm Payment</h1>
+            <p class="mt-1 text-sm text-slate-500">Total due: <b class="text-2xl sm:text-3xl text-slate-900">₵ 1,200.00</b></p>
+          </div>
+        </header>
+
+        <!-- checkout grid: was md:grid-cols-2 with gap-7 p-6 ; now gap-6 p-4 sm:p-6 -->
+        <div class="grid gap-6 p-4 sm:p-6">
+          <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 class="text-sm font-semibold text-slate-500 mb-3">Payment Method</h3>
+            <button class="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white">Pay with Paystack</button>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 class="text-sm font-semibold text-slate-500 mb-3">Order Summary</h3>
+            <p class="text-sm text-slate-600">Tuition • 1 item</p>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- ============ 2. QAO DASHBOARD ============ -->
+    <section class="phone-frame mb-10">
+      <h2 class="text-lg font-semibold mb-2">2. qao-dashboard.jsx (stat grid + text sizing)</h2>
+      <p class="text-xs text-slate-500 mb-3">Before: <code class="bg-slate-200 px-1 rounded">grid-cols-2 sm:grid-cols-4</code> with numbers at <code class="bg-slate-200 px-1 rounded">text-4xl</code>. After: <code class="bg-slate-200 px-1 rounded">grid-cols-1 sm:grid-cols-2 lg:grid-cols-4</code> and numbers at <code class="bg-slate-200 px-1 rounded">text-2xl sm:text-3xl</code>.</p>
+      <div class="grid grid-cols-1 gap-3 mt-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <p class="mt-2 text-xs font-medium text-slate-500">Active Students</p>
+          <p class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">142</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <p class="mt-2 text-xs font-medium text-slate-500">Revenue</p>
+          <p class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">₵8.4K</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <p class="mt-2 text-xs font-medium text-slate-500">Broadcasts</p>
+          <p class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">36</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <p class="mt-2 text-xs font-medium text-slate-500">New Signups</p>
+          <p class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">28</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3. ADMIN DASHBOARD ============ -->
+    <section class="phone-frame mb-10">
+      <h2 class="text-lg font-semibold mb-2">3. admin-dashboard.jsx (already responsive — unchanged)</h2>
+      <p class="text-xs text-slate-500 mb-3">Desktop sidebar is <code class="bg-slate-200 px-1 rounded">hidden lg:flex</code> (never crowds mobile), and an <code class="bg-slate-200 px-1 rounded">lg:hidden</code> scrollable tab-nav bar gives full tab access on mobile.</p>
+      <div class="flex items-center justify-between gap-4 sm:justify-end">
+        <p class="text-sm font-medium text-slate-800 capitalize">admin</p>
+      </div>
+      <!-- MOBILE TAB NAV (scrollable) -->
+      <nav class="mb-6 flex gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white p-2 shadow-sm lg:hidden">
+        <button class="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold bg-blue-600 text-white">Overview</button>
+        <button class="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">Broadcasts</button>
+        <button class="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">Users</button>
+        <button class="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">Payments</button>
+        <button class="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">Class Groups</button>
+      </nav>
+      <main class="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div class="p-4 sm:p-6"><h3 class="text-lg font-semibold">Dashboard content</h3></div>
+        </div>
+      </main>
+    </section>
+
+    <!-- ============ 4. STUDENT DASHBOARD ============ -->
+    <section class="phone-frame">
+      <h2 class="text-lg font-semibold mb-2">4. student-dashboard.jsx (already responsive — minor padding tweak)</h2>
+      <p class="text-xs text-slate-500 mb-3">Hero tightened from <code class="bg-slate-200 px-1 rounded">px-6 py-8</code> to <code class="bg-slate-200 px-1 rounded">px-4 py-6</code>; the primary action button is <code class="bg-slate-200 px-1 rounded">h-12</code> (48px) — the recommended minimum touch target.</p>
+      <section class="relative overflow-hidden rounded-3xl bg-slate-900 px-4 py-6 text-white shadow-2xl sm:px-10 sm:py-10">
+        <div class="relative z-10 max-w-2xl">
+          <h2 class="text-2xl font-bold sm:text-3xl">Start Learning Today</h2>
+          <p class="mt-2 text-sm text-slate-300">Join thousands of students mastering their exams.</p>
+          <button class="mt-6 h-12 rounded-xl bg-yellow-400 px-5 text-base font-bold text-slate-900 hover:bg-yellow-300 w-full sm:w-auto">Start a class</button>
+        </div>
+      </section>
+    </section>
+  </div>
+</body>
+</html>

@@ -422,15 +422,10 @@ export default function PaymentFlow() {
     }
 
 
-    if (
-      method === "mobile_money" &&
-      momoNumber.replace(/\D/g, "").length < 10
-    ) {
-      setMessage(
-        "Enter a valid mobile-money number."
-      );
-      return;
-    }
+    // NOTE: The Paystack inline checkout popup handles all payment details
+    // (card number, mobile money number, etc.) — we don't need to collect
+    // them here. The `channels` parameter sent to Paystack specifies which
+    // payment channels to show in the popup.
 
 
     setLoading(true);
@@ -606,12 +601,12 @@ export default function PaymentFlow() {
 
   return (
 
-    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900">
+<main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 md:py-8">
 
       <section className="mx-auto max-w-4xl overflow-hidden rounded-3xl bg-white shadow-xl">
 
 
-        <header className="bg-gradient-to-r from-slate-950 to-blue-700 px-6 py-8 text-white">
+<header className="bg-gradient-to-r from-slate-950 to-blue-700 px-4 py-6 text-white sm:px-6 sm:py-8">
 
           <button
             onClick={() => navigate(-1)}
@@ -622,7 +617,7 @@ export default function PaymentFlow() {
           </button>
 
 
-          <h1 className="text-3xl font-bold">
+<h1 className="text-2xl font-bold sm:text-3xl">
             Manage your learning plan
           </h1>
 
@@ -636,7 +631,7 @@ export default function PaymentFlow() {
 
 
 
-        <div className="grid gap-7 p-6 md:grid-cols-2">
+<div className="grid gap-6 p-4 sm:p-6 md:grid-cols-2">
 
 
           <section>
@@ -738,7 +733,7 @@ export default function PaymentFlow() {
 
                   key={item.name}
 
-                  className={`flex justify-between rounded-xl border p-4 ${
+className={`flex justify-between rounded-xl border p-3 sm:p-4 ${
                     selectedPlan === item.name
                     ? "border-blue-600 bg-blue-50"
                     : "border-slate-200"
@@ -883,7 +878,7 @@ export default function PaymentFlow() {
 
 
 
-          <section className="h-fit rounded-2xl bg-slate-50 p-5">
+<section className="h-fit rounded-2xl bg-slate-50 p-4 sm:p-5">
 
 
             <h2 className="text-lg font-bold">
@@ -935,7 +930,7 @@ export default function PaymentFlow() {
                 <br/>
 
 
-                <b className="text-3xl">
+<b className="text-2xl sm:text-3xl">
 
                   {formatCurrency(
                     displayedTotal
