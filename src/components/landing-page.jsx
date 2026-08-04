@@ -238,11 +238,11 @@ const LandingPage = () => {
 
       {/* NAVBAR */}
       <header className="bg-white shadow sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-3 sm:px-6 sm:py-4">
-          <div className="flex items-center gap-2">
-            <FaBookOpen className="text-blue-600 text-xl sm:text-2xl" />
-            <div>
-              <h1 className="font-bold text-lg text-slate-900 sm:text-xl">
+        <div className="max-w-7xl mx-auto px-3 py-2.5 flex justify-between items-center gap-2 sm:px-6 sm:py-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <FaBookOpen className="text-blue-600 text-lg shrink-0 sm:text-2xl" />
+            <div className="min-w-0">
+              <h1 className="font-bold text-base text-slate-900 truncate sm:text-xl">
                 StudiesMasters
               </h1>
               <p className="hidden text-xs text-gray-500 sm:block">
@@ -251,15 +251,15 @@ const LandingPage = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
-            <button type="button" onClick={() => scrollToSection("features")} className="text-xs font-medium text-gray-700 transition hover:text-blue-600 whitespace-nowrap sm:text-sm">Features</button>
-            <button type="button" onClick={() => scrollToSection("packages")} className="text-xs font-medium text-gray-700 transition hover:text-blue-600 whitespace-nowrap sm:text-sm">Programs</button>
-            <button type="button" onClick={() => scrollToSection("testimonials")} className="text-xs font-medium text-gray-700 transition hover:text-blue-600 whitespace-nowrap sm:text-sm">Reviews</button>
+          <div className="hidden items-center gap-4 sm:flex">
+            <button type="button" onClick={() => scrollToSection("features")} className="text-sm font-medium text-gray-700 transition hover:text-blue-600 whitespace-nowrap">Features</button>
+            <button type="button" onClick={() => scrollToSection("packages")} className="text-sm font-medium text-gray-700 transition hover:text-blue-600 whitespace-nowrap">Programs</button>
+            <button type="button" onClick={() => scrollToSection("testimonials")} className="text-sm font-medium text-gray-700 transition hover:text-blue-600 whitespace-nowrap">Reviews</button>
           </div>
 
           <button
             onClick={handleLoginClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm sm:px-5 sm:text-base"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-sm shrink-0 sm:px-5 sm:text-base"
           >
             Login
           </button>
@@ -268,28 +268,28 @@ const LandingPage = () => {
 
       {/* HERO */}
       <section className="bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-14 grid lg:grid-cols-2 gap-10 items-center sm:px-6 sm:py-20 lg:gap-12">
+        <div className="max-w-7xl mx-auto px-4 py-10 grid lg:grid-cols-2 gap-8 items-center sm:px-6 sm:py-20 lg:gap-12">
           <div>
-            <span className="inline-block bg-blue-600 px-4 py-2 rounded-full text-xs font-semibold sm:text-sm">
+            <span className="inline-block bg-blue-600 px-3 py-1.5 rounded-full text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm">
               Ghana's Trusted Online Learning Platform
             </span>
 
-            <h1 className="text-4xl md:text-6xl font-bold mt-6 leading-tight">
+            <h1 className="text-3xl md:text-6xl font-bold mt-4 leading-tight sm:mt-6">
               Tracked Results.
               <br />
               Real Impact!
             </h1>
 
-            <p className="text-slate-300 text-base mt-5 sm:text-lg sm:mt-6">
+            <p className="text-slate-300 text-sm mt-4 sm:text-lg sm:mt-6">
               Connecting students and teachers through engaging virtual
               learning. Access quality GES and Cambridge education from
               anywhere.
             </p>
 
-            <div className="flex flex-wrap gap-4 mt-8">
+            <div className="flex flex-col gap-3 mt-6 sm:flex-row sm:flex-wrap sm:gap-4 sm:mt-8">
               <button
                 onClick={() => navigate("/register")}
-                className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold"
+                className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold w-full sm:w-auto"
               >
                 Get Started
               </button>
@@ -303,17 +303,17 @@ const LandingPage = () => {
               className="w-full rounded-2xl shadow-2xl sm:rounded-3xl"
             />
 
-            <div className="absolute bottom-3 left-3 bg-white text-black p-4 rounded-xl shadow-xl sm:-bottom-6 sm:-left-6 sm:p-5">
-              <h3 className="font-bold text-xl sm:text-2xl">500+</h3>
-              <p className="text-sm sm:text-base">Students Learning</p>
+            <div className="absolute bottom-3 left-3 bg-white text-black p-3 rounded-xl shadow-xl sm:-bottom-6 sm:-left-6 sm:p-5">
+              <h3 className="font-bold text-lg sm:text-2xl">500+</h3>
+              <p className="text-xs sm:text-base">Students Learning</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* STATS */}
-      <section className="max-w-7xl mx-auto px-4 py-12 sm:px-6 sm:py-14">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+      <section className="max-w-7xl mx-auto px-4 py-10 sm:px-6 sm:py-14">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
           <StatCard icon={<FaUserGraduate />} number="500+" title="Students" />
           <StatCard icon={<FaChalkboardTeacher />} number="100+" title="Teachers" />
           <StatCard icon={<FaStar />} number="95%" title="Success Rate" />
@@ -324,14 +324,14 @@ const LandingPage = () => {
       {/* FEATURES */}
       <section
         id="features"
-        className="bg-white py-14 sm:py-20"
+        className="bg-white py-12 sm:py-20"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl font-bold text-center mb-10 sm:text-4xl sm:mb-12">
+          <h2 className="text-2xl font-bold text-center mb-8 sm:text-4xl sm:mb-12">
             Why Choose StudiesMasters?
           </h2>
 
-          <div className="grid gap-6 md:grid-cols-3 md:gap-8">
+          <div className="grid gap-4 md:grid-cols-3 md:gap-8">
             <FeatureCard
               icon={<FaLaptop />}
               title="Online Learning"
@@ -354,15 +354,15 @@ const LandingPage = () => {
       </section>
 
       {/* PROGRAMS */}
-      <section id="packages" className="bg-gradient-to-r from-blue-50 to-cyan-50 py-14 sm:py-20">
+      <section id="packages" className="bg-gradient-to-r from-blue-50 to-cyan-50 py-12 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="mb-2 text-center text-3xl font-bold text-slate-900 sm:text-4xl">
+          <h2 className="mb-2 text-center text-2xl font-bold text-slate-900 sm:text-4xl">
             Choose Your Learning Package
           </h2>
-          <p className="mb-10 text-center text-gray-600 sm:mb-12">
+          <p className="mb-8 text-center text-gray-600 sm:mb-12">
             Flexible monthly subscriptions for GES and Cambridge learners
           </p>
-          <div className="mx-auto max-w-6xl space-y-12">
+          <div className="mx-auto max-w-6xl space-y-10 sm:space-y-12">
             {packages.map((group) => {
               const theme = group.color === "green"
                 ? { heading: "text-green-700", border: "border-green-200", badge: "bg-green-600", soft: "bg-green-50" }
@@ -370,20 +370,20 @@ const LandingPage = () => {
               return <div key={group.curriculum}>
                 <div className="mb-5 text-center">
                   <p className={`text-sm font-bold uppercase tracking-[0.2em] ${theme.heading}`}>{group.curriculum}</p>
-                  <h3 className="mt-1 text-2xl font-bold text-slate-900">{group.title}</h3>
+                  <h3 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl">{group.title}</h3>
                   <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-600">{group.overview}</p>
                   {group.subjects && <p className={`mx-auto mt-3 w-fit rounded-full px-4 py-2 text-sm font-semibold ${theme.soft} ${theme.heading}`}>Subjects: {group.subjects}</p>}
                 </div>
-                <div className="grid gap-5 md:grid-cols-3 md:gap-6">
-                  {group.plans.map((plan) => <article key={`${group.curriculum}-${plan.name}`} className={`rounded-2xl border bg-white p-6 shadow-sm ${theme.border}`}>
+                <div className="grid gap-4 md:grid-cols-3 md:gap-6">
+                  {group.plans.map((plan) => <article key={`${group.curriculum}-${plan.name}`} className={`rounded-2xl border bg-white p-5 shadow-sm sm:p-6 ${theme.border}`}>
                     <div className="flex items-start justify-between gap-3">
                       <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold text-white ${theme.badge}`}>{group.curriculum}</span>
                       <span className="text-right text-xs font-medium text-slate-500">Monthly access</span>
                     </div>
-                    <h4 className={`mt-4 text-xl font-bold ${theme.heading}`}>{plan.name}</h4>
+                    <h4 className={`mt-4 text-lg font-bold sm:text-xl ${theme.heading}`}>{plan.name}</h4>
                     {plan.grades && <p className="mt-2 text-sm text-slate-600">{plan.grades}</p>}
                     {plan.price && <>
-                    <p className={`mt-4 text-3xl font-black ${theme.heading}`}>
+                    <p className={`mt-4 text-2xl font-black sm:text-3xl ${theme.heading}`}>
                       {formatCurrency(plan.price)}
                       <span className="ml-1 text-xs font-medium text-slate-600">
                         /month
@@ -403,14 +403,14 @@ const LandingPage = () => {
             })}
           </div>
 
-          <div className="mx-auto mt-7 flex max-w-6xl flex-col items-center gap-5 rounded-xl bg-amber-50 px-6 py-5 shadow-sm ring-1 ring-amber-100 md:flex-row">
+          <div className="mx-auto mt-7 flex max-w-6xl flex-col items-center gap-4 rounded-xl bg-amber-50 px-4 py-5 shadow-sm ring-1 ring-amber-100 sm:px-6 md:flex-row">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-100 text-2xl text-amber-600"><FaRocket /></span>
             <div className="flex-1 text-center md:text-left">
               <h3 className="font-bold text-slate-900">Not sure which program is right for your child?</h3>
               <p className="mt-1 text-sm text-slate-700">Let us help you! Book a free trial class or assessment today.</p>
             </div>
-            <div className="flex flex-wrap justify-center gap-3">
-              <button onClick={() => navigate("/free-trial")} className="rounded-md bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"><FaCalendarCheck className="mr-2 inline" />Book Free Trial Class</button>
+            <div className="flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
+              <button onClick={() => navigate("/free-trial")} className="w-full rounded-md bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 sm:w-auto"><FaCalendarCheck className="mr-2 inline" />Book Free Trial Class</button>
               
             </div>
           </div>
@@ -418,13 +418,13 @@ const LandingPage = () => {
       </section>
 
       {/* LEARNING JOURNEY */}
-      <section className="bg-white py-14 sm:py-20">
+      <section className="bg-white py-12 sm:py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl font-bold text-center mb-12 sm:text-4xl sm:mb-16">
+          <h2 className="text-2xl font-bold text-center mb-10 sm:text-4xl sm:mb-16">
             How It Works
           </h2>
 
-          <div className="grid grid-cols-2 gap-10 text-center md:grid-cols-3">
+          <div className="grid grid-cols-3 gap-4 text-center sm:gap-10 md:grid-cols-3">
             <Step number="1" title="Register" />
             <Step number="2" title="Join Classes" />
             <Step number="3" title="Track Progress" />
@@ -435,17 +435,17 @@ const LandingPage = () => {
       {/* TESTIMONIALS */}
       <section
         id="testimonials"
-        className="bg-white py-14 sm:py-20"
+        className="bg-white py-12 sm:py-20"
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl font-bold text-center mb-10 sm:text-4xl sm:mb-12">
+          <h2 className="text-2xl font-bold text-center mb-8 sm:text-4xl sm:mb-12">
             What Parents Say
           </h2>
 
           <Slider {...sliderSettings}>
             {testimonials.map((item) => (
-              <div key={item.name} className="p-4">
-                <div className="bg-gray-50 rounded-2xl p-6 shadow sm:p-8">
+              <div key={item.name} className="p-2 sm:p-4">
+                <div className="bg-gray-50 rounded-2xl p-5 shadow sm:p-8">
                   <div className="flex gap-1 text-yellow-500 mb-4">
                     <FaStar />
                     <FaStar />
@@ -454,7 +454,7 @@ const LandingPage = () => {
                     <FaStar />
                   </div>
 
-                  <p className="italic text-gray-700">
+                  <p className="italic text-gray-700 text-sm sm:text-base">
                     "{item.message}"
                   </p>
 
@@ -470,12 +470,12 @@ const LandingPage = () => {
 
       {/* FOOTER */}
       <footer className="bg-slate-900 text-white py-10 pb-32 sm:pb-10">
-        <div className="max-w-7xl mx-auto px-4 grid gap-8 sm:px-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        <div className="max-w-7xl mx-auto px-4 grid gap-6 sm:px-6 sm:grid-cols-2 sm:gap-8 md:grid-cols-3 lg:grid-cols-5">
           <div>
-            <h2 className="font-bold text-2xl">
+            <h2 className="font-bold text-xl sm:text-2xl">
               StudiesMasters
             </h2>
-            <p className="text-gray-400 mt-3">
+            <p className="text-gray-400 mt-3 text-sm sm:text-base">
               Connecting students and teachers for meaningful learning.
             </p>
           </div>
@@ -484,25 +484,25 @@ const LandingPage = () => {
             <h3 className="font-semibold mb-3">
               Policies
             </h3>
-            <button onClick={() => navigate("/policies")} className="block text-left text-gray-400 hover:text-blue-400 mb-1">Terms & Conditions</button>
-            <button onClick={() => navigate("/policies")} className="block text-left text-gray-400 hover:text-blue-400 mb-1">Privacy Policy</button>
-            <button onClick={() => navigate("/policies")} className="block text-left text-gray-400 hover:text-blue-400">Parent Service Agreement</button>
+            <button onClick={() => navigate("/policies")} className="block text-left text-gray-400 hover:text-blue-400 mb-1 text-sm sm:text-base">Terms & Conditions</button>
+            <button onClick={() => navigate("/policies")} className="block text-left text-gray-400 hover:text-blue-400 mb-1 text-sm sm:text-base">Privacy Policy</button>
+            <button onClick={() => navigate("/policies")} className="block text-left text-gray-400 hover:text-blue-400 text-sm sm:text-base">Parent Service Agreement</button>
           </div>
 
           <div>
             <h3 className="font-semibold mb-3">
               Quick Links
             </h3>
-            <button onClick={() => navigate("/")} className="block text-left text-gray-400 hover:text-blue-400 mb-1">Home</button>
-            <button onClick={() => { const el = document.getElementById("packages"); if (el) el.scrollIntoView({ behavior: "smooth" }); }} className="block text-left text-gray-400 hover:text-blue-400 mb-1">Programs</button>
-            <button onClick={() => { const el = document.getElementById("teachers"); if (el) el.scrollIntoView({ behavior: "smooth" }); }} className="block text-left text-gray-400 hover:text-blue-400">Teachers</button>
+            <button onClick={() => navigate("/")} className="block text-left text-gray-400 hover:text-blue-400 mb-1 text-sm sm:text-base">Home</button>
+            <button onClick={() => { const el = document.getElementById("packages"); if (el) el.scrollIntoView({ behavior: "smooth" }); }} className="block text-left text-gray-400 hover:text-blue-400 mb-1 text-sm sm:text-base">Programs</button>
+            <button onClick={() => { const el = document.getElementById("teachers"); if (el) el.scrollIntoView({ behavior: "smooth" }); }} className="block text-left text-gray-400 hover:text-blue-400 text-sm sm:text-base">Teachers</button>
           </div>
 
           <div>
             <h3 className="font-semibold mb-3">
               Contact
             </h3>
-            <p>info@studiesmasters.com</p>
+            <p className="text-sm sm:text-base">info@studiesmasters.com</p>
             
           </div>
 
@@ -511,7 +511,7 @@ const LandingPage = () => {
               Follow Us
             </h3>
 
-            <div className="flex gap-4 text-xl">
+            <div className="flex gap-4 text-lg sm:text-xl">
               <a
                 href="https://facebook.com/onlinestudies"
                 target="_blank"
@@ -556,7 +556,7 @@ const LandingPage = () => {
           <NotificationSettings />
         </div>
 
-        <p className="text-center text-gray-500 mt-10">
+        <p className="text-center text-gray-500 mt-10 text-sm sm:text-base">
           &copy; 2026 StudiesMasters. All rights reserved.
         </p>
       </footer>
@@ -565,32 +565,32 @@ const LandingPage = () => {
 };
 
 const StatCard = ({ icon, number, title }) => (
-  <div className="bg-white rounded-xl shadow p-4 text-center sm:p-6">
-    <div className="text-blue-600 text-2xl flex justify-center mb-3 sm:text-3xl">
+  <div className="bg-white rounded-xl shadow p-3 text-center sm:p-6">
+    <div className="text-blue-600 text-xl flex justify-center mb-2 sm:text-3xl sm:mb-3">
       {icon}
     </div>
-    <h3 className="text-2xl font-bold sm:text-3xl">{number}</h3>
-    <p className="text-sm text-gray-600 sm:text-base">{title}</p>
+    <h3 className="text-xl font-bold sm:text-3xl">{number}</h3>
+    <p className="text-xs text-gray-600 sm:text-base">{title}</p>
   </div>
 );
 
 const FeatureCard = ({ icon, title, text }) => (
-  <div className="bg-gray-50 rounded-2xl p-6 text-center shadow sm:p-8">
-    <div className="text-blue-600 text-3xl flex justify-center mb-4 sm:text-4xl">
+  <div className="bg-gray-50 rounded-2xl p-5 text-center shadow sm:p-8">
+    <div className="text-blue-600 text-2xl flex justify-center mb-3 sm:text-4xl sm:mb-4">
       {icon}
     </div>
-    <h3 className="font-bold text-xl mb-2">{title}</h3>
-    <p className="text-gray-600">{text}</p>
+    <h3 className="font-bold text-lg mb-1 sm:text-xl sm:mb-2">{title}</h3>
+    <p className="text-gray-600 text-sm sm:text-base">{text}</p>
   </div>
 );
 
 const Step = ({ number, title }) => (
   <div>
-    <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-bold mx-auto sm:w-16 sm:h-16 sm:text-2xl">
+    <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-bold mx-auto sm:w-16 sm:h-16 sm:text-2xl">
       {number}
     </div>
 
-    <h3 className="mt-4 font-bold">{title}</h3>
+    <h3 className="mt-3 font-bold text-sm sm:mt-4 sm:text-base">{title}</h3>
   </div>
 );
 
