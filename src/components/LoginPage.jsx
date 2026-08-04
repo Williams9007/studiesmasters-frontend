@@ -137,7 +137,7 @@ export default function LoginPage() {
       </header>
 
       <main className="mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl items-center gap-6 px-3 py-6 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-16 lg:py-16">
-        <section className="order-2 overflow-hidden rounded-2xl bg-slate-900 px-4 py-6 text-white shadow-2xl sm:rounded-3xl sm:px-10 sm:py-14 lg:order-1">
+        <section className="hidden order-2 overflow-hidden rounded-2xl bg-slate-900 px-4 py-6 text-white shadow-2xl sm:rounded-3xl sm:px-10 sm:py-14 lg:block lg:order-1">
           <div className="relative z-10">
           <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm ${isStudent ? "bg-blue-500/20 text-blue-200" : "bg-violet-500/20 text-violet-200"}`}>
             <RoleIcon aria-hidden="true" />
@@ -169,6 +169,25 @@ export default function LoginPage() {
 
         <Card className="order-1 w-full border border-slate-200 bg-white shadow-xl lg:order-2">
           <CardContent className="p-4 sm:p-8">
+            {/* Mobile-only welcome banner (merged with form) */}
+            <div className="mb-5 overflow-hidden rounded-2xl bg-slate-900 px-4 py-4 text-white sm:px-5 lg:hidden">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm shadow-lg ${isStudent ? "bg-blue-500" : "bg-violet-500"}`}>
+                  <RoleIcon aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className={`text-[11px] font-semibold uppercase tracking-wide ${isStudent ? "text-blue-200" : "text-violet-200"}`}>{roleDetails.label}</p>
+                  <h2 className="truncate text-base font-bold leading-tight">{roleDetails.heading}</h2>
+                </div>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-slate-300">{roleDetails.description}</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {roleDetails.benefits.map((item) => (
+                  <span key={item} className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">{item}</span>
+                ))}
+              </div>
+            </div>
+
             <div className="mb-5 sm:mb-7">
               <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-lg sm:mb-4 sm:h-12 sm:w-12 ${isStudent ? "bg-blue-600 shadow-blue-200" : "bg-violet-600 shadow-violet-200"}`}>
                 <FaLock aria-hidden="true" />
