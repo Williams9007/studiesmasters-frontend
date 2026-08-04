@@ -109,159 +109,246 @@ export default function LoginPage() {
   const RoleIcon = roleDetails.Icon;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-4">
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="flex min-w-0 items-center gap-2 text-left"
-            aria-label="Return to StudiesMasters home page"
-          >
-            <FaBookOpen className="shrink-0 text-lg text-blue-600 sm:text-2xl" />
-            <span className="min-w-0">
-              <span className="block truncate text-base font-bold sm:text-xl">StudiesMasters</span>
-              <span className="hidden text-xs text-slate-500 sm:block">Learn. Connect. Succeed.</span>
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-          >
-            <FaArrowLeft aria-hidden="true" />
-            <span className="hidden sm:inline">Back to home</span>
-            <span className="sm:hidden">Back</span>
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50 text-slate-900 lg:bg-slate-50">
+      {/* Mobile: dark gradient background matching teacher login */}
+      <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 lg:hidden">
+        <header className="border-b border-white/10 bg-transparent">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="flex min-w-0 items-center gap-2 text-left"
+              aria-label="Return to StudiesMasters home page"
+            >
+              <FaBookOpen className="shrink-0 text-lg text-blue-400" />
+              <span className="min-w-0">
+                <span className="block truncate text-base font-bold text-white">StudiesMasters</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white"
+            >
+              <FaArrowLeft aria-hidden="true" />
+              <span>Back</span>
+            </button>
+          </div>
+        </header>
 
-      <main className="mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl items-center gap-6 px-3 py-6 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-16 lg:py-16">
-        <section className="hidden order-2 overflow-hidden rounded-2xl bg-slate-900 px-4 py-6 text-white shadow-2xl sm:rounded-3xl sm:px-10 sm:py-14 lg:block lg:order-1">
-          <div className="relative z-10">
-          <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm ${isStudent ? "bg-blue-500/20 text-blue-200" : "bg-violet-500/20 text-violet-200"}`}>
-            <RoleIcon aria-hidden="true" />
-            {roleDetails.label}
-          </span>
-          <h1 className="mt-3 max-w-xl text-2xl font-bold leading-tight sm:mt-5 sm:text-5xl">
-            {roleDetails.heading}
-          </h1>
-          <p className="mt-2 max-w-lg text-sm leading-6 text-slate-300 sm:mt-5 sm:text-lg sm:leading-7">
-            {roleDetails.description}
-          </p>
-          <div className="mt-5 grid max-w-lg gap-2 sm:grid-cols-3 sm:mt-8 sm:gap-3">
-            {roleDetails.benefits.map((item) => (
-              <div key={item} className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm sm:px-4 sm:py-3 sm:text-sm">
-                {item}
-              </div>
-            ))}
-          </div>
-          <div className="relative mt-6 hidden sm:block sm:h-32" aria-hidden="true">
-            <div className={`auth-orbit absolute left-4 top-5 flex h-16 w-16 items-center justify-center rounded-2xl text-2xl shadow-xl ${isStudent ? "bg-blue-500" : "bg-violet-500"}`}><RoleIcon /></div>
-            <div className="auth-float absolute left-[42%] top-0 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-400 text-slate-900 shadow-xl"><FaBookOpen /></div>
-            <div className={`auth-float-delayed absolute right-4 top-10 flex h-14 w-14 items-center justify-center rounded-2xl text-xl shadow-xl ${isStudent ? "bg-cyan-400 text-cyan-950" : "bg-fuchsia-400 text-fuchsia-950"}`}><FaLock /></div>
-            <div className="absolute bottom-3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
-          </div>
-          </div>
-          <div className={`auth-glow auth-glow-one ${isStudent ? "bg-blue-500" : "bg-violet-500"}`} aria-hidden="true" />
-          <div className={`auth-glow auth-glow-two ${isStudent ? "bg-cyan-400" : "bg-fuchsia-400"}`} aria-hidden="true" />
-        </section>
-
-        <Card className="order-1 w-full border border-slate-200 bg-white shadow-xl lg:order-2">
-          <CardContent className="p-4 sm:p-8">
-            {/* Mobile-only welcome banner (merged with form) */}
-            <div className="mb-4 overflow-hidden rounded-2xl bg-slate-900 px-3.5 py-3.5 text-white sm:px-5 lg:hidden">
-              <div className="flex items-center gap-2.5">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs shadow-lg ${isStudent ? "bg-blue-500" : "bg-violet-500"}`}>
+        <main className="flex flex-1 items-center justify-center px-4 py-6">
+          <Card className="w-full max-w-sm border border-white/10 bg-white shadow-2xl">
+            <CardContent className="p-6">
+              <div className="mb-5 text-center">
+                <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-lg ${isStudent ? "bg-blue-600 shadow-blue-200" : "bg-violet-600 shadow-violet-200"}`}>
                   <RoleIcon aria-hidden="true" />
                 </div>
-                <div className="min-w-0">
-                  <p className={`text-[10px] font-semibold uppercase tracking-wide ${isStudent ? "text-blue-200" : "text-violet-200"}`}>{roleDetails.label}</p>
-                  <h2 className="truncate text-sm font-bold leading-tight">{roleDetails.heading}</h2>
-                </div>
+                <h2 className="text-xl font-bold text-slate-900">Sign in</h2>
+                <p className="mt-1 text-xs text-slate-500">Choose your portal, then use your registered account details.</p>
               </div>
-              <p className="mt-1.5 line-clamp-2 text-[11px] leading-4 text-slate-300">{roleDetails.description}</p>
-              <div className="mt-2 flex flex-wrap gap-1">
+
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <span id="role-label" className="mb-1.5 block text-sm font-semibold text-slate-700">I am signing in as</span>
+                  <div role="group" aria-labelledby="role-label" className="grid grid-cols-2 gap-1.5 rounded-xl bg-slate-100 p-1.5">
+                    <button type="button" onClick={() => setRole("student")} className={`flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-bold transition-all duration-300 ${isStudent ? "bg-white text-blue-700 shadow-md" : "text-slate-500 hover:text-slate-800"}`} aria-pressed={isStudent}><FaUserGraduate /> Student</button>
+                    <button type="button" onClick={() => setRole("teacher")} className={`flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-bold transition-all duration-300 ${!isStudent ? "bg-white text-violet-700 shadow-md" : "text-slate-500 hover:text-slate-800"}`} aria-pressed={!isStudent}><FaChalkboardTeacher /> Teacher</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="login-id" className="mb-1.5 block text-sm font-semibold text-slate-700">Email address or User ID</label>
+                  <Input id="login-id" type="text" autoComplete="username" placeholder="you@example.com or SM-ST-..." value={loginId} onChange={(event) => setLoginId(event.target.value)} className="h-10 border-slate-300 focus:ring-blue-600" required />
+                </div>
+
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between gap-3">
+                    <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700">Password</label>
+                    <button type="button" onClick={() => navigate("/forget-password")} className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline">Forgot password?</button>
+                  </div>
+                  <div className="relative">
+                    <Input id="login-password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-10 border-slate-300 pr-12 focus:ring-blue-600" required />
+                    <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword}>
+                      {showPassword ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Cloudflare Turnstile CAPTCHA */}
+                <div className="pt-1">
+                  <Turnstile
+                      ref={turnstileRef}
+                      siteKey={TURNSTILE_SITE_KEY}
+                      onSuccess={(token) => {
+                        setTurnstileToken(token);
+                        setTurnstileError("");
+                      }}
+                      onError={(errorCode) => {
+                        setTurnstileToken("");
+                        setTurnstileError(
+                          errorCode === "110200"
+                            ? "CAPTCHA is not authorized for this domain. Please open the app in a browser tab or contact support."
+                            : "CAPTCHA verification failed. Please try again."
+                        );
+                        return true;
+                      }}
+                      onExpire={() => {
+                        setTurnstileToken("");
+                        setTurnstileError("CAPTCHA expired. Please verify again.");
+                      }}
+                      options={{ action: "login", theme: "light", size: "flexible" }}
+                    />
+                  {turnstileError && (
+                    <p className="mt-2 text-center text-sm text-red-600" role="alert">
+                      {turnstileError}
+                    </p>
+                  )}
+                </div>
+
+                <Button type="submit" disabled={loading} className={`h-10 w-full rounded-xl text-sm font-semibold text-white ${isStudent ? "bg-blue-600 hover:bg-blue-700" : "bg-violet-600 hover:bg-violet-700"}`}>
+                  {loading ? "Signing in..." : "Sign in to StudiesMasters"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+
+      {/* Desktop: original two-column layout */}
+      <div className="hidden lg:block">
+        <header className="border-b border-slate-200 bg-white shadow-sm">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-4">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="flex min-w-0 items-center gap-2 text-left"
+              aria-label="Return to StudiesMasters home page"
+            >
+              <FaBookOpen className="shrink-0 text-lg text-blue-600 sm:text-2xl" />
+              <span className="min-w-0">
+                <span className="block truncate text-base font-bold sm:text-xl">StudiesMasters</span>
+                <span className="hidden text-xs text-slate-500 sm:block">Learn. Connect. Succeed.</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            >
+              <FaArrowLeft aria-hidden="true" />
+              <span className="hidden sm:inline">Back to home</span>
+              <span className="sm:hidden">Back</span>
+            </button>
+          </div>
+        </header>
+
+        <main className="mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl items-center gap-6 px-3 py-6 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-16 lg:py-16">
+          <section className="order-2 overflow-hidden rounded-2xl bg-slate-900 px-4 py-6 text-white shadow-2xl sm:rounded-3xl sm:px-10 sm:py-14 lg:order-1">
+            <div className="relative z-10">
+              <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm ${isStudent ? "bg-blue-500/20 text-blue-200" : "bg-violet-500/20 text-violet-200"}`}>
+                <RoleIcon aria-hidden="true" />
+                {roleDetails.label}
+              </span>
+              <h1 className="mt-3 max-w-xl text-2xl font-bold leading-tight sm:mt-5 sm:text-5xl">
+                {roleDetails.heading}
+              </h1>
+              <p className="mt-2 max-w-lg text-sm leading-6 text-slate-300 sm:mt-5 sm:text-lg sm:leading-7">
+                {roleDetails.description}
+              </p>
+              <div className="mt-5 grid max-w-lg gap-2 sm:grid-cols-3 sm:mt-8 sm:gap-3">
                 {roleDetails.benefits.map((item) => (
-                  <span key={item} className="rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-[9px] font-semibold text-white backdrop-blur-sm">{item}</span>
+                  <div key={item} className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm sm:px-4 sm:py-3 sm:text-sm">
+                    {item}
+                  </div>
                 ))}
               </div>
+              <div className="relative mt-6 hidden sm:block sm:h-32" aria-hidden="true">
+                <div className={`auth-orbit absolute left-4 top-5 flex h-16 w-16 items-center justify-center rounded-2xl text-2xl shadow-xl ${isStudent ? "bg-blue-500" : "bg-violet-500"}`}><RoleIcon /></div>
+                <div className="auth-float absolute left-[42%] top-0 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-400 text-slate-900 shadow-xl"><FaBookOpen /></div>
+                <div className={`auth-float-delayed absolute right-4 top-10 flex h-14 w-14 items-center justify-center rounded-2xl text-xl shadow-xl ${isStudent ? "bg-cyan-400 text-cyan-950" : "bg-fuchsia-400 text-fuchsia-950"}`}><FaLock /></div>
+                <div className="absolute bottom-3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+              </div>
             </div>
+            <div className={`auth-glow auth-glow-one ${isStudent ? "bg-blue-500" : "bg-violet-500"}`} aria-hidden="true" />
+            <div className={`auth-glow auth-glow-two ${isStudent ? "bg-cyan-400" : "bg-fuchsia-400"}`} aria-hidden="true" />
+          </section>
 
-            <div className="mb-4 sm:mb-7">
-              <div className={`mb-2.5 flex h-9 w-9 items-center justify-center rounded-lg text-white shadow-lg sm:mb-4 sm:h-12 sm:w-12 sm:rounded-xl ${isStudent ? "bg-blue-600 shadow-blue-200" : "bg-violet-600 shadow-violet-200"}`}>
-                <FaLock aria-hidden="true" />
-              </div>
-              <h2 className="text-lg font-bold text-slate-900 sm:text-2xl">Sign in</h2>
-              <p className="mt-0.5 text-xs text-slate-500 sm:mt-1 sm:text-sm">Choose your portal, then use your registered account details.</p>
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-3.5 sm:space-y-5">
-              <div>
-                <span id="role-label" className="mb-1.5 block text-sm font-semibold text-slate-700">I am signing in as</span>
-                <div role="group" aria-labelledby="role-label" className="grid grid-cols-2 gap-1.5 rounded-xl bg-slate-100 p-1.5 sm:gap-2">
-                  <button type="button" onClick={() => setRole("student")} className={`flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-bold transition-all duration-300 sm:min-h-12 sm:gap-2 sm:text-sm ${isStudent ? "bg-white text-blue-700 shadow-md" : "text-slate-500 hover:text-slate-800"}`} aria-pressed={isStudent}><FaUserGraduate /> Student</button>
-                  <button type="button" onClick={() => setRole("teacher")} className={`flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-bold transition-all duration-300 sm:min-h-12 sm:gap-2 sm:text-sm ${!isStudent ? "bg-white text-violet-700 shadow-md" : "text-slate-500 hover:text-slate-800"}`} aria-pressed={!isStudent}><FaChalkboardTeacher /> Teacher</button>
+          <Card className="order-1 w-full border border-slate-200 bg-white shadow-xl lg:order-2">
+            <CardContent className="p-6 sm:p-8">
+              <div className="mb-6 sm:mb-7">
+                <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-lg ${isStudent ? "bg-blue-600 shadow-blue-200" : "bg-violet-600 shadow-violet-200"}`}>
+                  <FaLock aria-hidden="true" />
                 </div>
+                <h2 className="text-2xl font-bold text-slate-900">Sign in</h2>
+                <p className="mt-1 text-sm text-slate-500">Choose your portal, then use your registered account details.</p>
               </div>
 
-              <div>
-                <label htmlFor="login-id" className="mb-1.5 block text-sm font-semibold text-slate-700">Email address or User ID</label>
-                <Input id="login-id" type="text" autoComplete="username" placeholder="you@example.com or SM-ST-..." value={loginId} onChange={(event) => setLoginId(event.target.value)} className="h-10 border-slate-300 focus:ring-blue-600 sm:h-11" required />
-              </div>
-
-              <div>
-                <div className="mb-1.5 flex items-center justify-between gap-3">
-                  <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700">Password</label>
-                  <button type="button" onClick={() => navigate("/forget-password")} className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline">Forgot password?</button>
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div>
+                  <span id="role-label" className="mb-1.5 block text-sm font-semibold text-slate-700">I am signing in as</span>
+                  <div role="group" aria-labelledby="role-label" className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1.5">
+                    <button type="button" onClick={() => setRole("student")} className={`flex min-h-12 items-center justify-center gap-2 rounded-lg px-2 text-sm font-bold transition-all duration-300 ${isStudent ? "bg-white text-blue-700 shadow-md" : "text-slate-500 hover:text-slate-800"}`} aria-pressed={isStudent}><FaUserGraduate /> Student</button>
+                    <button type="button" onClick={() => setRole("teacher")} className={`flex min-h-12 items-center justify-center gap-2 rounded-lg px-2 text-sm font-bold transition-all duration-300 ${!isStudent ? "bg-white text-violet-700 shadow-md" : "text-slate-500 hover:text-slate-800"}`} aria-pressed={!isStudent}><FaChalkboardTeacher /> Teacher</button>
+                  </div>
                 </div>
-                <div className="relative">
-                  <Input id="login-password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-10 border-slate-300 pr-12 focus:ring-blue-600 sm:h-12" required />
-                  <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 sm:h-10 sm:w-10" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword}>
-                    {showPassword ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
-                  </button>
+
+                <div>
+                  <label htmlFor="login-id" className="mb-1.5 block text-sm font-semibold text-slate-700">Email address or User ID</label>
+                  <Input id="login-id" type="text" autoComplete="username" placeholder="you@example.com or SM-ST-..." value={loginId} onChange={(event) => setLoginId(event.target.value)} className="h-11 border-slate-300 focus:ring-blue-600" required />
                 </div>
-              </div>
 
-              {/* Cloudflare Turnstile CAPTCHA */}
-              <div className="pt-1 sm:pt-2">
-                <Turnstile
-                    ref={turnstileRef}
-                    siteKey={TURNSTILE_SITE_KEY}
-                    onSuccess={(token) => {
-                      setTurnstileToken(token);
-                      setTurnstileError("");
-                    }}
-                    onError={(errorCode) => {
-                      setTurnstileToken("");
-                      setTurnstileError(
-                        errorCode === "110200"
-                          ? "CAPTCHA is not authorized for this domain. Please open the app in a browser tab or contact support."
-                          : "CAPTCHA verification failed. Please try again."
-                      );
-                      return true;
-                    }}
-                    onExpire={() => {
-                      setTurnstileToken("");
-                      setTurnstileError("CAPTCHA expired. Please verify again.");
-                    }}
-                    options={{ action: "login", theme: "light", size: "flexible" }}
-                  />
-                {turnstileError && (
-                  <p className="mt-2 text-center text-sm text-red-600" role="alert">
-                    {turnstileError}
-                  </p>
-                )}
-              </div>
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between gap-3">
+                    <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700">Password</label>
+                    <button type="button" onClick={() => navigate("/forget-password")} className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline">Forgot password?</button>
+                  </div>
+                  <div className="relative">
+                    <Input id="login-password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-12 border-slate-300 pr-12 focus:ring-blue-600" required />
+                    <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-1 top-1 flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword}>
+                      {showPassword ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
+                    </button>
+                  </div>
+                </div>
 
-              <Button type="submit" disabled={loading} className={`h-10 w-full rounded-xl text-sm font-semibold text-white sm:h-12 sm:text-base ${isStudent ? "bg-blue-600 hover:bg-blue-700" : "bg-violet-600 hover:bg-violet-700"}`}>
-                {loading ? "Signing in..." : "Sign in to StudiesMasters"}
-              </Button>
-            </form>
+                {/* Cloudflare Turnstile CAPTCHA */}
+                <div className="pt-2">
+                  <Turnstile
+                      ref={turnstileRef}
+                      siteKey={TURNSTILE_SITE_KEY}
+                      onSuccess={(token) => {
+                        setTurnstileToken(token);
+                        setTurnstileError("");
+                      }}
+                      onError={(errorCode) => {
+                        setTurnstileToken("");
+                        setTurnstileError(
+                          errorCode === "110200"
+                            ? "CAPTCHA is not authorized for this domain. Please open the app in a browser tab or contact support."
+                            : "CAPTCHA verification failed. Please try again."
+                        );
+                        return true;
+                      }}
+                      onExpire={() => {
+                        setTurnstileToken("");
+                        setTurnstileError("CAPTCHA expired. Please verify again.");
+                      }}
+                      options={{ action: "login", theme: "light", size: "flexible" }}
+                    />
+                  {turnstileError && (
+                    <p className="mt-2 text-center text-sm text-red-600" role="alert">
+                      {turnstileError}
+                    </p>
+                  )}
+                </div>
 
-          </CardContent>
-        </Card>
-      </main>
+                <Button type="submit" disabled={loading} className={`h-12 w-full rounded-xl font-semibold text-white ${isStudent ? "bg-blue-600 hover:bg-blue-700" : "bg-violet-600 hover:bg-violet-700"}`}>
+                  {loading ? "Signing in..." : "Sign in to StudiesMasters"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
     </div>
   );
 }
