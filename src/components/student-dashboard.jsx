@@ -159,7 +159,9 @@ export function StudentDashboard() {
               </div>}
             </div>
             <div className="hidden text-right md:block"><p className="max-w-40 truncate text-sm font-bold">{studentData.fullName}</p><p className="max-w-40 truncate text-xs text-slate-500">{studentData.email}</p></div>
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white sm:h-10 sm:w-10"><User size={16} className="sm:hidden" /><User size={18} className="hidden sm:block" /></div>
+            <div className="relative">
+              <button type="button" onClick={logout} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white sm:h-10 sm:w-10" aria-label="Logout"><User size={16} className="sm:hidden" /><User size={18} className="hidden sm:block" /></button>
+            </div>
             <button type="button" onClick={logout} className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600 md:inline-flex"><LogOut size={16} className="mr-2" />Logout</button>
           </div>
         </div>
@@ -176,10 +178,10 @@ export function StudentDashboard() {
           <div className="dashboard-orb dashboard-orb-one" aria-hidden="true" /><div className="dashboard-orb dashboard-orb-two" aria-hidden="true" /><div className="dashboard-grid" aria-hidden="true" />
         </section>
 
-        <section className="-mt-1 relative z-10 grid grid-cols-3 gap-2 sm:gap-4">
-          <Metric icon={<><BookOpen size={18} className="sm:hidden" /><BookOpen size={20} className="hidden sm:block" /></>} label="Subjects" value={subjects.length} color="blue" />
-          <Metric icon={<><Mail size={18} className="sm:hidden" /><Mail size={20} className="hidden sm:block" /></>} label="Messages" value={unreadMessages.length} color="amber" />
-          <Metric icon={<><CalendarDays size={18} className="sm:hidden" /><CalendarDays size={20} className="hidden sm:block" /></>} label="Plan" value={duration} color="violet" />
+        <section className="-mt-1 relative z-10 grid grid-cols-3 gap-1.5 sm:gap-4">
+          <Metric icon={<><BookOpen size={14} className="sm:hidden" /><BookOpen size={20} className="hidden sm:block" /></>} label="Subjects" value={subjects.length} color="blue" />
+          <Metric icon={<><Mail size={14} className="sm:hidden" /><Mail size={20} className="hidden sm:block" /></>} label="Messages" value={unreadMessages.length} color="amber" />
+          <Metric icon={<><CalendarDays size={14} className="sm:hidden" /><CalendarDays size={20} className="hidden sm:block" /></>} label="Plan" value={duration} color="violet" />
         </section>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 gap-4 sm:mt-8 sm:gap-5">
@@ -215,7 +217,7 @@ export function StudentDashboard() {
   );
 }
 
-function Metric({ icon, label, value, color }) { const colors = { blue: "bg-blue-600 shadow-blue-200", violet: "bg-violet-600 shadow-violet-200", emerald: "bg-emerald-600 shadow-emerald-200", amber: "bg-amber-500 shadow-amber-200" }; return <Card className="border-slate-200 shadow-sm"><CardContent className="flex items-center gap-2 p-2.5 sm:gap-3 sm:p-4"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white shadow-lg sm:h-10 sm:w-10 sm:rounded-xl ${colors[color]}`}>{icon}</span><div className="min-w-0"><p className="text-base font-bold leading-none sm:text-xl">{value}</p><p className="mt-0.5 truncate text-[10px] font-medium text-slate-500 sm:mt-1 sm:text-xs">{label}</p></div></CardContent></Card>; }
+function Metric({ icon, label, value, color }) { const colors = { blue: "bg-blue-600 shadow-blue-200", violet: "bg-violet-600 shadow-violet-200", emerald: "bg-emerald-600 shadow-emerald-200", amber: "bg-amber-500 shadow-amber-200" }; return <Card className="border-slate-200 shadow-sm"><CardContent className="flex items-center gap-1.5 p-2 sm:gap-3 sm:p-4"><span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-white shadow-lg sm:h-10 sm:w-10 sm:rounded-xl ${colors[color]}`}>{icon}</span><div className="min-w-0"><p className="text-sm font-bold leading-none sm:text-xl">{value}</p><p className="mt-0.5 truncate text-[9px] font-medium text-slate-500 sm:mt-1 sm:text-xs">{label}</p></div></CardContent></Card>; }
 function Detail({ label, value }) { return <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p><p className="mt-1 font-bold text-slate-800">{value || "Not available"}</p></div>; }
 function EmptyState({ text }) { return <div className="rounded-2xl border border-dashed border-slate-300 p-10 text-center text-sm text-slate-500">{text}</div>; }
 function PaymentStatus({ status }) { const approved = ["confirmed", "approved"].includes(status); const rejected = status === "rejected"; return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${approved ? "bg-emerald-100 text-emerald-700" : rejected ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>{approved && <CheckCircle2 size={13} />}{status || "pending"}</span>; }

@@ -601,28 +601,28 @@ export default function PaymentFlow() {
 
   return (
 
-<main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 md:py-8">
+<main className="min-h-screen bg-slate-50 px-3 py-4 text-slate-900 sm:px-4 sm:py-6 md:py-8">
 
-      <section className="mx-auto max-w-4xl overflow-hidden rounded-3xl bg-white shadow-xl">
+      <section className="mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-xl sm:rounded-3xl">
 
 
-<header className="bg-gradient-to-r from-slate-950 to-blue-700 px-4 py-6 text-white sm:px-6 sm:py-8">
+<header className="bg-gradient-to-r from-slate-950 to-blue-700 px-4 py-5 text-white sm:px-6 sm:py-8">
 
           <button
             onClick={() => navigate(-1)}
-            className="mb-4 inline-flex items-center gap-2 text-sm text-blue-100"
+            className="mb-3 inline-flex items-center gap-2 text-sm text-blue-100 sm:mb-4"
           >
             <ArrowLeft size={16}/>
             Back
           </button>
 
 
-<h1 className="text-2xl font-bold sm:text-3xl">
+<h1 className="text-xl font-bold sm:text-3xl">
             Manage your learning plan
           </h1>
 
 
-          <p className="mt-2 text-blue-100">
+          <p className="mt-1.5 text-sm text-blue-100 sm:mt-2 sm:text-base">
             Renew your plan or upgrade with curriculum-specific options.
           </p>
 
@@ -631,19 +631,19 @@ export default function PaymentFlow() {
 
 
 
-<div className="grid gap-6 p-4 sm:p-6 md:grid-cols-2">
+<div className="grid gap-4 p-3 sm:p-6 md:grid-cols-2 md:gap-6">
 
 
           <section>
 
 
-            <h2 className="text-lg font-bold">
+            <h2 className="text-base font-bold sm:text-lg">
               Choose an action
             </h2>
 
 
 
-            <div className="mt-3 grid gap-2">
+            <div className="mt-2.5 grid gap-2 sm:mt-3">
 
 
               <button
@@ -715,7 +715,7 @@ export default function PaymentFlow() {
 
 
 
-            <h2 className="mt-6 text-lg font-bold">
+            <h2 className="mt-5 text-base font-bold sm:mt-6 sm:text-lg">
 
               Plans for {curriculum || "your curriculum"}
 
@@ -723,7 +723,7 @@ export default function PaymentFlow() {
 
 
 
-            <div className="mt-3 space-y-2">
+            <div className="mt-2.5 space-y-2 sm:mt-3">
 
 
               {plans.map((item)=>(
@@ -803,12 +803,12 @@ className={`flex justify-between rounded-xl border p-3 sm:p-4 ${
 
               <>
 
-              <h2 className="mt-6 text-lg font-bold">
+              <h2 className="mt-5 text-base font-bold sm:mt-6 sm:text-lg">
                 Optional add-ons
               </h2>
 
 
-              <div className="mt-3 space-y-2">
+              <div className="mt-2.5 space-y-2 sm:mt-3">
 
 
               {addOns.map((item)=>(
@@ -878,10 +878,10 @@ className={`flex justify-between rounded-xl border p-3 sm:p-4 ${
 
 
 
-<section className="h-fit rounded-2xl bg-slate-50 p-4 sm:p-5">
+<section className="h-fit rounded-2xl bg-slate-50 p-3.5 sm:p-5">
 
 
-            <h2 className="text-lg font-bold">
+            <h2 className="text-base font-bold sm:text-lg">
               Secure Paystack checkout
             </h2>
 
@@ -994,7 +994,7 @@ className={`flex justify-between rounded-xl border p-3 sm:p-4 ${
 
         {message && (
 
-          <p className="mx-6 mb-6 rounded-xl bg-blue-50 p-4 text-center text-sm text-blue-900">
+          <p className="mx-3 mb-4 rounded-xl bg-blue-50 p-3.5 text-center text-sm text-blue-900 sm:mx-6 sm:mb-6 sm:p-4">
 
             {message}
 
