@@ -21,10 +21,26 @@ import {
   LogOut,
   Send,
   Monitor,
+  MailOpen,
+  CheckCheck,
+  Paperclip,
+  Image as ImageIcon,
+  ExternalLink,
+  X,
 } from "lucide-react";
 import ManageClass from "./ManageClass";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+
+const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+
+const getAttachmentUrl = (attachment) => {
+  if (!attachment) return "";
+  if (/^https?:\/\//i.test(attachment)) return attachment;
+  return `${BASE_URL}${attachment.startsWith("/") ? attachment : `/${attachment}`}`;
+};
+
+const isImageAttachment = (attachment) => /\.(avif|gif|jpe?g|png|webp)(?:[?#].*)?$/i.test(attachment || "");
 
 function TutorManagerDashboard() {
   const navigate = useNavigate();
@@ -41,6 +57,8 @@ function TutorManagerDashboard() {
   const [sendingClass, setSendingClass] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [showNotifs, setShowNotifs] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [classGroups, setClassGroups] = useState([]);
   const [reviewComment, setReviewComment] = useState({});
 
@@ -185,6 +203,54 @@ function TutorManagerDashboard() {
     }
   };
 
+  const unreadNotifications = notifications.filter((notification) => !notification.read);
+
+  const markNotificationRead = async (notification) => {
+    if (!notification || notification.read) return;
+    setNotifications((current) => current.map((item) => (
+      item._id === notification._id ? { ...item, read: true } : item
+    )));
+    try {
+      await apiClient.patch(`/qao/notifications/${notification._id}/read`, {}, config);
+    } catch (err) {
+      console.error("Mark notification read error:", err);
+      setNotifications((current) => current.map((item) => (
+        item._id === notification._id ? { ...item, read: false } : item
+      )));
+    }
+  };
+
+  const openNotification = (notification) => {
+    setSelectedNotification(notification);
+    markNotificationRead(notification);
+  };
+
+  const closeNotification = () => {
+    setSelectedNotification(null);
+    setImagePreviewUrl("");
+  };
+
+  const markAllNotificationsRead = async () => {
+    if (!unreadNotifications.length) return;
+    const unreadIds = new Set(unreadNotifications.map((notification) => notification._id));
+    setNotifications((current) => current.map((item) => ({ ...item, read: true })));
+    try {
+      await apiClient.patch("/qao/notifications/read-all", {}, config);
+    } catch (err) {
+      console.error("Mark all notifications read error:", err);
+      setNotifications((current) => current.map((item) => (
+        unreadIds.has(item._id) ? { ...item, read: false } : item
+      )));
+    }
+  };
+
+  const formatNotificationDate = (date) => {
+    if (!date) return "Just now";
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+    }).format(new Date(date));
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading Tutor Manager Dashboard...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
@@ -218,14 +284,14 @@ function TutorManagerDashboard() {
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => setShowNotifs(!showNotifs)} 
+              onClick={() => setShowNotifs((open) => !open)}
               className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 sm:h-11 sm:rounded-xl sm:px-4 sm:text-sm"
             >
               <Bell className="h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Notifications</span>
-              {notifications.length > 0 && (
+              {unreadNotifications.length > 0 && (
                 <span className="ml-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-semibold text-white sm:ml-2 sm:h-5 sm:min-w-[1.25rem] sm:px-2 sm:text-[11px]">
-                  {notifications.length}
+                  {unreadNotifications.length}
                 </span>
               )}
             </Button>
@@ -241,16 +307,48 @@ function TutorManagerDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
+          <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-violet-50 to-fuchsia-50 px-4 py-3 sm:px-5 sm:py-4">
+            <div><p className="text-sm font-bold text-slate-900 sm:text-base">Notification inbox</p><p className="mt-0.5 text-xs text-slate-500">{unreadNotifications.length ? `${unreadNotifications.length} unread message${unreadNotifications.length === 1 ? "" : "s"}` : "You are all caught up"}</p></div>
+            <div className="flex items-center gap-1"><button type="button" onClick={markAllNotificationsRead} disabled={!unreadNotifications.length} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-violet-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"><CheckCheck className="h-4 w-4" /><span className="hidden sm:inline">Mark all read</span></button><button type="button" onClick={() => setShowNotifs(false)} className="rounded-lg p-2 text-slate-500 transition hover:bg-white hover:text-slate-900" aria-label="Close notifications"><X className="h-4 w-4" /></button></div>
+          </div>
+          <div className="max-h-[26rem] divide-y divide-slate-100 overflow-y-auto">
+            {notifications.length ? notifications.map((notification) => <button key={notification._id} type="button" onClick={() => openNotification(notification)} className={`flex w-full gap-3 px-4 py-3.5 text-left transition hover:bg-violet-50/60 sm:px-5 ${notification.read ? "bg-white" : "bg-violet-50/70"}`}><span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${notification.read ? "bg-slate-200" : "bg-violet-600 ring-4 ring-violet-100"}`} /><span className="min-w-0 flex-1"><span className="flex items-start justify-between gap-3"><span className={`truncate text-sm ${notification.read ? "font-medium text-slate-700" : "font-bold text-slate-900"}`}>{notification.type === "broadcast" ? "New broadcast" : "System update"}</span><span className="shrink-0 text-[11px] text-slate-400">{formatNotificationDate(notification.createdAt)}</span></span><span className={`mt-1 block truncate text-xs sm:text-sm ${notification.read ? "text-slate-500" : "text-slate-700"}`}>{notification.message}</span></span></button>) : <div className="px-5 py-12 text-center"><MailOpen className="mx-auto h-8 w-8 text-violet-200" /><p className="mt-3 text-sm font-semibold text-slate-700">Your inbox is clear</p><p className="mt-1 text-xs text-slate-500">New notifications will appear here.</p></div>}
+          </div>
+          <div className="hidden">
           <p className="text-sm font-semibold text-slate-900">Recent notifications</p>
           <div className="mt-2 space-y-2 sm:mt-3 sm:space-y-3">
             {notifications.length > 0 ? notifications.map((n) => (
-              <div key={n._id} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 sm:rounded-3xl sm:px-4 sm:py-3 sm:text-sm">{n.message}</div>
+              <div key={n._id} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 sm:rounded-3xl sm:px-4 sm:py-3 sm:text-sm">
+                <span>{n.message}</span>
+                <div className="mt-1.5 flex flex-wrap gap-2">
+                  {n.link && (
+                    <a href={n.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700">
+                      🔗 Open Link
+                    </a>
+                  )}
+                  {n.attachment && (
+                    <a href={`${BASE_URL}${n.attachment}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700">
+                      📎 View Attachment
+                    </a>
+                  )}
+                </div>
+              </div>
             )) : (
               <p className="text-xs text-slate-500 sm:text-sm">No notifications available.</p>
             )}
           </div>
+          </div>
         </motion.div>
       )}
+
+      {selectedNotification && (() => {
+        const attachmentUrl = getAttachmentUrl(selectedNotification.attachment);
+        const attachmentIsImage = isImageAttachment(selectedNotification.attachment);
+
+        return <div className="fixed inset-0 z-50 flex items-end bg-slate-950/35 p-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6" onClick={closeNotification}><motion.article initial={{ opacity: 0, y: 20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl sm:rounded-[1.75rem]" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between bg-gradient-to-r from-violet-700 to-fuchsia-600 px-5 py-5 text-white sm:px-6"><div className="pr-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">Inbox message</p><h2 className="mt-1 text-lg font-bold">{selectedNotification.type === "broadcast" ? "New broadcast" : "System update"}</h2></div><button type="button" onClick={closeNotification} className="rounded-lg p-2 text-white/80 hover:bg-white/15 hover:text-white" aria-label="Close message"><X className="h-5 w-5" /></button></div><div className="p-5 sm:p-6"><p className="text-xs font-medium text-slate-400">{formatNotificationDate(selectedNotification.createdAt)}</p><p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-700 sm:text-base">{selectedNotification.message}</p>{attachmentIsImage && <button type="button" onClick={() => setImagePreviewUrl(attachmentUrl)} className="mt-5 block w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-left transition hover:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2" aria-label="View attached image full size"><img src={attachmentUrl} alt="Image attached by admin" className="max-h-80 w-full object-contain" /><span className="flex items-center gap-2 border-t border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-violet-700"><ImageIcon className="h-4 w-4" />Click image to view full size</span></button>}{(selectedNotification.link || attachmentUrl) && <div className="mt-6 flex flex-wrap gap-2">{selectedNotification.link && <a href={selectedNotification.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"><ExternalLink className="h-4 w-4" />Open link</a>}{attachmentUrl && <a href={attachmentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><Paperclip className="h-4 w-4" />{attachmentIsImage ? "Open image" : "View attachment"}</a>}</div>}</div></motion.article></div>;
+      })()}
+
+      {imagePreviewUrl && <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/90 p-4" role="dialog" aria-modal="true" aria-label="Full-size image preview" onClick={() => setImagePreviewUrl("")}><button type="button" className="absolute right-4 top-4 rounded-lg p-2 text-white/80 transition hover:bg-white/15 hover:text-white" onClick={() => setImagePreviewUrl("")} aria-label="Close image preview"><X className="h-6 w-6" /></button><img src={imagePreviewUrl} alt="Image attached by admin" className="max-h-full max-w-full rounded-lg object-contain shadow-2xl" onClick={(event) => event.stopPropagation()} /></div>}
 
       {/* Stat Cards */}
       <motion.div
@@ -320,7 +418,7 @@ function TutorManagerDashboard() {
                 <MiniStat label="Broadcasts" value={messages.length} />
                 <MiniStat label="Pending" value={resources.filter((item) => !item.approved).length} />
                 <MiniStat label="Teachers" value={teachers.length} />
-                <MiniStat label="Alerts" value={notifications.length} />
+                <MiniStat label="Alerts" value={unreadNotifications.length} />
               </CardContent>
             </Card>
 

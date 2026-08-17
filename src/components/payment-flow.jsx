@@ -67,7 +67,19 @@ export default function PaymentFlow() {
 
 
   const [selectedAddOns, setSelectedAddOns] =
-    useState([]);
+    useState(
+      () => {
+        const fromPayment =
+          Array.isArray(paymentData.addOns)
+            ? paymentData.addOns
+            : [];
+        return fromPayment.map((addon) =>
+          typeof addon === "string"
+            ? addon
+            : addon.name || ""
+        ).filter(Boolean);
+      }
+    );
 
 
   const [purpose, setPurpose] =
@@ -463,9 +475,9 @@ export default function PaymentFlow() {
 
 
               addOns:
-                purpose === "upgrade"
-                  ? selectedAddOns
-                  : [],
+                purpose === "renewal"
+                  ? []
+                  : selectedAddOns,
 
 
               paymentMethod: method,
@@ -686,6 +698,31 @@ export default function PaymentFlow() {
               <button
 
                 onClick={() =>
+                  setPurpose("new")
+                }
+
+                className={`rounded-xl border p-4 text-left ${
+                  purpose === "new"
+                  ? "border-blue-600 bg-blue-50"
+                  : "border-slate-200"
+                }`}
+              >
+
+                <b>
+                  Choose a plan
+                </b>
+
+
+                <span className="mt-1 block text-sm text-slate-500">
+                  Select a package and optional add-ons.
+                </span>
+
+
+              </button>
+
+              <button
+
+                onClick={() =>
                   setPurpose("upgrade")
                 }
 
@@ -799,7 +836,7 @@ className={`flex justify-between rounded-xl border p-3 sm:p-4 ${
 
 
 
-            {purpose === "upgrade" && (
+            {purpose !== "renewal" && (
 
               <>
 

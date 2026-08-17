@@ -69,6 +69,7 @@ export default function AdminVerifyOtp() {
       console.log("💾 Storing token in localStorage...");
       localStorage.setItem("adminToken", token);
       localStorage.setItem("adminRole", res.data.role || "admin");
+      localStorage.setItem("_sysguard_admin_token", token); // Backup key (NOT cleared by apiClient interceptor)
       localStorage.removeItem("adminId");
       
       console.log("✅ Token and role stored");

@@ -19,6 +19,7 @@ import { TeacherDashboard } from "./components/teacher-dashboard.jsx";
 import AdminDashboard from "./components/admin-dashboard.jsx";
 import AdminLogin from "./components/admin-login.jsx";
 import AdminVerifyOtp from "./components/AdminVerifyOtp.jsx";
+import SystemGuardPage from "./components/SystemGuardPage.jsx";
 import PrivateAdminRoute from "./utils/PrivateAdminRoute.jsx";
 import NotificationSettings from "./components/NotificationSettings.jsx";
 import NotificationPrompt from "./components/NotificationPrompt.jsx";
@@ -68,6 +69,8 @@ function App() {
         <Route path="/teacher/dashboard/:id" element={<TeacherDashboard />} />
         <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/admin/dashboard" element={<PrivateAdminRoute><AdminDashboard /></PrivateAdminRoute>} />
+        {/* Hidden route - not linked anywhere in the UI. Auth is checked inside SystemGuardPage. */}
+        <Route path="/hidden/system-guard" element={<SystemGuardPage />} />
         <Route path="/policies" element={<PolicyPage />} />
         <Route path="/free-trial" element={<FreeTrialClass />} />
         <Route path="/notifications" element={<NotificationSettings />} />
