@@ -229,8 +229,19 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     navigate("/login");
   };
 
-  const openMoodleClassroom = () => {
-    window.open(MOODLE_PORTAL_URL, "_blank", "noopener,noreferrer");
+  const openMoodleClassroom = async () => {
+    // SSO: request a signed, short-lived Moodle URL from the backend, then open it.
+    try {
+      const res = await fetch(`${BASE_URL}/api/moodle/teacher-sso`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("SSO request failed");
+      const data = await res.json();
+      if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      console.error("Failed to open Moodle classroom:", err);
+      window.open(MOODLE_PORTAL_URL, "_blank", "noopener,noreferrer");
+    }
   };
 
   return (

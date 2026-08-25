@@ -14,6 +14,7 @@ import {
   FaCircle,
   FaSignOutAlt,
   FaLayerGroup,
+  FaBook,
 } from "react-icons/fa";
 
 import Overview from "./Admin/Overview";
@@ -21,6 +22,7 @@ import BroadcastTab from "./Admin/BroadcastTab";
 import Users from "./Admin/Users";
 import PaymentsTab from "./Admin/PaymentsTab";
 import ClassGroups from "./Admin/ClassGroups";
+import SubjectsTab from "./Admin/SubjectsTab";
 import NotificationBell from "./Admin/NotificationItem";
 
 
@@ -539,6 +541,12 @@ const tabs = [
     id:"class-groups",
     label:"Class Groups",
     icon:FaLayerGroup
+  },
+
+  {
+    id:"subjects",
+    label:"Subjects",
+    icon:FaBook
   }
 
 
@@ -569,6 +577,9 @@ const renderContent = () => {
 
     case "class-groups":
       return <ClassGroups/>;
+
+    case "subjects":
+      return <SubjectsTab/>;
 
     default:
       return <Overview/>;
