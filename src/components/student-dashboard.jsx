@@ -22,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
 
-const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://moodle.org/";
+const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://lms.studiesmasters.com/";
 
 const formatDate = (value) =>
   value ? new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value)) : "Not available";
@@ -186,7 +186,7 @@ export function StudentDashboard() {
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100"><GraduationCap size={15} /> {studentData.curriculum || "StudiesMasters"} learner</span>
             <h2 className="mt-3 text-2xl font-bold tracking-tight sm:mt-4 sm:text-4xl">Hi, {studentData.fullName?.split(" ")[0] || "Student"}! Ready to learn?</h2>
             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300 sm:mt-3 sm:text-base">Pick one simple thing to do next. Your classes and messages are waiting for you.</p>
-            <Button onClick={() => window.open(MOODLE_PORTAL_URL, "_blank", "noopener,noreferrer")} className="mt-5 h-12 w-full rounded-xl bg-yellow-400 px-5 text-base font-bold text-slate-900 hover:bg-yellow-300 sm:mt-6 sm:w-auto"><PlayCircle size={19} /> Start a class <ChevronRight size={17} /></Button>
+            <Button onClick={() => openMoodleClass()} className="mt-5 h-12 w-full rounded-xl bg-yellow-400 px-5 text-base font-bold text-slate-900 hover:bg-yellow-300 sm:mt-6 sm:w-auto"><PlayCircle size={19} /> Start a class <ChevronRight size={17} /></Button>
           </div>
           <div className="dashboard-orb dashboard-orb-one" aria-hidden="true" /><div className="dashboard-orb dashboard-orb-two" aria-hidden="true" /><div className="dashboard-grid" aria-hidden="true" />
         </section>

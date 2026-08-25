@@ -14,7 +14,7 @@ import { io } from "socket.io-client";
 import { FaUsers } from "react-icons/fa";
 
 const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
-const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://moodle.org/";
+const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://lms.studiesmasters.com/";
 
 export function TeacherDashboard({ user = {}, onLogout }) {
   const navigate = useNavigate();
