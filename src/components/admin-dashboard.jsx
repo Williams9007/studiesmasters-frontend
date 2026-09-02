@@ -23,6 +23,7 @@ import Users from "./Admin/Users";
 import PaymentsTab from "./Admin/PaymentsTab";
 import ClassGroups from "./Admin/ClassGroups";
 import SubjectsTab from "./Admin/SubjectsTab";
+import MoodleTab from "./Admin/MoodleTab";
 import NotificationBell from "./Admin/NotificationItem";
 
 
@@ -547,6 +548,13 @@ const tabs = [
     id:"subjects",
     label:"Subjects",
     icon:FaBook
+  },
+
+
+  {
+    id:"moodle",
+    label:"Moodle",
+    icon:FaShieldAlt
   }
 
 
@@ -580,6 +588,9 @@ const renderContent = () => {
 
     case "subjects":
       return <SubjectsTab/>;
+
+    case "moodle":
+      return <MoodleTab/>;
 
     default:
       return <Overview/>;
