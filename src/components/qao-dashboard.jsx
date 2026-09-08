@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import apiClient from "../utils/apiClient";
@@ -29,6 +29,16 @@ import {
   X,
 } from "lucide-react";
 import ManageClass from "./ManageClass";
+import { TeachersModule, ClassGroupsModule, TimetableApprovalsModule, SearchModule, SettingsModule } from "./qao/TutorManagerModules.jsx";
+import CalendarView from "./qao/CalendarView.jsx";
+import LiveClasses from "./qao/LiveClasses.jsx";
+import LiveOpsCenter from "./virtual/LiveOpsCenter.jsx";
+import ReportsModule from "./qao/ReportsModule.jsx";
+import LeaveRequestsModule from "./qao/LeaveRequestsModule.jsx";
+import WorkloadModule from "./qao/WorkloadModule.jsx";
+import PerformanceModule from "./qao/PerformanceModule.jsx";
+import NotificationCenter from "./qao/NotificationCenter.jsx";
+import AuditLogsModule from "./qao/AuditLogsModule.jsx";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -60,6 +70,7 @@ function TutorManagerDashboard() {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [classGroups, setClassGroups] = useState([]);
+  const [overview, setOverview] = useState(null);
   const [reviewComment, setReviewComment] = useState({});
 
   const token = localStorage.getItem("qaoToken");
@@ -84,6 +95,7 @@ function TutorManagerDashboard() {
           resMessages,
           resNotifs,
           resClassGroups,
+          resOverview,
         ] = await Promise.all([
           apiClient.get("/qao/teachers", config),
           apiClient.get("/qao/resources", config),
@@ -91,6 +103,7 @@ function TutorManagerDashboard() {
           apiClient.get("/qao/sent", config),
           apiClient.get("/qao/notifications", config),
           apiClient.get("/qao/class-groups", config),
+          apiClient.get("/qao/overview", config).catch(() => null),
         ]);
 
         setTeachers(Array.isArray(resTeachers.data?.teachers) ? resTeachers.data.teachers : []);
@@ -99,6 +112,7 @@ function TutorManagerDashboard() {
         setMessages(Array.isArray(resMessages.data?.messages) ? resMessages.data.messages : []);
         setNotifications(Array.isArray(resNotifs.data?.notifications) ? resNotifs.data.notifications : []);
         setClassGroups(Array.isArray(resClassGroups.data?.groups) ? resClassGroups.data.groups : []);
+        setOverview(resOverview?.data?.overview || null);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
         setError("Failed to load dashboard data");
@@ -323,12 +337,12 @@ function TutorManagerDashboard() {
                 <div className="mt-1.5 flex flex-wrap gap-2">
                   {n.link && (
                     <a href={n.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700">
-                      🔗 Open Link
+                      ðŸ”— Open Link
                     </a>
                   )}
                   {n.attachment && (
                     <a href={`${BASE_URL}${n.attachment}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700">
-                      📎 View Attachment
+                      ðŸ“Ž View Attachment
                     </a>
                   )}
                 </div>
@@ -394,6 +408,54 @@ function TutorManagerDashboard() {
           <TabsTrigger value="class-groups">Classes</TabsTrigger>
           <TabsTrigger value="resources">Resources</TabsTrigger>
           <TabsTrigger value="broadcasts">Messages</TabsTrigger>
+          <TabsTrigger value="calendar">
+            <span className="hidden sm:inline">Calendar</span>
+            <span className="sm:hidden">Cal</span>
+          </TabsTrigger>
+          <TabsTrigger value="live-classes">
+            <span className="hidden sm:inline">Live Classes</span>
+            <span className="sm:hidden">Live</span>
+          </TabsTrigger>
+          <TabsTrigger value="live-ops">
+            <span className="hidden sm:inline">Live Ops</span>
+            <span className="sm:hidden">Ops</span>
+          </TabsTrigger>
+          <TabsTrigger value="reports">
+            <span className="hidden sm:inline">Reports</span>
+            <span className="sm:hidden">Rep</span>
+          </TabsTrigger>
+          <TabsTrigger value="performance">
+            <span className="hidden sm:inline">Performance</span>
+            <span className="sm:hidden">Perf</span>
+          </TabsTrigger>
+          <TabsTrigger value="notifications">
+            <span className="hidden sm:inline">Notifications</span>
+            <span className="sm:hidden">Alerts</span>
+          </TabsTrigger>
+          <TabsTrigger value="audit-logs">
+            <span className="hidden sm:inline">Audit Logs</span>
+            <span className="sm:hidden">Audit</span>
+          </TabsTrigger>
+          <TabsTrigger value="leave">
+            <span className="hidden sm:inline">Leave</span>
+            <span className="sm:hidden">Lv</span>
+          </TabsTrigger>
+          <TabsTrigger value="workload">
+            <span className="hidden sm:inline">Workload</span>
+            <span className="sm:hidden">WL</span>
+          </TabsTrigger>
+          <TabsTrigger value="timetables">
+            <span className="hidden sm:inline">Timetables</span>
+            <span className="sm:hidden">TT</span>
+          </TabsTrigger>
+          <TabsTrigger value="search">
+            <span className="hidden sm:inline">Search</span>
+            <span className="sm:hidden">Find</span>
+          </TabsTrigger>
+          <TabsTrigger value="settings">
+            <span className="hidden sm:inline">Settings</span>
+            <span className="sm:hidden">Set</span>
+          </TabsTrigger>
           <TabsTrigger value="manage-class">
             <Monitor className="inline mr-1 h-3 w-3 sm:mr-2 sm:h-3.5 sm:w-3.5" />
             <span className="hidden sm:inline">Manage Class</span>
@@ -434,58 +496,24 @@ function TutorManagerDashboard() {
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* Teacher Operations summary (Phase 3) */}
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:grid-cols-4 sm:gap-4">
+            <MiniStat label="Pending leave" value={overview?.pendingLeaveRequests ?? "–"} />
+            <MiniStat label="Available today" value={`${overview?.availableToday ?? "–"} teachers`} />
+            <MiniStat label="Overloaded" value={`${overview?.overloadedTeachers ?? "–"} teachers`} />
+            <MiniStat label="Need substitute" value={`${overview?.sessionsNeedingSubstitute ?? "–"} sessions`} />
+          </div>
         </TabsContent>
 
         {/* Teachers Tab */}
         <TabsContent value="teachers" className="mt-4 sm:mt-6">
-          <Card className="shadow-lg border border-slate-200 bg-white/95 sm:shadow-2xl">
-            <CardHeader>
-              <CardTitle className="text-lg text-slate-900 sm:text-xl">Teacher Roster</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">All teachers separated by curriculum.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {teachers.length ? (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
-                  {teachers.map((teacher) => (
-                    <div key={teacher._id} className="rounded-lg border border-slate-200 p-3 sm:rounded-xl sm:p-4">
-                      <p className="font-bold text-sm text-slate-900 sm:text-base">{teacher.fullName || "No Name"}</p>
-                      <p className="text-xs text-slate-500 sm:text-sm">{teacher.email || "No email"}</p>
-                      <p className="text-[11px] text-slate-500 sm:text-xs">Curriculum: {teacher.curriculum || "N/A"}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <DashboardEmpty text="No teachers found." />
-              )}
-            </CardContent>
-          </Card>
+          <TeachersModule />
         </TabsContent>
 
         {/* Class Groups Tab */}
         <TabsContent value="class-groups" className="mt-4 sm:mt-6">
-          <Card className="shadow-lg border border-slate-200 bg-white/95 sm:shadow-2xl">
-            <CardHeader>
-              <CardTitle className="text-lg text-slate-900 sm:text-xl">Class Groups</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">All class groups by curriculum and subject.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {classGroups.length ? (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
-                  {classGroups.map((group) => (
-                    <div key={group._id} className="rounded-lg border border-slate-200 p-3 sm:rounded-xl sm:p-4">
-                      <p className="font-bold text-sm text-slate-900 sm:text-base"><Users className="inline mr-1.5 text-blue-600 sm:mr-2" />{group.code}</p>
-                      <p className="mt-1 text-xs text-slate-600 sm:text-sm">{group.curriculum} · Grade {group.grade}</p>
-                      <p className="text-[11px] text-slate-500 sm:text-xs">Subject: {group.subject}</p>
-                      <p className="text-[11px] text-slate-500 sm:text-xs">Students: {group.students?.length || 0} / {group.capacity}</p>
-                      {group.teacher && <p className="text-[11px] text-slate-500 sm:text-xs">Teacher: {group.teacher.fullName || "Unassigned"}</p>}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <DashboardEmpty text="No class groups available." />
-              )}
-            </CardContent>
-          </Card>
+          <ClassGroupsModule />
         </TabsContent>
 
         {/* Resources Tab */}
@@ -504,7 +532,7 @@ function TutorManagerDashboard() {
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-slate-900 sm:text-base">{r.title || "Untitled Resource"}</p>
                           <p className="text-xs text-slate-500 sm:text-sm">By {r.teacher?.fullName || "Unknown"}</p>
-                          <p className="text-[11px] text-slate-500 sm:text-xs">Subject: {r.subject || "N/A"} · Curriculum: {r.curriculum || "N/A"}</p>
+                          <p className="text-[11px] text-slate-500 sm:text-xs">Subject: {r.subject || "N/A"} Â· Curriculum: {r.curriculum || "N/A"}</p>
                           {r.comment && <p className="text-[11px] text-slate-500 sm:text-xs">Comment: {r.comment}</p>}
                         </div>
                         <div className="flex flex-col gap-2">
@@ -604,7 +632,7 @@ function TutorManagerDashboard() {
                   <option value="">Select a class</option>
                   {Array.isArray(classGroups) && classGroups.map((g) => (
                     <option key={g._id} value={g._id}>
-                      {g.code} — {g.subject} · Grade {g.grade}
+                      {g.code} â€” {g.subject} Â· Grade {g.grade}
                     </option>
                   ))}
                 </select>
@@ -668,6 +696,53 @@ function TutorManagerDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="calendar" className="mt-4 sm:mt-6">
+          <CalendarView />
+        </TabsContent>
+
+        <TabsContent value="live-classes" className="mt-4 sm:mt-6">
+          <LiveClasses />
+        </TabsContent>
+
+        <TabsContent value="live-ops" className="mt-4 sm:mt-6">
+          <LiveOpsCenter />
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-4 sm:mt-6">
+          <ReportsModule />
+        </TabsContent>
+
+        <TabsContent value="performance" className="mt-4 sm:mt-6">
+          <PerformanceModule />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-4 sm:mt-6">
+          <NotificationCenter />
+        </TabsContent>
+
+        <TabsContent value="audit-logs" className="mt-4 sm:mt-6">
+          <AuditLogsModule />
+        </TabsContent>
+
+        <TabsContent value="leave" className="mt-4 sm:mt-6">
+          <LeaveRequestsModule />
+        </TabsContent>
+
+        <TabsContent value="workload" className="mt-4 sm:mt-6">
+          <WorkloadModule />
+        </TabsContent>
+
+        <TabsContent value="timetables" className="mt-4 sm:mt-6">
+          <TimetableApprovalsModule />
+        </TabsContent>
+
+        <TabsContent value="search" className="mt-4 sm:mt-6">
+          <SearchModule />
+        </TabsContent>
+
+        <TabsContent value="settings" className="mt-4 sm:mt-6">
+          <SettingsModule />
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -707,3 +782,5 @@ const DashboardEmpty = ({ text }) => (
 );
 
 export default TutorManagerDashboard;
+
+

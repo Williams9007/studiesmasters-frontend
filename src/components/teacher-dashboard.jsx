@@ -8,6 +8,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import TeacherClassroomConsole from "./virtual/TeacherClassroomConsole.jsx";
 import { BookOpen, User, Bell, CheckCircle, Send, LogOut, PlayCircle, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
@@ -326,6 +327,25 @@ export function TeacherDashboard({ user = {}, onLogout }) {
 
 
     <TabsTrigger
+      value="classroom"
+      className="
+        rounded-lg
+        px-2
+        py-2
+        text-xs
+        font-semibold
+        whitespace-nowrap
+
+        sm:px-3
+        sm:py-3
+        sm:text-sm
+      "
+    >
+      Virtual Classes
+    </TabsTrigger>
+
+
+    <TabsTrigger
       value="students"
       className="
         rounded-lg
@@ -422,6 +442,10 @@ export function TeacherDashboard({ user = {}, onLogout }) {
 
           <TabsContent value="overview" className="mt-4 grid gap-4 sm:mt-5 sm:gap-5 lg:grid-cols-2">
             <Card><CardHeader><CardTitle>Your subjects</CardTitle><CardDescription>Subjects currently assigned to you.</CardDescription></CardHeader><CardContent className="space-y-3">{subjects.length ? subjects.map((subject) => <div key={subject._id || subject.id || subject.name} className="flex items-center justify-between rounded-xl bg-violet-50 px-4 py-3"><span><span className="block font-semibold">{subject.name || "Subject"}</span><span className="text-xs text-slate-500">{subject.grade || "Class not set"}</span></span><BookOpen size={18} className="text-violet-600" /></div>) : <DashboardEmpty text="No subjects are assigned yet." />}</CardContent></Card>
+<TabsContent value="classroom" className="mt-4 sm:mt-5">
+          <TeacherClassroomConsole />
+        </TabsContent>
+
             <Card><CardHeader><CardTitle>Recent activity</CardTitle><CardDescription>Latest broadcasts and messages.</CardDescription></CardHeader><CardContent className="space-y-3">{activities.length ? activities.slice(0, 5).map((activity, index) => <div key={`${activity.time}-${index}`} className="rounded-xl border border-slate-100 px-4 py-3"><p className="font-medium">{activity.subject || activity.type}</p><p className="mt-1 text-sm text-slate-600">{activity.message}</p><p className="mt-1 text-xs text-slate-400">{activity.time}</p></div>) : <DashboardEmpty text="No recent activity." />}</CardContent></Card>
           </TabsContent>
 

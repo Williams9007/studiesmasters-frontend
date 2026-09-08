@@ -94,6 +94,7 @@ export default function MoodleTab() {
 
   const runProvision = () => act("provision", () => apiClient.post("/moodle/provision", {}));
   const runSyncAll = () => act("syncall", () => apiClient.post("/moodle/sync-all-users", {}));
+  const runSyncAllTeachers = () => act("syncallteachers", () => apiClient.post("/moodle/sync-all-teachers", {}));
   const runReconcile = () => act("reconcile", () => apiClient.post("/moodle/reconcile", {}));
   const runRetryFailed = () => act("retryfailed", () => apiClient.post("/moodle/retry-failed", {}));
 
@@ -123,6 +124,7 @@ export default function MoodleTab() {
       <div className="flex flex-wrap gap-3">
         <Btn onClick={runProvision} busy={busy === "provision"}>Provision Moodle</Btn>
         <Btn onClick={runSyncAll} busy={busy === "syncall"}>Sync All Students</Btn>
+        <Btn onClick={runSyncAllTeachers} busy={busy === "syncallteachers"}>Sync All Teachers</Btn>
         <Btn onClick={runReconcile} busy={busy === "reconcile"}>Reconcile Enrollments</Btn>
         <Btn onClick={runRetryFailed} busy={busy === "retryfailed"} variant="secondary">Retry Failed Syncs</Btn>
         <Btn variant="secondary" onClick={() => setShowMappings((v) => !v)}>

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import StudentVirtualClasses from "./virtual/StudentVirtualClasses.jsx";
 import { Button } from "./ui/button";
 
 const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://lms.studiesmasters.com/";
@@ -199,10 +200,13 @@ export function StudentDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 gap-4 sm:mt-8 sm:gap-5">
           <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
-            <TabsTrigger value="overview" className="min-h-10 shrink-0 px-3 sm:px-4">Home</TabsTrigger><TabsTrigger value="subjects" className="min-h-10 shrink-0 px-3 sm:px-4">My subjects</TabsTrigger><TabsTrigger value="inbox" className="min-h-10 shrink-0 px-3 sm:px-4">Messages {unreadMessages.length > 0 && <span className="rounded-full bg-blue-100 px-1.5 text-[10px] text-blue-700">{unreadMessages.length}</span>}</TabsTrigger><TabsTrigger value="payments" className="min-h-10 shrink-0 px-3 sm:px-4">Payments</TabsTrigger>
+            <TabsTrigger value="overview" className="min-h-10 shrink-0 px-3 sm:px-4">Home</TabsTrigger><TabsTrigger value="subjects" className="min-h-10 shrink-0 px-3 sm:px-4">My subjects</TabsTrigger><TabsTrigger value="inbox" className="min-h-10 shrink-0 px-3 sm:px-4">Messages {unreadMessages.length > 0 && <span className="rounded-full bg-blue-100 px-1.5 text-[10px] text-blue-700">{unreadMessages.length}</span>}</TabsTrigger><TabsTrigger value="payments" className="min-h-10 shrink-0 px-3 sm:px-4">Payments</TabsTrigger><TabsTrigger value="virtual" className="min-h-10 shrink-0 px-3 sm:px-4">Live classes</TabsTrigger>
           </TabsList>
-          <TabsContent value="overview">
-            <div className="grid gap-4 lg:grid-cols-5">
+<TabsContent value="virtual" className="mt-4 sm:mt-6">
+            <StudentVirtualClasses />
+          </TabsContent>
+
+          <TabsContent value="overview">            <div className="grid gap-4 lg:grid-cols-5">
               <Card className="border-slate-200 shadow-sm lg:col-span-3">
                 <CardHeader><CardTitle>What would you like to do?</CardTitle><CardDescription>Choose one quick action.</CardDescription></CardHeader>
                 <CardContent className="grid gap-2 sm:grid-cols-3 sm:gap-3">

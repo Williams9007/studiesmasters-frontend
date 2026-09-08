@@ -24,6 +24,7 @@ import PaymentsTab from "./Admin/PaymentsTab";
 import ClassGroups from "./Admin/ClassGroups";
 import SubjectsTab from "./Admin/SubjectsTab";
 import MoodleTab from "./Admin/MoodleTab";
+import AdminVirtualOps from "./virtual/AdminVirtualOps.jsx";
 import NotificationBell from "./Admin/NotificationItem";
 
 
@@ -555,6 +556,12 @@ const tabs = [
     id:"moodle",
     label:"Moodle",
     icon:FaShieldAlt
+  },
+
+  {
+    id:"virtual",
+    label:"Virtual Ops",
+    icon:FaChartPie
   }
 
 
@@ -591,6 +598,9 @@ const renderContent = () => {
 
     case "moodle":
       return <MoodleTab/>;
+
+    case "virtual":
+      return <AdminVirtualOps/>;
 
     default:
       return <Overview/>;
