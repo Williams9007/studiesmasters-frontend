@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../utils/apiClient";
+import { io } from "socket.io-client";
 
 import {
   Card,
@@ -10,7 +11,7 @@ import {
   CardDescription,
   CardContent,
 } from "./ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
+import { Tabs, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
 import {
   Users,
@@ -27,6 +28,20 @@ import {
   Image as ImageIcon,
   ExternalLink,
   X,
+  LayoutDashboard,
+  Layers,
+  CalendarRange,
+  Calendar,
+  Video,
+  Radio,
+  Plane,
+  Gauge,
+  FolderOpen,
+  Megaphone,
+  Star,
+  ScrollText,
+  Search,
+  Settings,
 } from "lucide-react";
 import ManageClass from "./ManageClass";
 import { TeachersModule, ClassGroupsModule, TimetableApprovalsModule, SearchModule, SettingsModule } from "./qao/TutorManagerModules.jsx";
@@ -40,9 +55,61 @@ import PerformanceModule from "./qao/PerformanceModule.jsx";
 import NotificationCenter from "./qao/NotificationCenter.jsx";
 import AuditLogsModule from "./qao/AuditLogsModule.jsx";
 import { motion } from "framer-motion";
+import TeacherTimetableRecords from "./timetable/TeacherTimetableRecords";
 import { useNavigate } from "react-router-dom";
 
 const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+
+// Tutor Manager navigation — every tab grouped into clear, professional sections.
+const NAV_GROUPS = [
+  {
+    label: "Overview",
+    items: [{ id: "overview", label: "Overview", icon: LayoutDashboard }],
+  },
+  {
+    label: "People",
+    items: [
+      { id: "teachers", label: "Teachers", icon: Users },
+      { id: "class-groups", label: "Class Groups", icon: Layers },
+    ],
+  },
+  {
+    label: "Scheduling",
+    items: [
+      { id: "scheduler", label: "Teacher Timetables", icon: CalendarRange },
+      { id: "calendar", label: "Calendar", icon: Calendar },
+      { id: "live-classes", label: "Live Classes", icon: Video },
+      { id: "live-ops", label: "Live Ops", icon: Radio },
+      { id: "leave", label: "Leave", icon: Plane },
+      { id: "workload", label: "Workload", icon: Gauge },
+    ],
+  },
+  {
+    label: "Content & Ops",
+    items: [
+      { id: "timetables", label: "Timetable Approvals", icon: FileCheck },
+      { id: "resources", label: "Resources", icon: FolderOpen },
+      { id: "broadcasts", label: "Messages", icon: Megaphone },
+      { id: "manage-class", label: "Manage Class", icon: Monitor },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { id: "reports", label: "Reports", icon: BarChart3 },
+      { id: "performance", label: "Performance", icon: Star },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { id: "notifications", label: "Notifications", icon: Bell },
+      { id: "audit-logs", label: "Audit Logs", icon: ScrollText },
+      { id: "search", label: "Search", icon: Search },
+      { id: "settings", label: "Settings", icon: Settings },
+    ],
+  },
+];
 
 const getAttachmentUrl = (attachment) => {
   if (!attachment) return "";
@@ -81,6 +148,51 @@ function TutorManagerDashboard() {
       navigate("/qao/access");
     }
   }, [token, navigate]);
+
+  // Live Tutor Manager notifications: joins the "qaos" room so operational
+  // events (timetable:published, class:upcoming, class:live, class:ended...)
+  // show up without waiting for a manual refresh. The durable copies are still
+  // loaded over REST (GET /qao/notifications) on mount.
+  useEffect(() => {
+    if (!token) return undefined;
+    const qaoId = localStorage.getItem("userId");
+    const socket = io(BASE_URL, {
+      auth: { token, role: "qao", userId: qaoId },
+      query: { role: "qao", userId: qaoId },
+    });
+
+    const joinRoom = () => socket.emit("qao-join", qaoId || undefined);
+    if (socket.connected) joinRoom();
+    socket.on("connect", joinRoom);
+
+    const addLive = (payload, fallbackTitle) => {
+      if (!payload) return;
+      const title = payload.title || fallbackTitle;
+      const message = payload.message
+        || `${payload.subject || payload.classGroup || "Class"}${payload.date ? ` on ${new Date(payload.date).toLocaleDateString()}` : ""}`;
+      setNotifications((current) => [
+        {
+          _id: payload.notificationId || `live-${Date.now()}`,
+          title,
+          message,
+          type: payload.type || "info",
+          read: false,
+          createdAt: new Date().toISOString(),
+        },
+        ...current,
+      ]);
+    };
+
+    socket.on("notification:new", (p) => addLive(p, "Notification"));
+    socket.on("timetable:published", (p) => addLive(p, "Timetable published"));
+    socket.on("timetable:submitted", (p) => addLive(p, "Timetable submitted for review"));
+    socket.on("timetable:reviewed", (p) => addLive(p, "Timetable reviewed"));
+    socket.on("class:upcoming", (p) => addLive(p, "Upcoming class"));
+    socket.on("class:live", (p) => addLive(p, "Class is live"));
+    socket.on("class:ended", (p) => addLive(p, "Class ended"));
+
+    return () => socket.disconnect();
+  }, [token]);
 
   useEffect(() => {
     if (!token) return;
@@ -269,49 +381,45 @@ function TutorManagerDashboard() {
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-violet-50 to-pink-50 px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
-      {/* Header Card */}
-      <motion.div
-        className="relative overflow-hidden rounded-2xl bg-white/95 p-4 shadow-xl sm:rounded-[2rem] sm:p-6 sm:shadow-2xl"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55 }}
-      >
-        <div className="absolute -right-20 top-10 h-56 w-56 rounded-full bg-violet-200/60 blur-3xl" />
-        <div className="absolute left-8 top-0 h-36 w-36 rounded-full bg-pink-200/70 blur-3xl" />
-
-        <div className="relative flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fuchsia-700 sm:text-sm sm:tracking-[0.35em]">Tutor Manager</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:mt-3 sm:text-3xl sm:sm:text-4xl">
-              Streamline teacher approvals, communication, and resources.
-            </h1>
-            <p className="mt-2 text-xs leading-6 text-slate-600 sm:mt-4 sm:text-sm sm:leading-7">
-              This dashboard helps you monitor tutor activity, review learning assets, and keep your team aligned.
-            </p>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      {/* Header — compact & sticky */}
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3">
+          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-sm sm:h-10 sm:w-10">
+              <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
+            </span>
+            <div className="min-w-0">
+              <h1 className="truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base">Tutor Manager</h1>
+              <p className="hidden truncate text-xs text-slate-500 sm:block">Teachers · timetables · resources · operations</p>
+            </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <Button onClick={handleLogout} className="h-10 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3 text-xs font-semibold text-white shadow-md sm:h-11 sm:rounded-xl sm:px-5 sm:text-sm sm:shadow-lg">
-              <LogOut className="h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
-              <span className="sm:inline">Logout</span>
-            </Button>
-            <Button 
-              variant="outline" 
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
               onClick={() => setShowNotifs((open) => !open)}
-              className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 sm:h-11 sm:rounded-xl sm:px-4 sm:text-sm"
+              className="relative inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 sm:h-10 sm:w-10"
+              aria-label="Notifications"
             >
-              <Bell className="h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Notifications</span>
+              <Bell className="h-4 w-4" />
               {unreadNotifications.length > 0 && (
-                <span className="ml-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-semibold text-white sm:ml-2 sm:h-5 sm:min-w-[1.25rem] sm:px-2 sm:text-[11px]">
-                  {unreadNotifications.length}
+                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+                  {unreadNotifications.length > 9 ? "9+" : unreadNotifications.length}
                 </span>
               )}
+            </button>
+            <Button
+              onClick={handleLogout}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-slate-900 px-3 text-xs font-semibold text-white transition hover:bg-slate-800 sm:h-10 sm:px-4 sm:text-sm"
+            >
+              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
-      </motion.div>
+      </header>
+
+      <main className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
 
       {/* Notifications */}
       {showNotifs && (
@@ -366,7 +474,7 @@ function TutorManagerDashboard() {
 
       {/* Stat Cards */}
       <motion.div
-        className="grid grid-cols-2 gap-2 mt-6 sm:grid-cols-2 sm:gap-3 sm:mt-8 lg:grid-cols-4"
+        className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-5 sm:grid-cols-4 sm:gap-3"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -379,89 +487,57 @@ function TutorManagerDashboard() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-5 sm:mt-7">
-        <TabsList className="
-          flex
-          w-full
-          gap-1.5
-          overflow-x-auto
-          bg-transparent
-          sm:grid
-          sm:grid-cols-3
-          md:grid-cols-4
-          lg:grid-cols-5
-          [&_[data-slot=tab]]:rounded-lg
-          [&_[data-slot=tab]]:bg-white/90
-          [&_[data-slot=tab]]:px-2
-          [&_[data-slot=tab]]:py-2
-          [&_[data-slot=tab]]:text-xs
-          [&_[data-slot=tab]]:font-semibold
-          [&_[data-slot=tab]]:shadow-sm
-          [&_[data-slot=tab]]:data-[state=active]:bg-violet-600
-          [&_[data-slot=tab]]:data-[state=active]:text-white
-          sm:[&_[data-slot=tab]]:rounded-xl
-          sm:[&_[data-slot=tab]]:px-3
-          sm:[&_[data-slot=tab]]:py-2.5
-          sm:[&_[data-slot=tab]]:text-sm
-        ">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="teachers">Teachers</TabsTrigger>
-          <TabsTrigger value="class-groups">Classes</TabsTrigger>
-          <TabsTrigger value="resources">Resources</TabsTrigger>
-          <TabsTrigger value="broadcasts">Messages</TabsTrigger>
-          <TabsTrigger value="calendar">
-            <span className="hidden sm:inline">Calendar</span>
-            <span className="sm:hidden">Cal</span>
-          </TabsTrigger>
-          <TabsTrigger value="live-classes">
-            <span className="hidden sm:inline">Live Classes</span>
-            <span className="sm:hidden">Live</span>
-          </TabsTrigger>
-          <TabsTrigger value="live-ops">
-            <span className="hidden sm:inline">Live Ops</span>
-            <span className="sm:hidden">Ops</span>
-          </TabsTrigger>
-          <TabsTrigger value="reports">
-            <span className="hidden sm:inline">Reports</span>
-            <span className="sm:hidden">Rep</span>
-          </TabsTrigger>
-          <TabsTrigger value="performance">
-            <span className="hidden sm:inline">Performance</span>
-            <span className="sm:hidden">Perf</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications">
-            <span className="hidden sm:inline">Notifications</span>
-            <span className="sm:hidden">Alerts</span>
-          </TabsTrigger>
-          <TabsTrigger value="audit-logs">
-            <span className="hidden sm:inline">Audit Logs</span>
-            <span className="sm:hidden">Audit</span>
-          </TabsTrigger>
-          <TabsTrigger value="leave">
-            <span className="hidden sm:inline">Leave</span>
-            <span className="sm:hidden">Lv</span>
-          </TabsTrigger>
-          <TabsTrigger value="workload">
-            <span className="hidden sm:inline">Workload</span>
-            <span className="sm:hidden">WL</span>
-          </TabsTrigger>
-          <TabsTrigger value="timetables">
-            <span className="hidden sm:inline">Timetables</span>
-            <span className="sm:hidden">TT</span>
-          </TabsTrigger>
-          <TabsTrigger value="search">
-            <span className="hidden sm:inline">Search</span>
-            <span className="sm:hidden">Find</span>
-          </TabsTrigger>
-          <TabsTrigger value="settings">
-            <span className="hidden sm:inline">Settings</span>
-            <span className="sm:hidden">Set</span>
-          </TabsTrigger>
-          <TabsTrigger value="manage-class">
-            <Monitor className="inline mr-1 h-3 w-3 sm:mr-2 sm:h-3.5 sm:w-3.5" />
-            <span className="hidden sm:inline">Manage Class</span>
-            <span className="sm:hidden">Manage</span>
-          </TabsTrigger>
-        </TabsList>
+        {/* Grouped navigation — simple & professional */}
+        {/* Mobile: grouped dropdown */}
+        <div className="lg:hidden">
+          <select
+            value={activeTab}
+            onChange={(event) => setActiveTab(event.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-100"
+            aria-label="Tutor Manager section"
+          >
+            {NAV_GROUPS.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.items.map((item) => (
+                  <option key={item.id} value={item.id}>{item.label}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        {/* Desktop: grouped tab bar */}
+        <nav className="sticky top-[4.25rem] z-20 hidden rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur lg:block">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            {NAV_GROUPS.map((group) => (
+              <div key={group.label} className="flex items-center gap-2.5">
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{group.label}</span>
+                <span className="h-4 w-px bg-slate-200" />
+                <div className="flex flex-wrap items-center gap-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setActiveTab(item.id)}
+                        className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition ${
+                          active
+                            ? "bg-violet-600 font-semibold text-white shadow-sm"
+                            : "font-medium text-slate-600 hover:bg-violet-50 hover:text-violet-700"
+                        }`}
+                      >
+                        <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-white" : "text-slate-400"}`} />
+                        <span className="whitespace-nowrap">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </nav>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-4 sm:mt-6">
@@ -735,6 +811,9 @@ function TutorManagerDashboard() {
         <TabsContent value="timetables" className="mt-4 sm:mt-6">
           <TimetableApprovalsModule />
         </TabsContent>
+<TabsContent value="scheduler" className="mt-4 sm:mt-6">
+          <TeacherTimetableRecords />
+        </TabsContent>
 
         <TabsContent value="search" className="mt-4 sm:mt-6">
           <SearchModule />
@@ -744,22 +823,23 @@ function TutorManagerDashboard() {
           <SettingsModule />
         </TabsContent>
       </Tabs>
+      </main>
     </div>
   );
 }
 
 const StatCard = ({ title, value, description, color, icon }) => (
-  <motion.div whileHover={{ y: -4 }} className={`rounded-xl border border-white/80 bg-gradient-to-br ${color} p-4 text-white shadow-lg sm:rounded-[1.75rem] sm:p-5 sm:shadow-2xl`}>
+  <motion.div whileHover={{ y: -2 }} className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm sm:rounded-2xl sm:p-5">
     <div className="flex items-start justify-between gap-2 sm:gap-4">
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-white/80 sm:text-xs sm:tracking-[0.22em]">{title}</p>
-        <p className="mt-2 text-xl font-bold tracking-tight sm:mt-4 sm:text-2xl sm:sm:text-3xl">{value}</p>
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 sm:text-xs sm:tracking-[0.14em]">{title}</p>
+        <p className="mt-1.5 text-xl font-bold tracking-tight text-slate-900 sm:mt-3 sm:text-3xl">{value}</p>
       </div>
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white sm:h-12 sm:w-12 sm:rounded-2xl">
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${color} text-white shadow-sm sm:h-11 sm:w-11 sm:rounded-2xl`}>
         {icon}
       </div>
     </div>
-    <p className="mt-2 text-[11px] leading-5 text-white/80 sm:mt-5 sm:text-sm sm:leading-6">{description}</p>
+    <p className="mt-1.5 truncate text-[11px] leading-5 text-slate-500 sm:mt-3 sm:text-xs">{description}</p>
   </motion.div>
 );
 

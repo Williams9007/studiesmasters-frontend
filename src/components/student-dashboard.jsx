@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import StudentVirtualClasses from "./virtual/StudentVirtualClasses.jsx";
 import { Button } from "./ui/button";
 
 const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://lms.studiesmasters.com/";
@@ -30,6 +29,17 @@ const formatDate = (value) =>
 
 const formatMoney = (amount) =>
   new Intl.NumberFormat("en-GH", { style: "currency", currency: "GHS" }).format(Number(amount || 0));
+
+// Timetable calendar helpers (the "My timetable" card on the Overview tab).
+const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const dayNameOf = (value) => WEEK_DAYS[(new Date(value).getDay() + 6) % 7];
+const formatTimetableDay = (value) =>
+  new Date(value).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+const sameDay = (a, b) => {
+  const d1 = new Date(a);
+  const d2 = new Date(b);
+  return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+};
 
 export function StudentDashboard() {
   const navigate = useNavigate();
@@ -41,6 +51,10 @@ export function StudentDashboard() {
   const [readMessages, setReadMessages] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [timetable, setTimetable] = useState(null); // null = loading, [] = no classes this week
+  const [syncingMoodle, setSyncingMoodle] = useState(false);
+  const [moodleSyncMsg, setMoodleSyncMsg] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -49,6 +63,38 @@ export function StudentDashboard() {
     id: message._id || message.id || `message-${Date.now()}-${Math.random()}`,
     subjectName: message.subjectName || message.subject || "StudiesMasters",
   });
+
+  // Server notifications are durable records (e.g. "New Class Added to Your
+  // Timetable", "Class reminder", "Timetable published") fetched from
+  // GET /students/:id/notifications and pushed live over the socket.
+  // Live socket payloads carry `notificationId` (not `_id`), so prefer it —
+  // otherwise per-item Mark as read / Dismiss would PATCH a random id.
+  const normaliseNotification = (notification) => ({
+    ...notification,
+    id:
+      notification._id ||
+      notification.notificationId ||
+      notification.id ||
+      `notification-${Date.now()}-${Math.random()}`,
+    title: notification.title || "Notification",
+    message: notification.message || "",
+    read: Boolean(notification.read),
+    createdAt: notification.createdAt || new Date().toISOString(),
+  });
+
+  // Re-fetch this week's timetable. Called on mount and again whenever a class /
+  // timetable event arrives over the socket, so the "My timetable" calendar
+  // updates live the moment a timetable is fed in for this student.
+  const refreshTimetable = async (id = null) => {
+    const studentId = id || studentData?._id;
+    if (!studentId) return;
+    try {
+      const { data } = await apiClient.get(`/students/${studentId}/timetable`);
+      setTimetable(data?.timetable || []);
+    } catch (err) {
+      console.error("Failed to refresh timetable:", err);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -65,13 +111,25 @@ export function StudentDashboard() {
         if (!student?._id) throw new Error("Your student profile could not be loaded.");
 
         const broadcastsRequest = apiClient.get(`/students/broadcasts/${student._id}`);
-        const [broadcastsResponse] = await Promise.all([broadcastsRequest]);
+        const notificationsRequest = apiClient
+          .get(`/students/${student._id}/notifications`)
+          .catch(() => ({ data: { notifications: [] } }));
+        const timetableRequest = apiClient
+          .get(`/students/${student._id}/timetable`)
+          .catch(() => ({ data: { timetable: [] } }));
+        const [broadcastsResponse, notificationsResponse, timetableResponse] = await Promise.all([
+          broadcastsRequest,
+          notificationsRequest,
+          timetableRequest,
+        ]);
         if (!active) return;
 
         setStudentData(student);
         setSubjects(Array.isArray(data.subjects) ? data.subjects : student.subjectsEnrolled || []);
         setPayments(Array.isArray(data.payments) ? data.payments : []);
         setBroadcasts((broadcastsResponse.data.broadcasts || []).map(normaliseMessage));
+        setNotifications((notificationsResponse.data?.notifications || []).map(normaliseNotification));
+        setTimetable(timetableResponse.data?.timetable || []);
       } catch (error) {
         console.error("Error fetching student dashboard:", error);
         if (error.response?.status === 401) {
@@ -97,22 +155,160 @@ export function StudentDashboard() {
     if (!token) return;
 
     const socket = io(import.meta.env.VITE_API_URL || "http://localhost:5000", {
-      auth: { token, role: "student" },
-      query: { userId: studentData._id },
+      auth: { token, role: "student", userId: studentData._id },
+      query: { userId: studentData._id, role: "student" },
       transports: ["websocket"],
     });
     socketRef.current = socket;
+
+    // Join this student's private room so server-side emits reach us.
+    const joinRoom = () => socket.emit("student-join", studentData._id);
+    if (socket.connected) joinRoom();
+    socket.on("connect", joinRoom);
+
     socket.on("broadcast:new", (message) => setBroadcasts((current) => [normaliseMessage(message), ...current]));
+
+    // Durable notification payloads arrive as "notification:new"; the timetable
+    // lifecycle events carry a class/date payload instead of a title+message.
+    const pushNotification = (payload, fallbackTitle) => {
+      if (!payload) return;
+      const raw = payload.message
+        ? payload
+        : {
+            title: payload.title || fallbackTitle,
+            message: `${payload.subject || payload.classGroup || "Class"}${payload.date ? ` on ${formatDate(payload.date)}` : ""}`,
+            createdAt: new Date().toISOString(),
+          };
+      setNotifications((current) => [normaliseNotification(raw), ...current]);
+    };
+
+    // Bell entry + live timetable refresh. The socket payload for class /
+    // timetable events carries a class/date (not a title+message), so the
+    // calendar is re-fetched so the new class shows up immediately.
+    const onTimetableEvent = (payload, fallbackTitle) => {
+      pushNotification(payload, fallbackTitle);
+      refreshTimetable(studentData._id);
+    };
+
+    socket.on("notification:new", (payload) => pushNotification(payload, "Notification"));
+    socket.on("timetable:published", (payload) => onTimetableEvent(payload, "Timetable published"));
+    socket.on("class:created", (payload) => onTimetableEvent(payload, "New Class Added to Your Timetable"));
+    socket.on("class:upcoming", (payload) => onTimetableEvent(payload, "Upcoming class"));
+    socket.on("class:starting", (payload) => pushNotification(payload, "Class reminder"));
+    socket.on("class:live", (payload) => pushNotification(payload, "Class is live"));
+    socket.on("class:ended", (payload) => pushNotification(payload, "Class ended"));
+    socket.on("class:cancelled", (payload) => onTimetableEvent(payload, "Class cancelled"));
+    socket.on("meeting:updated", (payload) => pushNotification(payload, "Class link updated"));
+
     return () => socket.disconnect();
   }, [studentData?._id]);
 
   const unreadMessages = broadcasts.filter((message) => !readMessages.includes(message.id));
+  const unreadNotifications = notifications.filter((notification) => !notification.read);
+  const totalUnread = unreadMessages.length + unreadNotifications.length;
   const duration = studentData?.studyDuration || payments[0]?.duration || "Not set";
+
+  // The bell shows durable notifications (timetable/class events) first, then
+  // the most recent admin broadcasts.
+  const bellItems = [
+    ...notifications.map((notification) => ({ ...notification, kind: "notification" })),
+    ...broadcasts.map((message) => ({
+      ...message,
+      kind: "broadcast",
+      title: message.subjectName,
+      read: readMessages.includes(message.id),
+    })),
+  ]
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 15);
 
   const openInbox = (message) => {
     setReadMessages((current) => (current.includes(message.id) ? current : [...current, message.id]));
     setShowNotifications(false);
     setActiveTab("inbox");
+  };
+
+  // Persist "read" for server notifications so the badge stays accurate.
+  // Clicking a notification marks it read (and hides it via the
+  // "unread only" filter); Dismiss deletes it for good.
+  const markNotificationRead = async (notification) => {
+    if (!notification || notification.kind === "broadcast" || notification.read) return;
+    if (String(notification.id || "").startsWith("notification-")) return;
+    setNotifications((current) =>
+      current.map((item) => (item.id === notification.id ? { ...item, read: true } : item))
+    );
+    try {
+      await apiClient.patch(`/students/${studentData._id}/notifications/${notification.id}/read`);
+    } catch (err) {
+      console.error("Failed to mark notification read:", err);
+      setNotifications((current) =>
+        current.map((item) => (item.id === notification.id ? { ...item, read: false } : item))
+      );
+    }
+  };
+
+  // Mark every durable notification as read (server + local state).
+  const markAllNotificationsRead = async () => {
+    setNotifications((current) => current.map((item) => ({ ...item, read: true })));
+    try {
+      await apiClient.patch(`/students/${studentData._id}/notifications/read-all`);
+    } catch (err) {
+      console.error("Failed to mark all notifications read:", err);
+    }
+  };
+
+  // Dismiss (delete) one notification — removes the dummy test rows too.
+  const dismissNotification = async (notification) => {
+    if (!notification || notification.kind === "broadcast") return;
+    if (String(notification.id || "").startsWith("notification-")) {
+      setNotifications((current) => current.filter((item) => item.id !== notification.id));
+      return;
+    }
+    const previous = notifications;
+    setNotifications((current) => current.filter((item) => item.id !== notification.id));
+    try {
+      await apiClient.delete(`/students/${studentData._id}/notifications/${notification.id}`);
+    } catch (err) {
+      console.error("Failed to dismiss notification:", err);
+      setNotifications(previous);
+    }
+  };
+
+  // Clear read notifications on the server (keeps unread ones by default).
+  const clearReadNotifications = async () => {
+    const previous = notifications;
+    setNotifications((current) => current.filter((item) => !item.read));
+    try {
+      await apiClient.delete(`/students/${studentData._id}/notifications`);
+    } catch (err) {
+      console.error("Failed to clear read notifications:", err);
+      setNotifications(previous);
+    }
+  };
+
+  // Push this week's timetable into the student's Moodle calendar (user
+  // events). Moodle is where students access their live classes from.
+  const syncTimetableToMoodle = async () => {
+    setSyncingMoodle(true);
+    setMoodleSyncMsg("");
+    try {
+      const { data } = await apiClient.post("/moodle/sync/timetable");
+      setMoodleSyncMsg(
+        data?.synced
+          ? `Synced to Moodle ✔ ${data.created || 0} event(s) created, ${data.updated || 0} updated.${data.dryRun ? " (dry-run mode — connect MOODLE_WS_TOKEN for real events)" : ""}`
+          : `Moodle said: ${data?.reason || "nothing to sync"}.`
+      );
+    } catch (err) {
+      console.error("Moodle timetable sync failed:", err);
+      setMoodleSyncMsg(err.response?.data?.message || "Could not sync to Moodle right now.");
+    } finally {
+      setSyncingMoodle(false);
+    }
+  };
+
+  const openBellItem = (item) => {
+    if (item.kind === "broadcast") openInbox(item);
+    else markNotificationRead(item);
   };
 
   const logout = () => {
@@ -164,11 +360,12 @@ export function StudentDashboard() {
             <div className="relative">
               <button type="button" onClick={() => setShowNotifications((open) => !open)} className="relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 sm:h-10 sm:w-10" aria-label="Open notifications">
                 <Bell size={18} className="sm:hidden" /><Bell size={20} className="hidden sm:block" />
-                {unreadMessages.length > 0 && <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white">{unreadMessages.length > 9 ? "9+" : unreadMessages.length}</span>}
+                {totalUnread > 0 && <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white">{totalUnread > 9 ? "9+" : totalUnread}</span>}
               </button>
               {showNotifications && <div className="absolute right-0 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><p className="font-bold">Notifications</p><span className="text-xs text-slate-500">{unreadMessages.length} unread</span></div>
-                <div className="max-h-80 overflow-y-auto">{broadcasts.length ? broadcasts.slice(0, 5).map((message) => <button key={message.id} type="button" onClick={() => openInbox(message)} className="block w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-blue-50"><div className="flex items-start gap-3"><span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${readMessages.includes(message.id) ? "bg-slate-200" : "bg-blue-600"}`} /><span className="min-w-0"><span className="block text-sm font-semibold">{message.subjectName}</span><span className="mt-1 block truncate text-xs text-slate-600">{message.message}</span><span className="mt-1 block text-[11px] text-slate-400">{formatDate(message.createdAt)}</span></span></div></button>) : <p className="p-5 text-center text-sm text-slate-500">You're all caught up.</p>}</div>
+                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><p className="font-bold">Notifications</p><span className="text-xs text-slate-500">{totalUnread} unread</span></div>
+                <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2"><button type="button" onClick={markAllNotificationsRead} className="text-xs font-bold text-blue-600 hover:text-blue-700">Mark all as read</button><button type="button" onClick={clearReadNotifications} className="text-xs font-semibold text-slate-500 hover:text-slate-700">Clear read</button></div>
+                <div className="max-h-80 overflow-y-auto">{bellItems.length ? bellItems.map((item) => <div key={`${item.kind}-${item.id}`} className="flex items-start gap-2 border-b border-slate-100 px-4 py-3 hover:bg-blue-50"><button type="button" onClick={() => openBellItem(item)} className="block min-w-0 flex-1 text-left"><div className="flex items-start gap-3"><span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${item.read ? "bg-slate-200" : "bg-blue-600"}`} /><span className="min-w-0"><span className="block text-sm font-semibold">{item.title || "StudiesMasters"}</span><span className="mt-1 block truncate text-xs text-slate-600">{item.message}</span><span className="mt-1 block text-[11px] text-slate-400">{formatDate(item.createdAt)}</span></span></div></button>{item.kind === "notification" && <div className="flex shrink-0 flex-col items-end gap-1">{!item.read && <button type="button" onClick={() => markNotificationRead(item)} className="rounded-lg px-2 py-1 text-[11px] font-bold text-blue-600 hover:bg-blue-50" aria-label="Mark notification as read">Mark as read</button>}<button type="button" onClick={() => dismissNotification(item)} className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label="Dismiss notification">Dismiss</button></div>}</div>) : <p className="p-5 text-center text-sm text-slate-500">You're all caught up.</p>}</div>
                 <button type="button" onClick={() => { setShowNotifications(false); setActiveTab("inbox"); }} className="w-full px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50">View inbox</button>
               </div>}
             </div>
@@ -200,17 +397,51 @@ export function StudentDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 gap-4 sm:mt-8 sm:gap-5">
           <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
-            <TabsTrigger value="overview" className="min-h-10 shrink-0 px-3 sm:px-4">Home</TabsTrigger><TabsTrigger value="subjects" className="min-h-10 shrink-0 px-3 sm:px-4">My subjects</TabsTrigger><TabsTrigger value="inbox" className="min-h-10 shrink-0 px-3 sm:px-4">Messages {unreadMessages.length > 0 && <span className="rounded-full bg-blue-100 px-1.5 text-[10px] text-blue-700">{unreadMessages.length}</span>}</TabsTrigger><TabsTrigger value="payments" className="min-h-10 shrink-0 px-3 sm:px-4">Payments</TabsTrigger><TabsTrigger value="virtual" className="min-h-10 shrink-0 px-3 sm:px-4">Live classes</TabsTrigger>
+            <TabsTrigger value="overview" className="min-h-10 shrink-0 px-3 sm:px-4">Home</TabsTrigger><TabsTrigger value="subjects" className="min-h-10 shrink-0 px-3 sm:px-4">My subjects</TabsTrigger><TabsTrigger value="inbox" className="min-h-10 shrink-0 px-3 sm:px-4">Messages {unreadMessages.length > 0 && <span className="rounded-full bg-blue-100 px-1.5 text-[10px] text-blue-700">{unreadMessages.length}</span>}</TabsTrigger><TabsTrigger value="payments" className="min-h-10 shrink-0 px-3 sm:px-4">Payments</TabsTrigger>
           </TabsList>
-<TabsContent value="virtual" className="mt-4 sm:mt-6">
-            <StudentVirtualClasses />
-          </TabsContent>
 
-          <TabsContent value="overview">            <div className="grid gap-4 lg:grid-cols-5">
+          <TabsContent value="overview">
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+                <div className="min-w-0"><CardTitle>My timetable</CardTitle><CardDescription>Your classes for this week (Mon–Sun). Dummy test classes appear here with a DUMMY- code.</CardDescription></div>
+                <Button variant="outline" size="sm" disabled={syncingMoodle} onClick={syncTimetableToMoodle} className="shrink-0 rounded-full">{syncingMoodle ? "Syncing…" : "Sync to Moodle"}</Button>
+              </CardHeader>
+              <CardContent>
+                {moodleSyncMsg && <p className="mb-3 rounded-xl bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">{moodleSyncMsg}</p>}
+                {timetable === null ? <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">Loading your timetable…</p> : timetable.length ? (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {WEEK_DAYS.map((day) => {
+                      const dayItems = timetable.filter((item) => dayNameOf(item.date) === day);
+                      if (!dayItems.length) return null;
+                      const today = dayItems.some((item) => sameDay(item.date, new Date()));
+                      return (
+                        <div key={day} className={`rounded-2xl border p-3 ${today ? "border-blue-300 bg-blue-50/60" : "border-slate-200"}`}>
+                          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{formatTimetableDay(dayItems[0].date)}{today ? " · Today" : ""}</p>
+                          <div className="mt-2 space-y-2">
+                            {dayItems.map((item) => (
+                              <div key={item.id} className="rounded-xl bg-white px-3 py-2 shadow-sm">
+                                <div className="flex items-start justify-between gap-2">
+                                  <p className="text-sm font-bold">{item.subject || "Class"}</p>
+                                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${item.status === "live" ? "bg-red-100 text-red-700" : item.status === "completed" ? "bg-slate-100 text-slate-500" : "bg-emerald-100 text-emerald-700"}`}>{item.status}</span>
+                                </div>
+                                <p className="mt-1 text-xs text-slate-600">{item.startTime} – {item.endTime}</p>
+                                <p className="text-xs text-slate-400">{item.teacher}{item.groupCode ? ` · ${item.groupCode}` : ""}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">No classes on your timetable this week yet.</p>}
+              </CardContent>
+            </Card>
+            <div className="mt-4 grid gap-4 lg:grid-cols-5">
               <Card className="border-slate-200 shadow-sm lg:col-span-3">
                 <CardHeader><CardTitle>What would you like to do?</CardTitle><CardDescription>Choose one quick action.</CardDescription></CardHeader>
-                <CardContent className="grid gap-2 sm:grid-cols-3 sm:gap-3">
+                <CardContent className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
                   <button type="button" onClick={() => setActiveTab("subjects")} className="flex items-center gap-3 rounded-2xl bg-violet-50 p-3.5 text-left text-violet-900 transition hover:bg-violet-100 sm:flex-col sm:items-start sm:p-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 sm:h-auto sm:w-auto sm:bg-transparent"><BookOpen size={22} /></span><span className="min-w-0"><span className="block font-bold">My subjects</span><span className="mt-0.5 block text-xs text-violet-700 sm:mt-1">See your {subjects.length} classes</span></span></button>
+                  <button type="button" onClick={openMoodleClass} className="flex items-center gap-3 rounded-2xl bg-red-50 p-3.5 text-left text-red-900 transition hover:bg-red-100 sm:flex-col sm:items-start sm:p-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 sm:h-auto sm:w-auto sm:bg-transparent"><PlayCircle size={22} /></span><span className="min-w-0"><span className="block font-bold">Live classes</span><span className="mt-0.5 block text-xs text-red-700 sm:mt-1">Join on Moodle — your classes, calendar and Meet links all live there</span></span></button>
                   <button type="button" onClick={() => setActiveTab("inbox")} className="flex items-center gap-3 rounded-2xl bg-amber-50 p-3.5 text-left text-amber-900 transition hover:bg-amber-100 sm:flex-col sm:items-start sm:p-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 sm:h-auto sm:w-auto sm:bg-transparent"><Mail size={22} /></span><span className="min-w-0"><span className="block font-bold">Messages</span><span className="mt-0.5 block text-xs text-amber-700 sm:mt-1">{unreadMessages.length ? `${unreadMessages.length} new message${unreadMessages.length === 1 ? "" : "s"}` : "You are all caught up"}</span></span></button>
                   <button type="button" onClick={managePlanPayment} className="flex items-center gap-3 rounded-2xl bg-emerald-50 p-3.5 text-left text-emerald-900 transition hover:bg-emerald-100 sm:flex-col sm:items-start sm:p-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 sm:h-auto sm:w-auto sm:bg-transparent"><WalletCards size={22} /></span><span className="min-w-0"><span className="block font-bold">My plan</span><span className="mt-0.5 block text-xs text-emerald-700 sm:mt-1">Renew or upgrade</span></span></button>
                 </CardContent>

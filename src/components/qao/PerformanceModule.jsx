@@ -9,7 +9,7 @@ import {
 import apiClient from "../../utils/apiClient";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
-import { RefreshCw, FileClock, Download } from "lucide-react";
+import { RefreshCw, FileClock, Download, Star } from "lucide-react";
 
 const config = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("qaoToken")}` } });
 const LEVEL_COLORS = { underloaded: "#0ea5e9", balanced: "#059669", heavy: "#f59e0b", overloaded: "#e11d48" };
@@ -25,6 +25,9 @@ export default function PerformanceModule() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [notice, setNotice] = useState("");
+  // Manual "mark performance" edits per teacher: { [teacherId]: { rating, remark } }
+  const [edits, setEdits] = useState({});
+  const [savingId, setSavingId] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,6 +56,30 @@ export default function PerformanceModule() {
       setNotice("Snapshot generation failed.");
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const setEdit = (teacherId, field, value) =>
+    setEdits((p) => ({ ...p, [teacherId]: { ...(p[teacherId] || {}), [field]: value } }));
+
+  // Mark a teacher's performance for the selected month (manual QAO rating).
+  const markPerformance = async (teacherId) => {
+    const e = edits[teacherId] || {};
+    setSavingId(teacherId);
+    try {
+      await apiClient.patch(
+        `/qao/performance/${teacherId}/rating?month=${month}`,
+        { rating: e.rating ?? null, remark: e.remark ?? "" },
+        config()
+      );
+      setNotice(`Performance marked for ${month}.`);
+      setEdits((p) => { const n = { ...p }; delete n[teacherId]; return n; });
+      await load();
+    } catch (err) {
+      console.error("Mark performance error:", err);
+      setNotice(err.response?.data?.message || "Failed to mark performance.");
+    } finally {
+      setSavingId("");
     }
   };
 
@@ -151,7 +178,9 @@ export default function PerformanceModule() {
                     <th className="py-2 pr-3">Substituted</th>
                     <th className="py-2 pr-3">Hours</th>
                     <th className="py-2 pr-3">Cancel rate</th>
-                    <th className="py-2">Workload</th>
+                    <th className="py-2 pr-3">Workload</th>
+                    <th className="py-2 pr-3"><Star className="inline h-3 w-3" /> Mark</th>
+                    <th className="py-2">Rating remark</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -164,7 +193,36 @@ export default function PerformanceModule() {
                       <td className="py-2 pr-3 text-amber-600">{r.substitutedClasses}</td>
                       <td className="py-2 pr-3 font-semibold text-violet-700">{r.teachingHours}h</td>
                       <td className="py-2 pr-3 text-slate-600">{r.cancellationRate}%</td>
-                      <td className="py-2"><span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: LEVEL_COLORS[r.workloadLevel] + "1a", color: LEVEL_COLORS[r.workloadLevel] }}>{r.workloadLevel}</span></td>
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: LEVEL_COLORS[r.workloadLevel] + "1a", color: LEVEL_COLORS[r.workloadLevel] }}>{r.workloadLevel}</span></td>
+                      <td className="py-2 pr-3">
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={edits[r.teacherId]?.rating ?? (r.rating ?? "")}
+                            onChange={(e) => setEdit(r.teacherId, "rating", e.target.value)}
+                            className="rounded-lg border border-slate-300 px-1.5 py-1 text-[11px]"
+                            title="Mark performance (1-5)"
+                          >
+                            <option value="">—</option>
+                            {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} ★</option>)}
+                          </select>
+                          <Button
+                            size="sm"
+                            onClick={() => markPerformance(r.teacherId)}
+                            disabled={savingId === r.teacherId}
+                            className="rounded-full bg-violet-600 px-2 py-1 text-[10px] font-semibold text-white"
+                          >
+                            {savingId === r.teacherId ? "…" : "Save"}
+                          </Button>
+                        </div>
+                      </td>
+                      <td className="py-2">
+                        <input
+                          value={edits[r.teacherId]?.remark ?? (r.ratingRemark || "")}
+                          onChange={(e) => setEdit(r.teacherId, "remark", e.target.value)}
+                          placeholder="Add remark"
+                          className="w-32 rounded-lg border border-slate-300 px-1.5 py-1 text-[11px] sm:w-40"
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>

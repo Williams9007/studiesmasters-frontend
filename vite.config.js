@@ -30,7 +30,19 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
+    // Do NOT pre-bundle FullCalendar — its deep ESM internal views
+    // (e.g. DayTimeColsView, DayGrid, TimeGrid) break under esbuild's
+    // CJS/ESM interop layer and throw "cannot be invoked without 'new'".
+    // React itself still benefits from pre-bundling.
     include: ["react", "react-dom"],
+    exclude: [
+      "@fullcalendar/react",
+      "@fullcalendar/core",
+      "@fullcalendar/daygrid",
+      "@fullcalendar/timegrid",
+      "@fullcalendar/list",
+      "@fullcalendar/interaction",
+    ],
     force: true,
   },
 });

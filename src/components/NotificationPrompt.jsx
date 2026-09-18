@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import usePushNotifications from "../hooks/usePushNotifications";
 
 /**
  * NotificationPrompt
@@ -11,6 +12,8 @@ import { useState, useEffect } from "react";
  */
 export default function NotificationPrompt() {
   const [visible, setVisible] = useState(false);
+  const [status, setStatus] = useState("");
+  const { subscribe, loading, isSubscribed, permission } = usePushNotifications();
 
   useEffect(() => {
     // Don't show if:
@@ -34,19 +37,14 @@ export default function NotificationPrompt() {
   }, []);
 
   const handleAllow = async () => {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        // Show a test notification
-        new Notification("StudiesMasters", {
-          body: "You'll now receive important updates and reminders!",
-          icon: "/favicon.png",
-        });
-      }
-    } catch (err) {
-      console.warn("Notification permission error:", err);
+    setStatus("");
+    const result = await subscribe();
+    if (result.success) {
+      setStatus("Notifications enabled on this device.");
+      setTimeout(() => setVisible(false), 900);
+      return;
     }
-    setVisible(false);
+    setStatus(result.error || "Could not enable notifications.");
   };
 
   const handleDismiss = () => {
@@ -54,11 +52,11 @@ export default function NotificationPrompt() {
     setVisible(false);
   };
 
-  if (!visible) return null;
+  if (!visible || isSubscribed || permission === "granted") return null;
 
   return (
     <div className="fixed inset-x-0 top-0 z-[9999] flex justify-center px-4 pt-4 animate-slideDown">
-      <div className="flex w-full max-w-lg items-start gap-3 rounded-2xl border border-blue-200 bg-white p-4 shadow-2xl shadow-blue-900/10">
+      <div className="notification-permission-card flex w-full max-w-lg items-start gap-3 rounded-2xl border border-blue-200 bg-white p-4 shadow-2xl shadow-blue-900/10">
         {/* Bell icon */}
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -78,9 +76,10 @@ export default function NotificationPrompt() {
           <div className="mt-3 flex gap-2">
             <button
               onClick={handleAllow}
+              disabled={loading}
               className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
             >
-              Allow Notifications
+              {loading ? "Enabling..." : "Allow Notifications"}
             </button>
             <button
               onClick={handleDismiss}
@@ -89,6 +88,7 @@ export default function NotificationPrompt() {
               Not Now
             </button>
           </div>
+          {status && <p className="mt-2 text-xs font-semibold text-blue-700">{status}</p>}
         </div>
 
         {/* Close X */}

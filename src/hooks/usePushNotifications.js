@@ -95,8 +95,20 @@ export default function usePushNotifications() {
 
       setSubscription(sub);
 
-      // 5. Save the subscription to the backend (no auth required)
-      await apiClient.post("/notifications/subscribe", sub);
+      // 5. Save the subscription to the backend (no auth required).
+      // Attach the logged-in user (if any) so timetable pushes can target
+      // exactly this teacher / student instead of broadcasting to everyone.
+      let userId = null;
+      let role = null;
+      try {
+        userId = localStorage.getItem("userId") || null;
+        role = localStorage.getItem("role") || null;
+      } catch { /* private-mode browsers may block localStorage */ }
+      await apiClient.post("/notifications/subscribe", {
+        ...sub.toJSON(),
+        ...(userId ? { userId } : {}),
+        ...(role ? { role } : {}),
+      });
 
       return { success: true, subscription: sub };
     } catch (err) {

@@ -30,11 +30,24 @@ export default function NotificationBell() {
 
     fetchNotifications();
 
-    const socket = io(BASE_URL, { auth: { token } });
+    const socket = io(BASE_URL, { auth: { token, role: "admin" }, query: { role: "admin" } });
     socketRef.current = socket;
+
+    // Join the admin rooms so admin-targeted notifications reach this bell.
+    const joinRoom = () => socket.emit("admin-join", localStorage.getItem("adminId") || undefined);
+    if (socket.connected) joinRoom();
+    socket.on("connect", joinRoom);
 
     socket.on("new-broadcast", (notification) => {
       setNotifications((prev) => [notification, ...prev]);
+    });
+
+    // Durable + class lifecycle notifications for the admin bell.
+    socket.on("notification:new", (n) => {
+      if (n?.title || n?.message) setNotifications((prev) => [{ ...n, _id: n.notificationId || n._id, read: false, createdAt: new Date().toISOString() }, ...prev]);
+    });
+    socket.on("timetable:published", (p) => {
+      setNotifications((prev) => [{ _id: `tt-${Date.now()}`, message: `Timetable published for ${p.classGroup || "a class"} (${p.count || 0} sessions)`, read: false, createdAt: new Date().toISOString() }, ...prev]);
     });
 
     return () => socket.disconnect();

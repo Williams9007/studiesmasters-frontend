@@ -23,6 +23,7 @@ import SystemGuardPage from "./components/SystemGuardPage.jsx";
 import PrivateAdminRoute from "./utils/PrivateAdminRoute.jsx";
 import NotificationSettings from "./components/NotificationSettings.jsx";
 import NotificationPrompt from "./components/NotificationPrompt.jsx";
+import NotificationToaster from "./components/NotificationToaster.jsx";
 
 function App() {
   const handleSignup = async (data) => {
@@ -52,6 +53,7 @@ function App() {
   return (
     <ErrorBoundary>
       <NotificationPrompt />
+      <NotificationToaster />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />

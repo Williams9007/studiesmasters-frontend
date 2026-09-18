@@ -15,6 +15,7 @@ import {
   FaSignOutAlt,
   FaLayerGroup,
   FaBook,
+  FaCalendarAlt,
 } from "react-icons/fa";
 
 import Overview from "./Admin/Overview";
@@ -26,6 +27,7 @@ import SubjectsTab from "./Admin/SubjectsTab";
 import MoodleTab from "./Admin/MoodleTab";
 import AdminVirtualOps from "./virtual/AdminVirtualOps.jsx";
 import NotificationBell from "./Admin/NotificationItem";
+import TimetableModule from "./timetable/TimetableModule";
 
 
 
@@ -269,11 +271,24 @@ useEffect(()=>{
           withCredentials:true,
 
           query:{
-            userId:user._id
+            userId:user._id,
+            role:"admin"
+          },
+
+          auth:{
+            userId:user._id,
+            role:"admin"
           }
 
         }
       );
+
+    // Join the admin rooms ("admins" + admin:{id}) so admin-targeted events
+    // (class:live, class:ended, meeting:updated, teacher:replaced) are delivered.
+    socket.emit(
+      "admin-join",
+      user._id
+    );
 
 
 
@@ -509,6 +524,101 @@ const handleLogout = ()=>{
 */
 
 
+// Admin "Class records" — merged attendance/performance from the main website
+// AND Moodle, per teacher and per student.
+function AdminClassRecords() {
+  const [view, setView] = useState("students");
+  const [data, setData] = useState({ teachers: [], students: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const token = localStorage.getItem("adminToken") || localStorage.getItem("token");
+        const res = await fetch(`${BASE_URL}/api/admin/performance`, { headers: { Authorization: `Bearer ${token}` } });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || "Failed to load class records");
+        if (live) setData({ teachers: json.teachers || [], students: json.students || [] });
+      } catch (err) {
+        if (live) setError(err.message);
+      } finally {
+        if (live) setLoading(false);
+      }
+    })();
+    return () => { live = false; };
+  }, []);
+
+  const th = "px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500";
+  const td = "px-3 py-3 text-sm text-slate-700";
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold">Class records</h2>
+          <p className="text-sm text-slate-500">Attendance and performance merged from the main website and Moodle.</p>
+        </div>
+        <div className="flex gap-1 rounded-xl border border-slate-200 bg-white p-1">
+          {[["students", "Students"], ["teachers", "Teachers"]].map(([id, label]) => (
+            <button key={id} type="button" onClick={() => setView(id)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${view === id ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading && <p className="rounded-xl bg-white p-4 text-sm text-slate-500 shadow-sm">Loading class records…</p>}
+      {error && <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+
+      {!loading && !error && view === "students" && (
+        <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
+          <table className="w-full min-w-[680px]">
+            <thead className="border-b border-slate-200"><tr><th className={th}>Student</th><th className={th}>Class</th><th className={th}>Subject</th><th className={th}>Sessions</th><th className={th}>Attended</th><th className={th}>Attendance</th><th className={th}>Minutes</th></tr></thead>
+            <tbody>
+              {data.students.map((row) => (
+                <tr key={row.studentId} className="border-b border-slate-100 last:border-0">
+                  <td className={`${td} font-semibold`}>{row.name}</td>
+                  <td className={td}>{row.classGroup}</td>
+                  <td className={td}>{row.subject}</td>
+                  <td className={td}>{row.totalSessions}</td>
+                  <td className={td}>{row.attended}</td>
+                  <td className={td}><span className={`rounded-full px-2 py-0.5 text-xs font-bold ${row.attendancePct >= 75 ? "bg-emerald-100 text-emerald-700" : row.attendancePct >= 50 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>{row.attendancePct}%</span></td>
+                  <td className={td}>{row.minutes}</td>
+                </tr>
+              ))}
+              {!data.students.length && <tr><td className={td} colSpan={7}>No attendance records yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!loading && !error && view === "teachers" && (
+        <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
+          <table className="w-full min-w-[680px]">
+            <thead className="border-b border-slate-200"><tr><th className={th}>Teacher</th><th className={th}>Class</th><th className={th}>Students</th><th className={th}>Completed sessions</th><th className={th}>Attendance joins</th><th className={th}>Minutes taught</th></tr></thead>
+            <tbody>
+              {data.teachers.map((row, i) => (
+                <tr key={`${row.teacherId}-${i}`} className="border-b border-slate-100 last:border-0">
+                  <td className={`${td} font-semibold`}>{row.name}</td>
+                  <td className={td}>{row.classGroup} · {row.subject} · {row.grade}</td>
+                  <td className={td}>{row.students}</td>
+                  <td className={td}>{row.completedSessions}</td>
+                  <td className={td}>{row.attendanceJoins}</td>
+                  <td className={td}>{row.minutes}</td>
+                </tr>
+              ))}
+              {!data.teachers.length && <tr><td className={td} colSpan={6}>No class groups assigned yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const tabs = [
 
   {
@@ -551,6 +661,12 @@ const tabs = [
     icon:FaBook
   },
 
+  {
+    id:"timetable",
+    label:"Timetable",
+    icon:FaCalendarAlt
+  },
+
 
   {
     id:"moodle",
@@ -561,6 +677,12 @@ const tabs = [
   {
     id:"virtual",
     label:"Virtual Ops",
+    icon:FaChartPie
+  },
+
+  {
+    id:"records",
+    label:"Class records",
     icon:FaChartPie
   }
 
@@ -596,11 +718,17 @@ const renderContent = () => {
     case "subjects":
       return <SubjectsTab/>;
 
+    case "timetable":
+      return <TimetableModule tokenKey="adminToken" apiPrefix="/admin" teacherEndpoint="/admin/class-groups/options" classGroupsEndpoint="/admin/class-groups" moodleSyncEndpoint="/admin/timetable/sync-moodle" />;
+
     case "moodle":
       return <MoodleTab/>;
 
     case "virtual":
       return <AdminVirtualOps/>;
+
+    case "records":
+      return <AdminClassRecords/>;
 
     default:
       return <Overview/>;

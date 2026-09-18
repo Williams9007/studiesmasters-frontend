@@ -97,18 +97,22 @@ self.addEventListener("push", (event) => {
   }
 
   const title = data.title || "StudiesMasters";
+  const destinationUrl = data.url || data.link || "/";
   const options = {
-    body: data.body || "You have a new notification.",
-    icon: "/favicon.png",
-    badge: "/favicon.png",
+    body: data.body || data.message || "You have a new notification.",
+    icon: data.icon || "/favicon.png",
+    badge: data.badge || "/favicon.png",
     tag: data.tag || "studiesmasters-notification",
+    renotify: Boolean(data.renotify),
+    requireInteraction: Boolean(data.requireInteraction),
+    silent: Boolean(data.silent),
     data: {
-      url: data.url || "/",
+      url: destinationUrl,
+      type: data.type || "info",
+      createdAt: data.createdAt || new Date().toISOString(),
     },
     // Vibrate pattern for mobile devices
-    vibrate: [200, 100, 200],
-    // Require user interaction to dismiss (stays visible)
-    requireInteraction: false,
+    vibrate: Array.isArray(data.vibrate) ? data.vibrate : [160, 80, 160],
     actions: [
       { action: "open", actionLabel: "Open", title: "Open" },
       { action: "dismiss", actionLabel: "Dismiss", title: "Dismiss" },
@@ -122,14 +126,24 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const url = event.notification.data?.url || "/";
+  if (event.action === "dismiss") return;
+
+  const rawUrl = event.notification.data?.url || "/";
+  const url = new URL(rawUrl, self.location.origin).href;
 
   event.waitUntil(
     // Focus the tab if it's already open, otherwise open a new one
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url === url && "focus" in client) {
-          return client.focus();
+        if ("focus" in client) {
+          const clientUrl = new URL(client.url);
+          const targetUrl = new URL(url);
+          if (clientUrl.origin === targetUrl.origin && clientUrl.pathname === targetUrl.pathname) {
+            if ("navigate" in client && client.url !== url) {
+              return client.navigate(url).then((navigated) => navigated.focus());
+            }
+            return client.focus();
+          }
         }
       }
       if (clients.openWindow) {
