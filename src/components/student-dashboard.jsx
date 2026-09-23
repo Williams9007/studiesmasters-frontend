@@ -55,6 +55,9 @@ export function StudentDashboard() {
   const [timetable, setTimetable] = useState(null); // null = loading, [] = no classes this week
   const [syncingMoodle, setSyncingMoodle] = useState(false);
   const [moodleSyncMsg, setMoodleSyncMsg] = useState("");
+  // Guards the AUTOMATIC Moodle push: the dashboard load and every timetable
+  // refresh both trigger a sync, so this prevents overlapping requests.
+  const moodleSyncRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -85,12 +88,15 @@ export function StudentDashboard() {
   // Re-fetch this week's timetable. Called on mount and again whenever a class /
   // timetable event arrives over the socket, so the "My timetable" calendar
   // updates live the moment a timetable is fed in for this student.
+  // The Moodle push is automatic: every refresh re-syncs the week (including the
+  // Google Meet link) so students never need to press "Sync to Moodle".
   const refreshTimetable = async (id = null) => {
     const studentId = id || studentData?._id;
     if (!studentId) return;
     try {
       const { data } = await apiClient.get(`/students/${studentId}/timetable`);
       setTimetable(data?.timetable || []);
+      if ((data?.timetable || []).length > 0) syncTimetableToMoodleAuto();
     } catch (err) {
       console.error("Failed to refresh timetable:", err);
     }
@@ -130,6 +136,9 @@ export function StudentDashboard() {
         setBroadcasts((broadcastsResponse.data.broadcasts || []).map(normaliseMessage));
         setNotifications((notificationsResponse.data?.notifications || []).map(normaliseNotification));
         setTimetable(timetableResponse.data?.timetable || []);
+        // Automatic Moodle sync on dashboard load — pushes this week's classes
+        // (with their Google Meet links) into the student's Moodle calendar.
+        if ((timetableResponse.data?.timetable || []).length > 0) syncTimetableToMoodleAuto();
       } catch (error) {
         console.error("Error fetching student dashboard:", error);
         if (error.response?.status === 401) {
@@ -257,7 +266,7 @@ export function StudentDashboard() {
     }
   };
 
-  // Dismiss (delete) one notification — removes the dummy test rows too.
+  // Dismiss (delete) one durable notification — removes it for good.
   const dismissNotification = async (notification) => {
     if (!notification || notification.kind === "broadcast") return;
     if (String(notification.id || "").startsWith("notification-")) {
@@ -286,22 +295,27 @@ export function StudentDashboard() {
     }
   };
 
-  // Push this week's timetable into the student's Moodle calendar (user
-  // events). Moodle is where students access their live classes from.
-  const syncTimetableToMoodle = async () => {
+  // Push this week's timetable into the student's Moodle calendar. This now runs
+  // AUTOMATICALLY (on dashboard load and whenever the timetable changes) instead
+  // of requiring the student to press a "Sync to Moodle" button.
+  // Non-blocking: failures are logged only, never surfaced as an error.
+  const syncTimetableToMoodleAuto = async () => {
+    if (moodleSyncRef.current) return; // a sync is already in flight
+    moodleSyncRef.current = true;
     setSyncingMoodle(true);
-    setMoodleSyncMsg("");
     try {
       const { data } = await apiClient.post("/moodle/sync/timetable");
-      setMoodleSyncMsg(
-        data?.synced
-          ? `Synced to Moodle ✔ ${data.created || 0} event(s) created, ${data.updated || 0} updated.${data.dryRun ? " (dry-run mode — connect MOODLE_WS_TOKEN for real events)" : ""}`
-          : `Moodle said: ${data?.reason || "nothing to sync"}.`
-      );
+      if (data?.synced) {
+        setMoodleSyncMsg(
+          `Moodle calendar updated ✔ ${data.created || 0} event(s) created, ${data.updated || 0} updated.${data.dryRun ? " (dry-run mode — connect MOODLE_WS_TOKEN for real events)" : ""}`
+        );
+      } else if (data?.reason) {
+        setMoodleSyncMsg(`Moodle said: ${data.reason}.`);
+      }
     } catch (err) {
-      console.error("Moodle timetable sync failed:", err);
-      setMoodleSyncMsg(err.response?.data?.message || "Could not sync to Moodle right now.");
+      console.error("Automatic Moodle timetable sync failed:", err);
     } finally {
+      moodleSyncRef.current = false;
       setSyncingMoodle(false);
     }
   };
@@ -403,8 +417,7 @@ export function StudentDashboard() {
           <TabsContent value="overview">
             <Card className="border-slate-200 shadow-sm">
               <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-                <div className="min-w-0"><CardTitle>My timetable</CardTitle><CardDescription>Your classes for this week (Mon–Sun). Dummy test classes appear here with a DUMMY- code.</CardDescription></div>
-                <Button variant="outline" size="sm" disabled={syncingMoodle} onClick={syncTimetableToMoodle} className="shrink-0 rounded-full">{syncingMoodle ? "Syncing…" : "Sync to Moodle"}</Button>
+                <div className="min-w-0"><CardTitle>My timetable</CardTitle><CardDescription>Your classes for this week (Mon–Sun), synced automatically to your Moodle calendar with the Google Meet link for each lesson.</CardDescription></div>
               </CardHeader>
               <CardContent>
                 {moodleSyncMsg && <p className="mb-3 rounded-xl bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">{moodleSyncMsg}</p>}

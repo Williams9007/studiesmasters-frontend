@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -40,6 +40,9 @@ export function TeacherDashboard({ user = {}, onLogout }) {
   const [messagesSub, setMessagesSub] = useState("inbox"); // sub-tab: inbox | broadcasts
   const [syncingMoodle, setSyncingMoodle] = useState(false);
   const [moodleSyncMsg, setMoodleSyncMsg] = useState("");
+  // Guards the AUTOMATIC Moodle push: the dashboard load and every timetable
+  // refresh both trigger a sync, so this prevents overlapping requests.
+  const moodleSyncRef = useRef(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [recentMessage, setRecentMessage] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -131,7 +134,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     // "My timetable" calendar updates without a manual reload.
     const onTimetableEvent = (payload, fallbackTitle) => {
       onServerNotification(payload, fallbackTitle);
-      fetchTimetable();
+      fetchTimetable(); // fetchTimetable now auto-syncs to Moodle
     };
 
     socket.on("notification:new", (payload) => onServerNotification(payload, "Notification"));
@@ -384,7 +387,9 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     }
   };
 
-  // GET /api/teachers/:id/timetable — this week's classes for the calendar card.
+    // GET /api/teachers/:id/timetable — this week's classes for the calendar card.
+  // Automatically syncs classes to Moodle after fetching, so teachers don't
+  // need to click "Sync to Moodle" manually for their classes to appear.
   const fetchTimetable = async () => {
     if (!teacherId || !token) return;
     try {
@@ -393,9 +398,42 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       });
       const data = await readJson(res);
       setTimetable(data.timetable || []);
+      // Auto-sync classes to Moodle immediately after fetching timetable
+      if ((data.timetable || []).length > 0) {
+        syncClassesToMoodleAuto();
+      }
     } catch (err) {
       console.error("Unable to load teacher timetable:", err);
       setTimetable([]);
+    }
+  };
+
+  // Auto-sync — runs on dashboard load and whenever a class/timetable socket
+  // event fires, so the Google Meet link for every session reaches Moodle
+  // without the teacher pressing a button. Never throws to the UI.
+  const syncClassesToMoodleAuto = async () => {
+    if (moodleSyncRef.current) return; // a sync is already in flight
+    moodleSyncRef.current = true;
+    setSyncingMoodle(true);
+    try {
+      const res = await fetch(`${BASE_URL}/api/moodle/sync/teacher-timetable`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await readJson(res);
+      if (data?.synced) {
+        setMoodleSyncMsg(
+          `Moodle calendar updated ✔ ${data.created || 0} event(s) created, ${data.updated || 0} updated.${data.dryRun ? " (dry-run mode — connect MOODLE_WS_TOKEN for real events)" : ""}`
+        );
+      } else if (data?.reason) {
+        setMoodleSyncMsg(`Moodle said: ${data.reason}.`);
+      }
+    } catch (err) {
+      console.error("Automatic Moodle sync failed:", err);
+      // Non-blocking — a sync failure must never break the timetable card.
+    } finally {
+      moodleSyncRef.current = false;
+      setSyncingMoodle(false);
     }
   };
 
@@ -414,33 +452,8 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     }
   };
 
-  // Push this week's classes into the teacher's Moodle calendar (user events).
-  // Moodle is where teachers manage their live classes; every action there
-  // (start/end/join/leave) still records back into MongoDB.
-  const syncClassesToMoodle = async () => {
-    setSyncingMoodle(true);
-    setMoodleSyncMsg("");
-    try {
-      const res = await fetch(`${BASE_URL}/api/moodle/sync/teacher-timetable`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await readJson(res);
-      setMoodleSyncMsg(
-        data?.synced
-          ? `Synced to Moodle ✔ ${data.created || 0} event(s) created, ${data.updated || 0} updated.${data.dryRun ? " (dry-run mode — connect MOODLE_WS_TOKEN for real events)" : ""}`
-          : `Moodle said: ${data?.reason || "nothing to sync"}.`
-      );
-    } catch (err) {
-      console.error("Moodle teacher timetable sync failed:", err);
-      setMoodleSyncMsg("Could not sync to Moodle right now.");
-    } finally {
-      setSyncingMoodle(false);
-    }
-  };
-
   // Mark ONE durable notification as read (server + local). Local-only notes
-  // are just flipped locally; dummy rows are server rows so they persist.
+  // are just flipped locally; server rows persist across sessions.
   const markOneNotificationRead = async (note) => {
     if (!note || note.read) return;
     if (!note.server || !note.serverId) {
@@ -473,7 +486,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     }
   };
 
-  // Dismiss (delete) one durable notification — removes dummy test rows too.
+  // Dismiss (delete) one durable notification — removes it for good.
   const dismissServerNotification = async (note) => {
     if (!note?.server || !note.serverId) {
       setNotifications(prev => prev.filter((n) => n.id !== note.id));
@@ -711,8 +724,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
           <TabsContent value="overview" className="mt-4 grid gap-4 sm:mt-5 sm:gap-5 lg:grid-cols-2">
             <div className="lg:col-span-2">
               <Card><CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-                <div className="min-w-0"><CardTitle>My timetable</CardTitle><CardDescription>Your classes for this week (Mon–Sun). Live classes are managed from Moodle; records sync back here.</CardDescription></div>
-                <Button variant="outline" size="sm" disabled={syncingMoodle} onClick={syncClassesToMoodle} className="shrink-0 rounded-full">{syncingMoodle ? "Syncing…" : "Sync to Moodle"}</Button>
+                <div className="min-w-0"><CardTitle>My timetable</CardTitle><CardDescription>Your classes for this week (Mon–Sun), synced automatically to Moodle with the Google Meet link for every session. Live classes are managed from Moodle; records sync back here.</CardDescription></div>
               </CardHeader><CardContent>
                 {moodleSyncMsg && <p className="mb-3 rounded-xl bg-violet-50 px-3 py-2 text-xs font-medium text-violet-700">{moodleSyncMsg}</p>}
                 {timetable === null ? <p className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">Loading your timetable…</p> : timetable.length ? (
