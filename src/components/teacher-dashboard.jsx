@@ -18,13 +18,24 @@ const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://lms
 
 // Timetable calendar helpers (the "My timetable" card on the Overview tab).
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const dayNameOf = (value) => WEEK_DAYS[(new Date(value).getDay() + 6) % 7];
-const formatTimetableDay = (value) =>
-  new Date(value).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+// ClassSession.date is stored as UTC midnight for the intended calendar day.
+// Read UTC parts here so browsers behind UTC do not display the class one day early.
+const sessionDateParts = (value) => {
+  const d = new Date(value);
+  return [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()];
+};
+const dayNameOf = (value) => {
+  const [year, month, day] = sessionDateParts(value);
+  return WEEK_DAYS[(new Date(Date.UTC(year, month, day)).getUTCDay() + 6) % 7];
+};
+const formatTimetableDay = (value) => {
+  const [year, month, day] = sessionDateParts(value);
+  return new Date(Date.UTC(year, month, day)).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+};
 const sameDay = (a, b) => {
-  const d1 = new Date(a);
-  const d2 = new Date(b);
-  return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+  const d1 = sessionDateParts(a);
+  const d2 = sessionDateParts(b);
+  return d1[0] === d2[0] && d1[1] === d2[1] && d1[2] === d2[2];
 };
 
 export function TeacherDashboard({ user = {}, onLogout }) {
@@ -484,7 +495,7 @@ export function TeacherDashboard({ user = {}, onLogout }) {
       const data = await readJson(res);
       if (data?.synced) {
         setMoodleSyncMsg(
-          `Moodle calendar updated ✔ ${data.created || 0} event(s) created, ${data.updated || 0} updated.${data.dryRun ? " (dry-run mode — connect MOODLE_WS_TOKEN for real events)" : ""}`
+          `Moodle calendar ${data.failed ? "needs attention" : "updated"} ✔ ${data.created || 0} event(s) created, ${data.updated || 0} updated.${data.dryRun ? " (dry-run mode — no live Moodle changes)" : ""}`
         );
       } else if (data?.reason) {
         setMoodleSyncMsg(`Moodle said: ${data.reason}.`);
