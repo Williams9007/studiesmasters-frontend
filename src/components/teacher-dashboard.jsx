@@ -8,7 +8,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { BookOpen, User, Bell, CheckCircle, Send, LogOut, PlayCircle, ArrowUpRight } from "lucide-react";
+import { BookOpen, User, Bell, CheckCircle, Send, LogOut, PlayCircle, ArrowUpRight, CalendarDays, Unlink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
 import { FaUsers } from "react-icons/fa";
@@ -64,6 +64,9 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     const [timetableRecords, setTimetableRecords] = useState([]);
     const [newTimetable, setNewTimetable] = useState({ subjectId: "", classLevel: "", fileUrl: "", fileName: "" });
     const [submittingTimetable, setSubmittingTimetable] = useState(false);
+  const [googleStatus, setGoogleStatus] = useState({ connected: false, loading: true });
+  const [googleActionLoading, setGoogleActionLoading] = useState(false);
+  const [googleMessage, setGoogleMessage] = useState("");
   const displayTeacher = teacherProfile || user;
 
   const readJson = async (response) => {
@@ -73,9 +76,67 @@ export function TeacherDashboard({ user = {}, onLogout }) {
     return response.json();
   };
 
+  const fetchGoogleStatus = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${BASE_URL}/api/google/teacher/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await readJson(res);
+      setGoogleStatus({ ...(data.data || {}), loading: false });
+    } catch (error) {
+      setGoogleStatus({ connected: false, loading: false, error: error.message });
+    }
+  };
+
+  const connectGoogle = async () => {
+    setGoogleActionLoading(true);
+    setGoogleMessage("");
+    try {
+      const res = await fetch(`${BASE_URL}/api/google/teacher/connect`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await readJson(res);
+      if (data.consentUrl) {
+        window.open(data.consentUrl, "_blank", "noopener,noreferrer");
+        setGoogleMessage("Complete Google sign-in in the new tab, then return here.");
+      } else {
+        setGoogleMessage(data.message || "Google account is already connected.");
+        await fetchGoogleStatus();
+      }
+    } catch (error) {
+      setGoogleMessage(error.response?.data?.message || "Unable to start Google connection.");
+    } finally {
+      setGoogleActionLoading(false);
+    }
+  };
+
+  const disconnectGoogle = async () => {
+    setGoogleActionLoading(true);
+    setGoogleMessage("");
+    try {
+      const res = await fetch(`${BASE_URL}/api/google/teacher/disconnect`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await readJson(res);
+      setGoogleMessage(data.message || "Google account disconnected.");
+      setGoogleStatus({ connected: false, loading: false });
+    } catch (error) {
+      setGoogleMessage(error.response?.data?.message || "Unable to disconnect Google account.");
+    } finally {
+      setGoogleActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined") setToken(localStorage.getItem("token"));
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    fetchGoogleStatus();
+  }, [token]);
 
   useEffect(() => {
     if (!teacherId || !token) return;
@@ -722,6 +783,40 @@ export function TeacherDashboard({ user = {}, onLogout }) {
   </TabsList>
 
           <TabsContent value="overview" className="mt-4 grid gap-4 sm:mt-5 sm:gap-5 lg:grid-cols-2">
+            <Card className="lg:col-span-2 border-violet-200 bg-gradient-to-br from-violet-50 to-white">
+              <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+                <div className="flex gap-3">
+                  <div className="rounded-xl bg-white p-2 text-violet-600 shadow-sm"><CalendarDays size={22} /></div>
+                  <div>
+                    <CardTitle>Google Calendar & Meet access</CardTitle>
+                    <CardDescription>Connect your Google account so StudiesMasters classes appear on your Calendar and you are automatically invited as a Meet co-host.</CardDescription>
+                  </div>
+                </div>
+                <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${googleStatus.connected ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                  {googleStatus.loading ? "Checking..." : googleStatus.connected ? "Connected" : "Not connected"}
+                </span>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-slate-600">
+                  {googleStatus.connected ? (
+                    <span>Connected as <strong className="text-slate-900">{googleStatus.googleMeetEmail}</strong>. Calendar invitations and reminders are sent automatically.</span>
+                  ) : (
+                    <span>You need to verify the Google account that should receive class invitations and join as co-host.</span>
+                  )}
+                  {googleMessage && <p className="mt-1 text-xs text-violet-700">{googleMessage}</p>}
+                </div>
+                {googleStatus.connected ? (
+                  <Button type="button" variant="outline" onClick={disconnectGoogle} disabled={googleActionLoading} className="shrink-0 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800">
+                    <Unlink size={16} /> {googleActionLoading ? "Working..." : "Disconnect"}
+                  </Button>
+                ) : (
+                  <Button type="button" onClick={connectGoogle} disabled={googleActionLoading || googleStatus.loading} className="shrink-0 bg-violet-600 hover:bg-violet-700">
+                    <CalendarDays size={16} /> {googleActionLoading ? "Opening Google..." : "Connect Google Account"}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="lg:col-span-2">
               <Card><CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
                 <div className="min-w-0"><CardTitle>My timetable</CardTitle><CardDescription>Your classes for this week (Mon–Sun), synced automatically to Moodle with the Google Meet link for every session. Live classes are managed from Moodle; records sync back here.</CardDescription></div>
