@@ -307,7 +307,7 @@ export function StudentDashboard() {
       const { data } = await apiClient.post("/moodle/sync/timetable");
       if (data?.synced) {
         setMoodleSyncMsg(
-          `Moodle calendar updated ✔ ${data.created || 0} event(s) created, ${data.updated || 0} updated.${data.dryRun ? " (dry-run mode — connect MOODLE_WS_TOKEN for real events)" : ""}`
+          `Moodle calendar updated ✔ ${data.created || 0} event(s) created, ${data.updated || 0} updated.${data.enrollmentGroups ? ` ${data.enrollmentGroups} class group(s) enrolled.` : ""}${data.enrollmentFailures ? ` ${data.enrollmentFailures} enrollment issue(s).` : ""}${data.dryRun ? " (dry-run mode — no live Moodle changes)" : ""}`
         );
       } else if (data?.reason) {
         setMoodleSyncMsg(`Moodle said: ${data.reason}.`);
