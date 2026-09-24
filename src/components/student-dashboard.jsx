@@ -32,13 +32,22 @@ const formatMoney = (amount) =>
 
 // Timetable calendar helpers (the "My timetable" card on the Overview tab).
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const dayNameOf = (value) => WEEK_DAYS[(new Date(value).getDay() + 6) % 7];
-const formatTimetableDay = (value) =>
-  new Date(value).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+const sessionDateParts = (value) => {
+  const d = new Date(value);
+  return [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()];
+};
+const dayNameOf = (value) => {
+  const [year, month, day] = sessionDateParts(value);
+  return WEEK_DAYS[(new Date(Date.UTC(year, month, day)).getUTCDay() + 6) % 7];
+};
+const formatTimetableDay = (value) => {
+  const [year, month, day] = sessionDateParts(value);
+  return new Date(Date.UTC(year, month, day)).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+};
 const sameDay = (a, b) => {
-  const d1 = new Date(a);
-  const d2 = new Date(b);
-  return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+  const d1 = sessionDateParts(a);
+  const d2 = sessionDateParts(b);
+  return d1[0] === d2[0] && d1[1] === d2[1] && d1[2] === d2[2];
 };
 
 export function StudentDashboard() {
@@ -53,6 +62,7 @@ export function StudentDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [timetable, setTimetable] = useState(null); // null = loading, [] = no classes this week
+  const [classGroups, setClassGroups] = useState([]);
   const [syncingMoodle, setSyncingMoodle] = useState(false);
   const [moodleSyncMsg, setMoodleSyncMsg] = useState("");
   // Guards the AUTOMATIC Moodle push: the dashboard load and every timetable
@@ -96,6 +106,7 @@ export function StudentDashboard() {
     try {
       const { data } = await apiClient.get(`/students/${studentId}/timetable`);
       setTimetable(data?.timetable || []);
+      setClassGroups(data?.classGroups || []);
       if ((data?.timetable || []).length > 0) syncTimetableToMoodleAuto();
     } catch (err) {
       console.error("Failed to refresh timetable:", err);
@@ -136,6 +147,7 @@ export function StudentDashboard() {
         setBroadcasts((broadcastsResponse.data.broadcasts || []).map(normaliseMessage));
         setNotifications((notificationsResponse.data?.notifications || []).map(normaliseNotification));
         setTimetable(timetableResponse.data?.timetable || []);
+        setClassGroups(timetableResponse.data?.classGroups || []);
         // Automatic Moodle sync on dashboard load — pushes this week's classes
         // (with their Google Meet links) into the student's Moodle calendar.
         if ((timetableResponse.data?.timetable || []).length > 0) syncTimetableToMoodleAuto();
@@ -411,8 +423,50 @@ export function StudentDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 gap-4 sm:mt-8 sm:gap-5">
           <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
-            <TabsTrigger value="overview" className="min-h-10 shrink-0 px-3 sm:px-4">Home</TabsTrigger><TabsTrigger value="subjects" className="min-h-10 shrink-0 px-3 sm:px-4">My subjects</TabsTrigger><TabsTrigger value="inbox" className="min-h-10 shrink-0 px-3 sm:px-4">Messages {unreadMessages.length > 0 && <span className="rounded-full bg-blue-100 px-1.5 text-[10px] text-blue-700">{unreadMessages.length}</span>}</TabsTrigger><TabsTrigger value="payments" className="min-h-10 shrink-0 px-3 sm:px-4">Payments</TabsTrigger>
+            <TabsTrigger value="overview" className="min-h-10 shrink-0 px-3 sm:px-4">Home</TabsTrigger><TabsTrigger value="virtual-classes" className="min-h-10 shrink-0 px-3 sm:px-4">Virtual Classes {classGroups.length > 0 && <span className="ml-1 rounded-full bg-blue-100 px-1.5 text-[10px] text-blue-700">{classGroups.length}</span>}</TabsTrigger><TabsTrigger value="subjects" className="min-h-10 shrink-0 px-3 sm:px-4">My subjects</TabsTrigger><TabsTrigger value="inbox" className="min-h-10 shrink-0 px-3 sm:px-4">Messages {unreadMessages.length > 0 && <span className="rounded-full bg-blue-100 px-1.5 text-[10px] text-blue-700">{unreadMessages.length}</span>}</TabsTrigger><TabsTrigger value="payments" className="min-h-10 shrink-0 px-3 sm:px-4">Payments</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="virtual-classes" className="space-y-4">
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader>
+                <CardTitle>Virtual Classes</CardTitle>
+                <CardDescription>Your enrolled class groups and the classes scheduled for this week.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {moodleSyncMsg && <p className="mb-3 rounded-xl bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">{moodleSyncMsg}</p>}
+                {classGroups.length ? (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {classGroups.map((group) => {
+                      const sessions = timetable.filter((item) => item.groupCode === group.code);
+                      return (
+                        <div key={group._id} className="rounded-2xl border border-slate-200 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-bold">{group.subject || "Virtual Class"}</p>
+                              <p className="mt-1 text-sm text-slate-500">{group.code} · {group.grade} · {group.curriculum}</p>
+                            </div>
+                            <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-bold text-blue-700">{sessions.length} class{sessions.length === 1 ? "" : "es"}</span>
+                          </div>
+                          {sessions.length ? (
+                            <div className="mt-4 space-y-2">
+                              {sessions.map((session) => (
+                                <div key={session.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                                  <span>{formatTimetableDay(session.date)} · {session.startTime}–{session.endTime}</span>
+                                  <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase text-emerald-700">{session.status}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : <p className="mt-4 text-sm text-slate-500">No class scheduled this week.</p>}
+                          <Button type="button" onClick={() => openMoodleClass()} className="mt-4 w-full bg-blue-600 hover:bg-blue-700"><PlayCircle size={16} /> Open Virtual Classroom</Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : <EmptyState text="You are not enrolled in a class group yet. Ask your tutor or administrator to assign you." />}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
           <TabsContent value="overview">
             <Card className="border-slate-200 shadow-sm">
