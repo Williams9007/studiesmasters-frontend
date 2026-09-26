@@ -11,6 +11,7 @@ import apiClient from "../../utils/apiClient";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { RefreshCw, Download } from "lucide-react";
+import { BACKEND_URL } from "../../utils/backendUrl.js";
 
 const config = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("qaoToken")}` } });
 const PIE_COLORS = ["#7c3aed", "#f59e0b", "#0ea5e9", "#059669", "#e11d48"];
@@ -44,7 +45,7 @@ export default function ReportsModule() {
 
   const downloadExport = async (kind, format) => {
     try {
-      const base = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+      const base = (BACKEND_URL).replace(/\/$/, "");
       const path = kind === "sessions" ? `/api/qao/export/sessions?format=${format}` : `/api/qao/export/performance?format=${format}`;
       const res = await fetch(base + path, { headers: { Authorization: `Bearer ${localStorage.getItem("qaoToken")}` } });
       if (!res.ok) throw new Error("export failed");

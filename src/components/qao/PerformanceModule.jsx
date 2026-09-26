@@ -10,6 +10,7 @@ import apiClient from "../../utils/apiClient";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { RefreshCw, FileClock, Download, Star } from "lucide-react";
+import { BACKEND_URL } from "../../utils/backendUrl.js";
 
 const config = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("qaoToken")}` } });
 const LEVEL_COLORS = { underloaded: "#0ea5e9", balanced: "#059669", heavy: "#f59e0b", overloaded: "#e11d48" };
@@ -86,7 +87,7 @@ export default function PerformanceModule() {
   const downloadExport = async (format) => {
     try {
       const res = await fetch(
-        `${(import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "")}/api/qao/export/performance?month=${month}&format=${format}`,
+        `${(BACKEND_URL).replace(/\/$/, "")}/api/qao/export/performance?month=${month}&format=${format}`,
         { headers: { Authorization: `Bearer ${localStorage.getItem("qaoToken")}` } }
       );
       if (!res.ok) throw new Error("export failed");

@@ -12,8 +12,9 @@ import {
   Radio,
   X,
 } from "lucide-react";
+import { BACKEND_URL } from "../utils/backendUrl.js";
 
-const SOCKET_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+const SOCKET_URL = (import.meta.env.VITE_API_URL || BACKEND_URL).replace(/\/$/, "");
 const MAX_TOASTS = 4;
 const DISMISS_MS = 6500;
 

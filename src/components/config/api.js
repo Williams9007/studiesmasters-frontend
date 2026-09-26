@@ -1,12 +1,12 @@
 // src/utils/apiClient.js
 import axios from "axios";
+import { API_BASE_URL } from "../../utils/backendUrl.js";
 
-// Base URL from environment or fallback to localhost
-const BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
-
-// Create Axios instance
+// Base URL comes from the shared helper (utils/backendUrl.js), never a
+// per-file localhost literal: a literal here shipped a production bundle that
+// called http://localhost:5000/api and broke every admin Moodle panel request.
 export const apiClient = axios.create({
-  baseURL: BASE,
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },

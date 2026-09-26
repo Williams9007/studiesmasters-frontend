@@ -20,8 +20,10 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
+import { BACKEND_URL } from "../../utils/backendUrl.js";
 
-const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+
+const BASE_URL = (BACKEND_URL).replace(/\/$/, "");
 
 export default function Overview() {
   const [students, setStudents] = useState(0);

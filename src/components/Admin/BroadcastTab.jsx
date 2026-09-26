@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { io } from "socket.io-client";
 import apiClient from "../../utils/apiClient";
+import { BACKEND_URL } from "../../utils/backendUrl.js";
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE_URL = BACKEND_URL;
 
 export default function BroadcastTab() {
   const [students, setStudents] = useState([]);

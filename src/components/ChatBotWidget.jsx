@@ -6,6 +6,8 @@ import {
   FaPaperPlane,
   FaTimes,
 } from "react-icons/fa";
+import { BACKEND_URL } from "../utils/backendUrl.js";
+
 
 const supportEmail = "customersupport@studiesmasters.com";
 
@@ -107,7 +109,7 @@ const ChatBotWidget = () => {
     setStatus("Sending...");
 
     try {
-      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+      const BACKEND_URL = (BACKEND_URL).replace(/\/$/, "");
       const res = await fetch(BACKEND_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

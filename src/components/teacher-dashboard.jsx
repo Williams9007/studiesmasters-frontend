@@ -12,8 +12,9 @@ import { BookOpen, User, Bell, CheckCircle, Send, LogOut, PlayCircle, ArrowUpRig
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
 import { FaUsers } from "react-icons/fa";
+import { BACKEND_URL } from "../utils/backendUrl.js";
 
-const BASE_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+const BASE_URL = (BACKEND_URL).replace(/\/$/, "");
 const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://lms.studiesmasters.com/";
 
 // Timetable calendar helpers (the "My timetable" card on the Overview tab).

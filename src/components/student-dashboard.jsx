@@ -21,6 +21,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
+import { BACKEND_URL } from "../utils/backendUrl.js";
 
 const MOODLE_PORTAL_URL = import.meta.env.VITE_MOODLE_PORTAL_URL || "https://lms.studiesmasters.com/";
 
@@ -173,7 +174,7 @@ export function StudentDashboard() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const socket = io(import.meta.env.VITE_API_URL || "http://localhost:5000", {
+    const socket = io(BACKEND_URL, {
       auth: { token, role: "student", userId: studentData._id },
       query: { userId: studentData._id, role: "student" },
       transports: ["websocket"],

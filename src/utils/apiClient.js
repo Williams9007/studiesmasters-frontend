@@ -1,9 +1,10 @@
 // src/utils/apiClient.js
 import axios from "axios";
+import { API_BASE_URL } from "./backendUrl.js";
 
 const apiClient = axios.create({
   // Keep every authenticated request on the same backend used for login.
-  baseURL: `${(import.meta.env.VITE_BACKEND_URL || "http://localhost:5000").replace(/\/$/, "")}/api`,
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },

@@ -5,14 +5,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, LockKeyhole, WalletCards } from "lucide-react";
 
 import { formatCurrency } from "../utils/formatCurrency";
+import { BACKEND_URL } from "../utils/backendUrl.js";
 
 
-const BASE_URL = (
-  import.meta.env.VITE_BACKEND_URL ||
-  (import.meta.env.DEV
-    ? "http://localhost:5000"
-    : "https://studiesmasters-backend.onrender.com")
-).replace(/\/$/, "");
+const BASE_URL = BACKEND_URL;
 
 
 const loadPaystack = () =>
