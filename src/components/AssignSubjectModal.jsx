@@ -14,12 +14,22 @@ export default function AssignSubjectModal({ users, subjects, isOpen, onClose })
 
     setLoading(true);
     try {
+      // apiClient is axios, so the payload lives on res.data. Reading res.message
+      // (always undefined) hid the real backend result — including Moodle sync
+      // warnings — from the admin.
       const res = await apiClient.post("/admin/assign-subject", {
         teacherId,
         subjectId,
       });
 
-      alert(res.message || "Subject assigned successfully!");
+      const data = res.data || {};
+      const moodleNote = data.moodle?.ok === false
+        ? `\n\nNote: the subject was saved, but the Moodle sync reported: ${data.moodle.error || "unknown error"}`
+        : data.moodle?.ok
+          ? "\n\nMoodle: account and course access updated."
+          : "";
+
+      alert(`${data.message || "Subject assigned successfully!"}${moodleNote}`);
       setTeacherId("");
       setSubjectId("");
       onClose();

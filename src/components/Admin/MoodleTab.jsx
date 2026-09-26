@@ -97,6 +97,10 @@ export default function MoodleTab() {
   const runSyncAllTeachers = () => act("syncallteachers", () => apiClient.post("/moodle/sync-all-teachers", {}));
   const runReconcile = () => act("reconcile", () => apiClient.post("/moodle/reconcile", {}));
   const runRetryFailed = () => act("retryfailed", () => apiClient.post("/moodle/retry-failed", {}));
+  const runBackfillMeetings = () => act("backfillmeetings", () =>
+    apiClient.post("/admin/sessions/backfill-meetings", { resyncMoodle: true }));
+  const runResyncSessions = () => act("resyncsessions", () =>
+    apiClient.post("/admin/sessions/resync-moodle", {}));
 
   const runPreview = async () => {
     if (!previewId.trim()) return;
@@ -127,6 +131,8 @@ export default function MoodleTab() {
         <Btn onClick={runSyncAllTeachers} busy={busy === "syncallteachers"}>Sync All Teachers</Btn>
         <Btn onClick={runReconcile} busy={busy === "reconcile"}>Reconcile Enrollments</Btn>
         <Btn onClick={runRetryFailed} busy={busy === "retryfailed"} variant="secondary">Retry Failed Syncs</Btn>
+        <Btn onClick={runBackfillMeetings} busy={busy === "backfillmeetings"}>Create Missing Meet Links + Push Moodle</Btn>
+        <Btn onClick={runResyncSessions} busy={busy === "resyncsessions"} variant="secondary">Re-push Scheduled Classes to Moodle</Btn>
         <Btn variant="secondary" onClick={() => setShowMappings((v) => !v)}>
           {showMappings ? "Hide Course Mappings" : `View Course Mappings (${mappings.length})`}
         </Btn>

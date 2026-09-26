@@ -578,8 +578,8 @@ function AdminClassRecords() {
           <table className="w-full min-w-[680px]">
             <thead className="border-b border-slate-200"><tr><th className={th}>Student</th><th className={th}>Class</th><th className={th}>Subject</th><th className={th}>Sessions</th><th className={th}>Attended</th><th className={th}>Attendance</th><th className={th}>Minutes</th></tr></thead>
             <tbody>
-              {data.students.map((row) => (
-                <tr key={row.studentId} className="border-b border-slate-100 last:border-0">
+              {data.students.map((row, i) => (
+                <tr key={`${row.studentId || "student"}-${row.classGroup || "class"}-${row.subject || "subject"}-${i}`} className="border-b border-slate-100 last:border-0">
                   <td className={`${td} font-semibold`}>{row.name}</td>
                   <td className={td}>{row.classGroup}</td>
                   <td className={td}>{row.subject}</td>
