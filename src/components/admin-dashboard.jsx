@@ -553,12 +553,30 @@ function AdminClassRecords() {
   const th = "px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500";
   const td = "px-3 py-3 text-sm text-slate-700";
 
+  // Date helpers — so the admin can tell WHEN the Tutor Manager's classes ran.
+  const fmtDate = (value) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  };
+  const fmtDateTime = (value) => {
+    if (!value) return "";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : `${date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}, ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  };
+  const fmtSession = (session) => {
+    if (!session?.date) return "—";
+    const time = session.startTime ? ` · ${session.startTime}${session.endTime ? `–${session.endTime}` : ""}` : "";
+    return `${fmtDate(session.date)}${time}`;
+  };
+  const allDates = (row) => (row.sessionDates || []).map(fmtDate).join(", ");
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold">Class records</h2>
-          <p className="text-sm text-slate-500">Attendance and performance merged from the main website and Moodle.</p>
+          <p className="text-sm text-slate-500">Attendance and performance merged from the main website and Moodle — with the dates each class actually ran.</p>
         </div>
         <div className="flex gap-1 rounded-xl border border-slate-200 bg-white p-1">
           {[["students", "Students"], ["teachers", "Teachers"]].map(([id, label]) => (
@@ -576,20 +594,22 @@ function AdminClassRecords() {
       {!loading && !error && view === "students" && (
         <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
           <table className="w-full min-w-[680px]">
-            <thead className="border-b border-slate-200"><tr><th className={th}>Student</th><th className={th}>Class</th><th className={th}>Subject</th><th className={th}>Sessions</th><th className={th}>Attended</th><th className={th}>Attendance</th><th className={th}>Minutes</th></tr></thead>
+            <thead className="border-b border-slate-200"><tr><th className={th}>Student</th><th className={th}>Class</th><th className={th}>Subject</th><th className={th}>Sessions</th><th className={th}>Attended</th><th className={th}>Attendance</th><th className={th}>Minutes</th><th className={th}>First session</th><th className={th}>Last session</th></tr></thead>
             <tbody>
               {data.students.map((row, i) => (
                 <tr key={`${row.studentId || "student"}-${row.classGroup || "class"}-${row.subject || "subject"}-${i}`} className="border-b border-slate-100 last:border-0">
                   <td className={`${td} font-semibold`}>{row.name}</td>
                   <td className={td}>{row.classGroup}</td>
                   <td className={td}>{row.subject}</td>
-                  <td className={td}>{row.totalSessions}</td>
+                  <td className={td} title={allDates(row)}>{row.totalSessions}</td>
                   <td className={td}>{row.attended}</td>
                   <td className={td}><span className={`rounded-full px-2 py-0.5 text-xs font-bold ${row.attendancePct >= 75 ? "bg-emerald-100 text-emerald-700" : row.attendancePct >= 50 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>{row.attendancePct}%</span></td>
                   <td className={td}>{row.minutes}</td>
+                  <td className={td} title={allDates(row)}>{fmtSession(row.firstSession)}</td>
+                  <td className={td} title={row.lastAttendanceAt ? `Last student joined: ${fmtDateTime(row.lastAttendanceAt)}` : "No attendance joins recorded"}>{fmtSession(row.lastSession)}</td>
                 </tr>
               ))}
-              {!data.students.length && <tr><td className={td} colSpan={7}>No attendance records yet.</td></tr>}
+              {!data.students.length && <tr><td className={td} colSpan={9}>No attendance records yet.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -598,19 +618,21 @@ function AdminClassRecords() {
       {!loading && !error && view === "teachers" && (
         <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
           <table className="w-full min-w-[680px]">
-            <thead className="border-b border-slate-200"><tr><th className={th}>Teacher</th><th className={th}>Class</th><th className={th}>Students</th><th className={th}>Completed sessions</th><th className={th}>Attendance joins</th><th className={th}>Minutes taught</th></tr></thead>
+            <thead className="border-b border-slate-200"><tr><th className={th}>Teacher</th><th className={th}>Class</th><th className={th}>Students</th><th className={th}>Completed sessions</th><th className={th}>Attendance joins</th><th className={th}>Minutes taught</th><th className={th}>First session</th><th className={th}>Last session</th></tr></thead>
             <tbody>
               {data.teachers.map((row, i) => (
                 <tr key={`${row.teacherId}-${i}`} className="border-b border-slate-100 last:border-0">
                   <td className={`${td} font-semibold`}>{row.name}</td>
                   <td className={td}>{row.classGroup} · {row.subject} · {row.grade}</td>
                   <td className={td}>{row.students}</td>
-                  <td className={td}>{row.completedSessions}</td>
+                  <td className={td} title={allDates(row)}>{row.completedSessions}</td>
                   <td className={td}>{row.attendanceJoins}</td>
                   <td className={td}>{row.minutes}</td>
+                  <td className={td} title={allDates(row)}>{fmtSession(row.firstSession)}</td>
+                  <td className={td} title={row.lastAttendanceAt ? `Last attendance join: ${fmtDateTime(row.lastAttendanceAt)}` : "No attendance joins recorded"}>{fmtSession(row.lastSession)}</td>
                 </tr>
               ))}
-              {!data.teachers.length && <tr><td className={td} colSpan={6}>No class groups assigned yet.</td></tr>}
+              {!data.teachers.length && <tr><td className={td} colSpan={8}>No class groups assigned yet.</td></tr>}
             </tbody>
           </table>
         </div>

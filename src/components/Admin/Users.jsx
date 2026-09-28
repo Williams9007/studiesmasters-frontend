@@ -61,6 +61,9 @@ export default function Users() {
         status: user.status || "active",
         joined: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-",
         curriculum: user.curriculum || "",
+        // Students only: public student ID + the plan they are currently on.
+        studentId: user.userId || "",
+        subscriptionPlan: user.selectedPlan || user.package || "",
       });
       
       // Fetch subjects if viewing a teacher
@@ -152,7 +155,7 @@ export default function Users() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-slate-900">User Management</h2>
-          <p className="text-sm text-slate-500">Manage teachers, administrators, and tutor managers.</p>
+          <p className="text-sm text-slate-500">Manage students, teachers, administrators, and tutor managers.</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -193,7 +196,7 @@ export default function Users() {
 
         {/* Role Filter Tabs */}
         <div className="flex items-center gap-1 rounded-xl bg-slate-200/60 p-1 text-xs font-semibold text-slate-600">
-          {["all", "teacher", "tutormanager", "admin"].map((role) => (
+          {["all", "student", "teacher", "tutormanager", "admin"].map((role) => (
             <button
               key={role}
               onClick={() => setRoleFilter(role)}
@@ -201,7 +204,7 @@ export default function Users() {
                 roleFilter === role ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"
               }`}
             >
-              {role === "tutormanager" ? "Tutor Managers" : role === "all" ? "All Users" : `${role}s`}
+              {role === "tutormanager" ? "Tutor Managers" : role === "all" ? "All Users" : role === "student" ? "Students" : `${role}s`}
             </button>
           ))}
         </div>
@@ -215,6 +218,7 @@ export default function Users() {
             <th className="px-5 py-3.5">Email</th>
             <th className="px-5 py-3.5">Role</th>
             <th className="px-5 py-3.5">Status</th>
+            <th className="px-5 py-3.5">Subscription</th>
             <th className="px-5 py-3.5">Joined</th>
             <th className="px-5 py-3.5 text-right">Actions</th>
           </tr>
@@ -226,6 +230,16 @@ export default function Users() {
               <td className="px-5 py-4 text-slate-500">{user.email}</td>
               <td className="px-5 py-4">{getRoleBadge(user.role)}</td>
               <td className="px-5 py-4 capitalize">{user.status || "active"}</td>
+              <td className="px-5 py-4">
+                {user.role === "student" ? (
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-semibold text-slate-700">{user.subscriptionPlan || "No plan"}</div>
+                    <div className="font-mono text-[11px] text-slate-400">{user.studentId || "No student ID"}</div>
+                  </div>
+                ) : (
+                  <span className="text-xs text-slate-400">—</span>
+                )}
+              </td>
               <td className="px-5 py-4 text-xs text-slate-500">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}</td>
               <td className="px-5 py-4 text-right">
                 <div className="flex justify-end gap-2">
@@ -251,6 +265,12 @@ export default function Users() {
           <p><strong>Status:</strong> {selectedUser.status}</p>
           <p><strong>Joined:</strong> {selectedUser.joined}</p>
           {selectedUser.curriculum && <p><strong>Curriculum:</strong> {selectedUser.curriculum}</p>}
+          {selectedUser.role === "student" && (
+            <>
+              <p><strong>Student ID:</strong> {selectedUser.studentId || "-"}</p>
+              <p><strong>Subscription Plan:</strong> {selectedUser.subscriptionPlan || "Not set"}</p>
+            </>
+          )}
           {selectedUserSubjects.length > 0 && (
             <div className="mt-3">
               <p><strong>Assigned Subjects:</strong></p>
