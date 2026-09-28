@@ -53,6 +53,7 @@ export default function Users() {
     try {
       const res = await apiClient.get(`/admin/users/${id}/${role}`);
       const user = res.data.user;
+      const subscription = res.data.subscription || {};
       setSelectedUser({
         id: user._id,
         name: user.fullName || user.name || "N/A",
@@ -61,9 +62,13 @@ export default function Users() {
         status: user.status || "active",
         joined: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-",
         curriculum: user.curriculum || "",
-        // Students only: public student ID + the plan they are currently on.
-        studentId: user.userId || "",
-        subscriptionPlan: user.selectedPlan || user.package || "",
+        // Students only: public student ID + the plan/add-ons they signed up for
+        // (the backend resolves these from the student's payment records).
+        studentId: subscription.studentId || user.userId || "",
+        subscriptionPlan: subscription.subscriptionPlan || user.selectedPlan || user.package || "",
+        addOns: subscription.addOns || [],
+        allAddOns: subscription.allAddOns || [],
+        paymentStatus: subscription.paymentStatus || "",
       });
       
       // Fetch subjects if viewing a teacher
@@ -232,8 +237,9 @@ export default function Users() {
               <td className="px-5 py-4 capitalize">{user.status || "active"}</td>
               <td className="px-5 py-4">
                 {user.role === "student" ? (
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     <div className="text-xs font-semibold text-slate-700">{user.subscriptionPlan || "No plan"}</div>
+                    <div className="text-[11px] text-slate-500">{user.addOns?.length ? `Add-ons: ${user.addOns.join(", ")}` : "No add-ons"}</div>
                     <div className="font-mono text-[11px] text-slate-400">{user.studentId || "No student ID"}</div>
                   </div>
                 ) : (
@@ -269,6 +275,13 @@ export default function Users() {
             <>
               <p><strong>Student ID:</strong> {selectedUser.studentId || "-"}</p>
               <p><strong>Subscription Plan:</strong> {selectedUser.subscriptionPlan || "Not set"}</p>
+              <p><strong>Add-ons:</strong> {selectedUser.addOns?.length ? selectedUser.addOns.join(", ") : "None"}</p>
+              {(selectedUser.allAddOns?.length || 0) > (selectedUser.addOns?.length || 0) && (
+                <p className="text-xs text-slate-500">Previously added: {selectedUser.allAddOns.join(", ")}</p>
+              )}
+              {selectedUser.paymentStatus && (
+                <p className="text-xs text-slate-500">Payment status: <span className="capitalize">{selectedUser.paymentStatus}</span></p>
+              )}
             </>
           )}
           {selectedUserSubjects.length > 0 && (
