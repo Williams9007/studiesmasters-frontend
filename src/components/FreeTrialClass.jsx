@@ -6,6 +6,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { GraduationCap, ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
+import apiClient from "../utils/apiClient";
 
 
 export default function FreeTrialClass() {
@@ -33,6 +34,8 @@ export default function FreeTrialClass() {
 
 
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState("");
 
 
 
@@ -134,10 +137,13 @@ export default function FreeTrialClass() {
 
 
 
-  const submitForm=(e)=>{
+  const submitForm = async (e) => {
 
     e.preventDefault();
 
+    setError("");
+
+    setSuccess("");
 
     if(!formData.consent){
 
@@ -149,16 +155,75 @@ export default function FreeTrialClass() {
 
     }
 
+    if(formData.subjects.length === 0){
 
-    console.log(formData);
+      setError(
+        "Please select at least one subject for the trial class."
+      );
+
+      return;
+
+    }
 
 
-    alert(
-      "Your free trial class request has been submitted!"
-    );
+    try{
+
+      setSubmitting(true);
+
+      const response = await apiClient.post(
+        "/free-trial",
+        formData
+      );
+
+      setSuccess(
+        response.data.message ||
+        "Your free trial class request has been received!"
+      );
+
+      setFormData({
+
+        studentName: "",
+
+        grade: "",
+
+        subjects: [],
+
+        parentName: "",
+
+        whatsapp: "",
+
+        alternativePhone: "",
+
+        preferredDays: [],
+
+        preferredTime: "",
+
+        goals: [],
+
+        consent: false,
+
+      });
 
 
-    // Later connect API here
+    }catch(err){
+
+      console.error(
+        "Failed to submit free trial request:",
+        err
+      );
+
+      setError(
+        err.response?.data?.message ||
+        err.response?.data?.errors?.[0]?.message ||
+        "We could not submit your request. Please try again."
+      );
+
+    }finally{
+
+      setSubmitting(false);
+
+    }
+
 
   };
 
@@ -718,8 +783,17 @@ I agree to be contacted via WhatsApp and phone regarding the trial class.
 
 {error && (
 
-<p className="text-red-600">
+<p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
 {error}
+</p>
+
+)}
+
+{success && (
+
+<p className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+<CheckCircle2 className="h-4 w-4 shrink-0" />
+{success}
 </p>
 
 )}
@@ -731,12 +805,14 @@ I agree to be contacted via WhatsApp and phone regarding the trial class.
 
 type="submit"
 
-className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 py-5 text-lg font-bold shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-cyan-700"
+disabled={submitting}
+
+className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 py-5 text-lg font-bold shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
 
 >
 
 
-🟢 BOOK MY FREE TRIAL CLASS
+{submitting ? "SENDING REQUEST…" : "🟢 BOOK MY FREE TRIAL CLASS"}
 
 
 </Button>

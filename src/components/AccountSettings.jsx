@@ -26,7 +26,8 @@ export function AccountSettings() {
         return;
       }
 
-      const response = await apiClient.post("/api/auth/change-email", { newEmail: email });
+      // apiClient baseURL already includes "/api".
+      const response = await apiClient.post("/auth/change-email", { newEmail: email });
       alert(response.data.message || "Email changed successfully!");
       setEmail("");
     } catch (err) {
@@ -39,7 +40,9 @@ export function AccountSettings() {
   const fetchHelpContent = async () => {
     try {
       setLoadingHelp(true);
-      const response = await apiClient.get("/api/help");
+      // apiClient already targets `${BACKEND_URL}/api`, so the path must NOT
+      // repeat the "/api" prefix — that used to request /api/api/help (404).
+      const response = await apiClient.get("/help");
       setHelpContent(response.data.content || "No help content available.");
     } catch (err) {
       console.error("Failed to fetch help content:", err);
