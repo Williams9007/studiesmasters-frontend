@@ -75,11 +75,14 @@ export default function Users() {
         paymentStatus: subscription.paymentStatus || "",
       });
       
-      // Fetch subjects if viewing a teacher
+      // Fetch subjects if viewing a teacher (canonical admin read model).
       if (role === "teacher") {
         try {
-          const subjectsRes = await apiClient.get(`/teachers/${id}/subjects`);
-          setSelectedUserSubjects(subjectsRes.data || []);
+          const subjectsRes = await apiClient.get(`/admin/teachers/${id}/subjects`);
+          const payload = subjectsRes.data || {};
+          setSelectedUserSubjects(
+            Array.isArray(payload.subjects) ? payload.subjects : (Array.isArray(payload) ? payload : [])
+          );
         } catch (e) {
           console.error("Error fetching subjects:", e);
           setSelectedUserSubjects([]);
