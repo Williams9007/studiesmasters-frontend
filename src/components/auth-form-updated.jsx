@@ -1327,7 +1327,7 @@ e.target.value
       checked={formData.acceptTerms}
       onChange={(e) => updateField("acceptTerms", e.target.checked)}
     />
-    <span>I have read and accept the <a className="text-blue-700 underline" href="/policies" target="_blank" rel="noreferrer">Terms & Conditions</a>.</span>
+    <span>I have read and accept the <a className="text-blue-700 underline" href="/#/policies" target="_blank" rel="noreferrer">Terms &amp; Conditions</a>.</span>
   </label>
 
   <label className="mt-3 flex gap-2 items-start text-sm">
@@ -1337,7 +1337,7 @@ e.target.value
       checked={formData.acceptPrivacy}
       onChange={(e) => updateField("acceptPrivacy", e.target.checked)}
     />
-    <span>I have read and accept the <a className="text-blue-700 underline" href="/policies" target="_blank" rel="noreferrer">Privacy Policy</a>.</span>
+    <span>I have read and accept the <a className="text-blue-700 underline" href="/#/policies" target="_blank" rel="noreferrer">Privacy Policy</a>.</span>
   </label>
 
   <label className="mt-3 flex gap-2 items-start text-sm">
@@ -1347,7 +1347,7 @@ e.target.value
       checked={formData.acceptParentAgreement}
       onChange={(e) => updateField("acceptParentAgreement", e.target.checked)}
     />
-    <span>I have read and accept the <a className="text-blue-700 underline" href="/policies" target="_blank" rel="noreferrer">Parent Service Agreement</a>.</span>
+    <span>I have read and accept the <a className="text-blue-700 underline" href="/#/policies" target="_blank" rel="noreferrer">Parent Service Agreement</a>.</span>
   </label>
 </div>
 
