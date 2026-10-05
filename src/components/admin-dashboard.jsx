@@ -741,7 +741,7 @@ const renderContent = () => {
       return <SubjectsTab/>;
 
     case "timetable":
-      return <TimetableModule tokenKey="adminToken" apiPrefix="/admin" teacherEndpoint="/admin/class-groups/options" classGroupsEndpoint="/admin/class-groups" moodleSyncEndpoint="/admin/timetable/sync-moodle" />;
+      return <TimetableModule tokenKey="adminToken" apiPrefix="/admin" teacherEndpoint="/admin/class-groups/options" classGroupsEndpoint="/admin/class-groups" moodleSyncEndpoint="/admin/timetable/sync-moodle" allowDeleteClass allowDeleteSession />;
 
     case "moodle":
       return <MoodleTab/>;

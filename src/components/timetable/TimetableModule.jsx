@@ -49,6 +49,8 @@ export default function TimetableModule({
   teacherEndpoint = "/qao/teachers/all",
   classGroupsEndpoint = null,   // optional: merge previously created class groups
   moodleSyncEndpoint = null,    // optional: bulk push sessions to Moodle calendar
+  allowDeleteClass = false,     // admin dashboard: show Delete-class button (ClassGroup + sessions)
+  allowDeleteSession = false,   // admin dashboard: show per-session Delete button
 } = {}) {
   const config = useConfig(tokenKey);
   const [timetable, setTimetable] = useState([]);
@@ -57,6 +59,8 @@ export default function TimetableModule({
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState("");
   const [notice, setNotice] = useState("");
+  const [deletingId, setDeletingId] = useState("");       // classGroupId being deleted
+  const [deletingSessionId, setDeletingSessionId] = useState(""); // sessionId being deleted
 
   const [showCreate, setShowCreate] = useState(false);
   const [newClass, setNewClass] = useState({
@@ -205,6 +209,52 @@ const flash = (msg) => {
     }
   };
 
+  // ---- Delete one generated session (per-row delete button, admin only) ------
+  const deleteSession = async (classGroupId, sessionId) => {
+    if (!sessionId || deletingSessionId) return;
+    if (!window.confirm("Delete this scheduled class? Students and the teacher will be notified.")) return;
+    setDeletingSessionId(sessionId);
+    setNotice("");
+    setError("");
+    try {
+      await apiClient.delete(`${apiPrefix}/timetable/sessions/${sessionId}`, config);
+      setNotice("Scheduled class deleted.");
+      setTimetable((rows) =>
+        rows.map((g) =>
+          String(g._id) === String(classGroupId)
+            ? { ...g, generatedSessions: (g.generatedSessions || []).filter((s) => String(s._id) !== String(sessionId)) }
+            : g
+        )
+      );
+      await load();
+      window.dispatchEvent(new CustomEvent("sm:calendar-refresh"));
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete the scheduled class.");
+    } finally {
+      setDeletingSessionId("");
+    }
+  };
+
+  // ---- Delete a whole class: ClassGroup + every generated session ------------
+  const deleteClass = async (classGroupId, code) => {
+    if (!classGroupId || deletingId) return;
+    if (!window.confirm(`Delete class ${code || ""} and ALL of its scheduled sessions? Students and the teacher will be notified. This cannot be undone.`)) return;
+    setDeletingId(classGroupId);
+    setNotice("");
+    setError("");
+    try {
+      const res = await apiClient.delete(`${apiPrefix}/class-groups/${classGroupId}`, config);
+      setNotice(res.data?.message || `Class ${code || ""} deleted.`);
+      setTimetable((rows) => rows.filter((g) => String(g._id) !== String(classGroupId)));
+      await load();
+      window.dispatchEvent(new CustomEvent("sm:calendar-refresh"));
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete the class.");
+    } finally {
+      setDeletingId("");
+    }
+  };
+
   const setSlotField = (id, i, field, value) =>
     setSlotEditors((p) => ({ ...p, [id]: (p[id] || []).map((r, idx) => (idx === i ? { ...r, [field]: value } : r)) }));
   const addSlotRow = (id) => setSlotEditors((p) => ({ ...p, [id]: [...(p[id] || []), { day: "", startTime: "", endTime: "" }] }));
@@ -249,6 +299,18 @@ const renderClassCard = (g) => {
               ) : (
                 <Button size="sm" onClick={() => saveSlots(g._id)} disabled={savingId === g._id} className="rounded-full bg-violet-600 text-[11px] text-white">
                   <Save className="mr-1 h-3 w-3" /> {savingId === g._id ? "Saving…" : "Save"}
+                </Button>
+              )}
+              {allowDeleteClass && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => deleteClass(g._id, g.code)}
+                  disabled={deletingId === g._id}
+                  title={`Delete class ${g.code} and all its scheduled sessions`}
+                  className="rounded-full border-rose-200 text-[11px] font-semibold text-rose-600 hover:bg-rose-50"
+                >
+                  <Trash2 className="mr-1 h-3 w-3" /> {deletingId === g._id ? "Deleting…" : "Delete class"}
                 </Button>
               )}
             </div>
@@ -327,6 +389,7 @@ const renderClassCard = (g) => {
                       <th className="px-3 py-2 font-semibold">Teacher</th>
                       <th className="px-3 py-2 font-semibold">Meet</th>
                       <th className="px-3 py-2 font-semibold">Status</th>
+                      {allowDeleteSession && <th className="px-3 py-2 font-semibold text-right">Action</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -346,6 +409,20 @@ const renderClassCard = (g) => {
                           <span className="ml-1.5">{meetingBadge(s.meetingStatus)}</span>
                         </td>
                         <td className="px-3 py-2 capitalize text-slate-600">{s.status}</td>
+                        {allowDeleteSession && (
+                          <td className="px-3 py-2 text-right">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => deleteSession(g._id, s._id)}
+                              disabled={deletingSessionId === s._id}
+                              title="Delete this scheduled class"
+                              className="h-7 rounded-full px-2 text-rose-600 hover:bg-rose-50"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
