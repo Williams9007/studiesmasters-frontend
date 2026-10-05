@@ -51,6 +51,30 @@ const sameDay = (a, b) => {
   return d1[0] === d2[0] && d1[1] === d2[1] && d1[2] === d2[2];
 };
 
+/**
+ * PRESENTATION-LAYER GUARD (not a filter).
+ *
+ * The backend is the single source of truth: GET /students/:id/timetable has
+ * ALREADY applied the student-id / class-group / curriculum / grade / active-
+ * enrolment gates, and Moodle renders the same backend response verbatim. This
+ * helper does not decide visibility — it only asserts, before anything is
+ * rendered, that every event carries a classGroupId belonging to one of the
+ * student's assigned groups, and drops anything that fails so a rendering bug
+ * can never put another class group's class (or its Google Meet link) on
+ * screen. It can only ever remove events; it never adds or widens.
+ */
+const onlyAssignedEvents = (data) => {
+  const events = Array.isArray(data?.timetable) ? data.timetable : [];
+  const assigned = new Set(
+    (data?.assignedClassGroupIds || (data?.classGroups || []).map((g) => g.classGroupId || g._id) || [])
+      .filter(Boolean)
+      .map(String),
+  );
+  // No declared assignment set: trust the already-authorised backend payload.
+  if (!assigned.size) return events;
+  return events.filter((e) => e?.classGroupId && assigned.has(String(e.classGroupId)));
+};
+
 export function StudentDashboard() {
   const navigate = useNavigate();
   const socketRef = useRef(null);
@@ -106,7 +130,7 @@ export function StudentDashboard() {
     if (!studentId) return;
     try {
       const { data } = await apiClient.get(`/students/${studentId}/timetable`);
-      setTimetable(data?.timetable || []);
+      setTimetable(onlyAssignedEvents(data));
       if ((data?.timetable || []).length > 0) syncTimetableToMoodleAuto();
     } catch (err) {
       console.error("Failed to refresh timetable:", err);
@@ -146,7 +170,7 @@ export function StudentDashboard() {
         setPayments(Array.isArray(data.payments) ? data.payments : []);
         setBroadcasts((broadcastsResponse.data.broadcasts || []).map(normaliseMessage));
         setNotifications((notificationsResponse.data?.notifications || []).map(normaliseNotification));
-        setTimetable(timetableResponse.data?.timetable || []);
+        setTimetable(onlyAssignedEvents(timetableResponse.data));
         // Automatic Moodle sync on dashboard load — pushes this week's classes
         // (with their Google Meet links) into the student's Moodle calendar.
         if ((timetableResponse.data?.timetable || []).length > 0) syncTimetableToMoodleAuto();
