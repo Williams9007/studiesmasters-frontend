@@ -44,8 +44,14 @@ export default function Users() {
   const showingTeachers = roleFilter === "teacher" || roleFilter === "all";
 
   const filteredUsers = users.filter((user) => {
+    // The Tutor Managers tab uses "tutormanager" while QAO records carry
+    // role "qao" (or occasionally "tutor-manager") — match them all.
+    const matchesRole =
+      roleFilter === "all" ||
+      user.role === roleFilter ||
+      (roleFilter === "tutormanager" && (user.role === "qao" || user.role === "tutor-manager"));
     return (
-      (roleFilter === "all" || user.role === roleFilter) &&
+      matchesRole &&
       (user.name?.toLowerCase().includes(search.toLowerCase()) ||
         user.email?.toLowerCase().includes(search.toLowerCase()))
     );
@@ -155,6 +161,7 @@ export default function Users() {
       case "admin":
         return <span className={`${base} bg-purple-50 text-purple-700 border border-purple-200/60`}>Admin</span>;
       case "qao":
+      case "tutor-manager":
         return <span className={`${base} bg-indigo-50 text-indigo-700 border border-indigo-200/60`}>Tutor Manager</span>;
       default:
         return <span className={`${base} bg-slate-100 text-slate-700 border border-slate-200`}>{role}</span>;
