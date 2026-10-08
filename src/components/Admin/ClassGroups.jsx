@@ -123,10 +123,12 @@ export default function ClassGroups() {
   };
 
   const assignTeacher = async (groupId, teacherId) => {
-    if (!teacherId) return;
+    // Empty teacherId = unassign (the "Assign a teacher" placeholder option).
+    setError(""); setNotice("");
     try {
-      const result = await apiClient.put(`/admin/class-groups/${groupId}/teacher`, { teacherId });
+      const result = await apiClient.put(`/admin/class-groups/${groupId}/teacher`, { teacherId: teacherId || "" });
       setGroups((current) => current.map((group) => group._id === groupId ? { ...group, teacher: result.data.group.teacher } : group));
+      setNotice(teacherId ? "Teacher assigned." : "Teacher removed from the class.");
     } catch (err) { setError(err.response?.data?.message || "Unable to assign the teacher."); }
   };
 
@@ -160,7 +162,7 @@ export default function ClassGroups() {
     setRemovingGroupId(groupId); setRemovingStudentId(studentId); setError(""); setNotice("");
     try {
       const result = await apiClient.delete(`/admin/class-groups/${groupId}/students/${studentId}`);
-      setNotice(result.message || "Student removed from the group.");
+      setNotice(result.data?.message || "Student removed from the group.");
       setGroups((current) => current.map((group) => group._id === groupId ? result.data.group : group));
     } catch (err) { setError(err.response?.data?.message || "Unable to remove the student from the group."); }
     finally { setRemovingGroupId(null); setRemovingStudentId(null); }
