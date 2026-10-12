@@ -18,7 +18,15 @@ apiClient.interceptors.request.use((config) => {
   const url = config.url?.toLowerCase() || "";
   let token = userToken;
 
-  if (url.startsWith("/admin") || url.includes("/admin/")) {
+  // Admin surfaces must ALWAYS prefer the admin token. /google/oauth/* and
+  // /meet/admin/* are adminAuth-guarded (MAIN_ADMIN/MINOR_ADMIN); the previous
+  // catch-all branch sent userToken (a student/teacher token from a prior login
+  // on the same origin) first, so "Reconnect Google" 403'd even with a valid
+  // admin session.
+  if (
+    url.startsWith("/admin") || url.includes("/admin/") ||
+    url.startsWith("/google/oauth") || url.includes("/meet/admin")
+  ) {
     token = adminToken || qaoToken || userToken;
   } else if (url.startsWith("/qao") || url.includes("/qao/")) {
     token = qaoToken || adminToken || userToken;
