@@ -53,9 +53,26 @@ export default function AdminVirtualOps() {
     setTestMsg("Testing…");
     try {
       const res = await apiClient.post("/meet/admin/google-status/test-connection");
-      setTestMsg(`${res.data?.mode === "live" ? "LIVE" : "MOCK"} — ${res.data?.message || "OK"}`);
+      const mode = res.data?.mode;
+      const prefix = mode === "live" ? "LIVE" : mode === "failed" ? "FAILED" : "MOCK";
+      setTestMsg(`${prefix} — ${res.data?.message || "OK"}`);
     } catch (err) {
       setTestMsg(err.response?.data?.message || "Test failed");
+    }
+  };
+
+  // Re-open the Google consent screen for the company account. Required whenever
+  // the stored refresh grant dies (Google invalid_grant: expired/revoked) —
+  // without a fresh grant NO Google Meet links can be generated.
+  const reconnectGoogle = async () => {
+    setTestMsg("Opening Google consent…");
+    try {
+      const res = await apiClient.get("/google/oauth/start");
+      const url = res.data?.consentUrl;
+      if (url) window.open(url, "_blank", "noopener");
+      setTestMsg("Authorize as virtualclass@studiesmasters.com in the opened tab, then run Test connection.");
+    } catch (err) {
+      setTestMsg(err.response?.data?.message || "Could not start Google OAuth");
     }
   };
 
@@ -140,9 +157,17 @@ export default function AdminVirtualOps() {
                 ? (settings.tokenStatus.hasRefreshToken ? <span className="font-bold text-emerald-600">stored (encrypted)</span> : <span className="font-bold text-amber-600">missing</span>)
                 : <span className="font-bold text-slate-400">no token yet</span>}
             </p>
+            {settings.tokenHealth && !settings.tokenHealth.ok && (
+              <p className="sm:col-span-2 rounded-lg bg-red-50 p-2 text-[11px] font-semibold text-red-700">
+                Google authorization is no longer valid — Meet links cannot be generated.
+                {" "}{settings.tokenHealth.error}
+                {" "}Reconnect the Google account, then run Test connection and the meet-link backfill.
+              </p>
+            )}
           </div>
           <div className="mt-3 flex items-center gap-2">
             <Button size="sm" onClick={testConnection} className="h-8 rounded-full">Test connection</Button>
+            <Button size="sm" variant="outline" onClick={reconnectGoogle} className="h-8 rounded-full">Reconnect Google</Button>
             {testMsg && <span className="text-xs text-slate-600">{testMsg}</span>}
           </div>
         </section>
